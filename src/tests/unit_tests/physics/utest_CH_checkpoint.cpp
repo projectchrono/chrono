@@ -1,0 +1,359 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2026 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+//
+// Unit tests for checkpoint restarts.
+// Each test runs a continuous simulation and a restart, in a freshly built (not yet initialized) system, from a
+// checkpoint written halfway through, and requires identical final states.
+// - SYSTEM checkpoint of an ANCF beam
+// - SYSTEM checkpoint of a cable whose reference configuration differs from its initial state
+// - SYSTEM checkpoint of a yielding IGA beam (element internal state, accelerations, time-dependent motor)
+// - loading a checkpoint without the internal state block (older file format) loses the plastic history
+// - COMPONENT checkpoint of an FEA mesh and a DAE physics item
+// - loading a checkpoint into a different system fails
+//
+// =============================================================================
+
+#include <cmath>
+#include <fstream>
+#include <functional>
+#include <string>
+#include <vector>
+
+#include "chrono/core/ChDataPath.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChLinkMotorLinearPosition.h"
+#include "chrono/physics/ChExternalDynamicsDAE.h"
+#include "chrono/functions/ChFunctionConst.h"
+#include "chrono/functions/ChFunctionRamp.h"
+#include "chrono/functions/ChFunctionSine.h"
+#include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/fea/ChMesh.h"
+#include "chrono/fea/ChBuilderBeam.h"
+#include "chrono/fea/ChBeamSectionCosserat.h"
+#include "chrono/fea/ChElementBeamANCF_3243.h"
+#include "chrono/fea/ChElementBeamIGA.h"
+#include "chrono/input_output/ChCheckpointASCII.h"
+
+#include "gtest/gtest.h"
+
+using namespace chrono;
+using namespace chrono::fea;
+
+const std::string out_dir = GetChronoTestOutputPath() + "/ch_checkpoint/";
+
+// -----------------------------------------------------------------------------
+
+// Deterministic solver settings, so that restarts can be compared exactly
+static void Configure(ChSystem& sys) {
+    sys.SetNumThreads(1);
+    auto solver = chrono_types::make_shared<ChSolverSparseLU>();
+    solver->UseSparsityPatternLearner(true);
+    solver->LockSparsityPattern(true);
+    sys.SetSolver(solver);
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+}
+
+// Maximum difference between the states of two systems
+static double StateDiff(ChSystem& a, ChSystem& b) {
+    a.Setup();
+    b.Setup();
+    if (a.GetNumCoordsPosLevel() != b.GetNumCoordsPosLevel() || a.GetNumCoordsVelLevel() != b.GetNumCoordsVelLevel())
+        return 1e300;
+    ChState xa(a.GetNumCoordsPosLevel(), &a);
+    ChState xb(b.GetNumCoordsPosLevel(), &b);
+    ChStateDelta va(a.GetNumCoordsVelLevel(), &a);
+    ChStateDelta vb(b.GetNumCoordsVelLevel(), &b);
+    double t;
+    a.StateGather(xa, va, t);
+    b.StateGather(xb, vb, t);
+    return std::max((xa - xb).cwiseAbs().maxCoeff(), (va - vb).cwiseAbs().maxCoeff());
+}
+
+// Sum of accumulated plastic strains over all IGA beam elements in the system
+static double PlasticStrain(ChSystem& sys) {
+    double sum = 0;
+    for (const auto& mesh : sys.GetAssembly().GetMeshes()) {
+        for (const auto& element : mesh->GetElements()) {
+            if (auto iga = std::dynamic_pointer_cast<ChElementBeamIGA>(element)) {
+                for (const auto& data : iga->GetPlasticData())
+                    sum += std::abs(data->p_strain_acc);
+            }
+        }
+    }
+    return sum;
+}
+
+// Copy a SYSTEM checkpoint file without its last line (accelerations and internal state), as in older files
+static std::string StripInternalState(const std::string& filename) {
+    std::ifstream ifile(filename);
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(ifile, line))
+        lines.push_back(line);
+    std::string stripped = filename + ".stripped";
+    std::ofstream ofile(stripped);
+    for (size_t i = 0; i + 1 < lines.size(); i++)
+        ofile << lines[i] << "\n";
+    return stripped;
+}
+
+// Run a continuous simulation of n1+n2 steps in sys1, writing a SYSTEM checkpoint after n1 steps.
+// Then restart from that checkpoint in sys2, freshly built, and simulate n2 steps.
+static void
+RunSystemRestart(ChSystem& sys1, ChSystem& sys2, const std::function<void(ChSystem&)>& build, int n1, int n2, double step, const std::string& filename, bool strip = false) {
+    ASSERT_TRUE(CreateOutputDirectory(std::filesystem::path(out_dir)));
+
+    Configure(sys1);
+    build(sys1);
+    for (int i = 0; i < n1; i++)
+        sys1.DoStepDynamics(step);
+    {
+        ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
+        cp.Save(&sys1);
+        cp.WriteFile(out_dir + filename);
+    }
+    for (int i = 0; i < n2; i++)
+        sys1.DoStepDynamics(step);
+
+    Configure(sys2);
+    build(sys2);
+    {
+        ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
+        cp.ReadFile(strip ? StripInternalState(out_dir + filename) : out_dir + filename);
+        cp.Load(&sys2);
+    }
+    for (int i = 0; i < n2; i++)
+        sys2.DoStepDynamics(step);
+}
+
+// -----------------------------------------------------------------------------
+
+// ANCF 3243 cantilever with a constant tip load
+static void BuildANCF(ChSystem& sys) {
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+
+    double length = 5;
+    double width = 0.1;
+    double thickness = 0.1;
+    int num_elements = 8;
+    double dx = length / num_elements;
+    auto material = chrono_types::make_shared<ChMaterialBeamANCF>(8000, 4e8, 0, 10.0 / 12, 10.0 / 12);
+
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    mesh->SetAutomaticGravity(false);
+    sys.Add(mesh);
+
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0, 0));
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
+    for (int i = 1; i <= num_elements; i++) {
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0, 0));
+        mesh->AddNode(nodeB);
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();
+        element->SetNodes(nodeA, nodeB);
+        element->SetDimensions(dx, thickness, width);
+        element->SetMaterial(material);
+        mesh->AddElement(element);
+        nodeA = nodeB;
+    }
+    nodeA->SetForce(ChVector3d(0, 0, -500));
+}
+
+// Physics item that moves the free end of a cable in phase 2, after the cable recorded its reference configuration
+class Tensioner : public ChPhysicsItem {
+  public:
+    Tensioner(std::shared_ptr<ChNodeFEAxyzD> node) : m_node(node) {}
+
+  private:
+    virtual void SetupInitialState() override { m_node->SetPos(m_node->GetPos() + ChVector3d(0.01, 0.02, 0)); }
+
+    std::shared_ptr<ChNodeFEAxyzD> m_node;
+};
+
+// ANCF cable cantilever, pretensioned by a Tensioner
+static void BuildPretensionedCable(ChSystem& sys) {
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
+
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
+    section->SetDiameter(0.015);
+    section->SetYoungModulus(0.01e9);
+    ChBuilderCableANCF builder;
+    builder.BuildBeam(mesh, section, 10, ChVector3d(0, 0, 0), ChVector3d(1, 0, 0));
+    builder.GetLastBeamNodes().front()->SetFixed(true);
+    sys.Add(mesh);
+
+    sys.Add(chrono_types::make_shared<Tensioner>(builder.GetLastBeamNodes().back()));
+}
+
+// IGA beam with lumped plasticity, pushed and pulled by a motor into repeated yielding
+static void BuildYieldingIGA(ChSystem& sys) {
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    mesh->SetAutomaticGravity(false);
+    sys.Add(mesh);
+
+    double wy = 0.012;
+    double wz = 0.025;
+    auto inertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+    inertia->SetAsRectangularSection(wy, wz, 1000);
+    auto elasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+    elasticity->SetYoungModulus(0.02e10);
+    elasticity->SetShearModulus(0.02e10 * 0.3);
+    elasticity->SetAsRectangularSection(wy, wz);
+    auto plasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
+    plasticity->n_yeld_x = chrono_types::make_shared<ChFunctionConst>(3000);
+    plasticity->n_beta_x = chrono_types::make_shared<ChFunctionRamp>(0, 1e3);
+    plasticity->n_yeld_My = chrono_types::make_shared<ChFunctionConst>(0.3);
+    plasticity->n_beta_My = chrono_types::make_shared<ChFunctionRamp>(0, 0.001e2);
+    plasticity->n_yeld_Mz = chrono_types::make_shared<ChFunctionConst>(0.3);
+    plasticity->n_beta_Mz = chrono_types::make_shared<ChFunctionRamp>(0, 0.001e2);
+    auto section = chrono_types::make_shared<ChBeamSectionCosserat>(inertia, elasticity, plasticity);
+
+    ChBuilderBeamIGA builder;
+    builder.BuildBeam(mesh, section, 5, ChVector3d(0, 0, 0), ChVector3d(0.4, 0, 0), VECT_Y, 3);
+    builder.GetLastBeamNodes().front()->SetFixed(true);
+
+    auto truss = chrono_types::make_shared<ChBody>();
+    truss->SetFixed(true);
+    sys.Add(truss);
+
+    auto tip = builder.GetLastBeamNodes().back();
+    auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+    motor->Initialize(tip, truss, ChFrame<>(tip->GetPos(), Q_ROTATE_Z_TO_X));
+    motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
+    motor->SetMotionFunction(chrono_types::make_shared<ChFunctionSine>(0.05, 0.1));
+    sys.Add(motor);
+}
+
+// Planar pendulum modeled as a DAE (3 states, 2 algebraic constraints)
+class PendulumDAE : public ChExternalDynamicsDAE {
+  public:
+    PendulumDAE() : g(9.8), L(0.5), m(2.0), I(m * L * L / 3) {}
+
+    virtual PendulumDAE* Clone() const override { return new PendulumDAE(*this); }
+
+    virtual unsigned int GetNumStates() const override { return 3; }
+    virtual unsigned int GetNumStateDerivatives() const override { return 3; }
+    virtual unsigned int GetNumAlgebraicConstraints() const override { return 2; }
+    virtual bool InExplicitForm() const override { return false; }
+
+    virtual void SetInitialConditions(ChVectorDynamic<>& y0, ChVectorDynamic<>& yd0) override {
+        y0 << L, 0, 0;
+        yd0.setZero();
+    }
+
+    virtual void CalculateMassMatrix(ChMatrixDynamic<>& M) override {
+        M.setZero();
+        M(0, 0) = m;
+        M(1, 1) = m;
+        M(2, 2) = I;
+    }
+
+    virtual void CalculateForce(double time, const ChVectorDynamic<>& y, const ChVectorDynamic<>& yd, ChVectorDynamic<>& F) override { F << 0, -m * g, 0; }
+
+    virtual void CalculateConstraintViolation(double time, const ChVectorDynamic<>& y, ChVectorDynamic<>& c) override {
+        c(0) = y(0) - L * std::cos(y(2));
+        c(1) = y(1) - L * std::sin(y(2));
+    }
+
+    virtual void CalculateConstraintJacobian(double time, const ChVectorDynamic<>& y, const ChVectorDynamic<>& c, ChMatrixDynamic<>& J) override {
+        J << 1, 0, L * std::sin(y(2)), 0, 1, -L * std::cos(y(2));
+    }
+
+  private:
+    double g, L, m, I;
+};
+
+// -----------------------------------------------------------------------------
+
+TEST(ChCheckpoint, system_ANCF) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildANCF, 500, 500, 1e-3, "ancf.txt");
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, system_pretensioned_cable) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildPretensionedCable, 300, 300, 1e-3, "cable.txt");
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, system_yielding_IGA) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildYieldingIGA, 500, 500, 1e-2, "iga.txt");
+    EXPECT_GT(PlasticStrain(sys1), 0);
+    EXPECT_EQ(PlasticStrain(sys1), PlasticStrain(sys2));
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, system_without_internal_state) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildYieldingIGA, 500, 500, 1e-2, "iga_old.txt", true);
+    EXPECT_GT(std::abs(PlasticStrain(sys1) - PlasticStrain(sys2)), 1e-3 * PlasticStrain(sys1));
+}
+
+TEST(ChCheckpoint, component_mesh_and_item) {
+    ASSERT_TRUE(CreateOutputDirectory(std::filesystem::path(out_dir)));
+    const std::string filename = out_dir + "component.txt";
+
+    auto build = [](ChSystem& sys) {
+        Configure(sys);
+        BuildYieldingIGA(sys);
+        sys.Add(chrono_types::make_shared<PendulumDAE>());
+    };
+    auto components = [](ChSystem& sys) {
+        ChAssembly::Components c;
+        c.meshes.push_back(sys.GetAssembly().GetMeshes().front());
+        c.items.push_back(sys.GetAssembly().GetOtherPhysicsItems().front());
+        return c;
+    };
+
+    ChSystemSMC sys1, sys2;
+    build(sys1);
+    build(sys2);
+
+    for (int i = 0; i < 500; i++)
+        sys1.DoStepDynamics(1e-2);
+    {
+        ChCheckpointASCII cp(ChCheckpoint::Type::COMPONENT);
+        cp.Save(sys1.GetChTime(), components(sys1));
+        cp.WriteFile(filename);
+    }
+    for (int i = 0; i < 500; i++)
+        sys1.DoStepDynamics(1e-2);
+
+    {
+        auto c = components(sys2);
+        ChCheckpointASCII cp(ChCheckpoint::Type::COMPONENT);
+        cp.ReadFile(filename);
+        double time;
+        cp.Load(time, c);
+        sys2.SetChTime(time);
+    }
+    for (int i = 0; i < 500; i++)
+        sys2.DoStepDynamics(1e-2);
+
+    EXPECT_EQ(PlasticStrain(sys1), PlasticStrain(sys2));
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, mismatched_system) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildANCF, 10, 0, 1e-3, "mismatch.txt");
+
+    ChSystemSMC sys;
+    Configure(sys);
+    BuildPretensionedCable(sys);
+    ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
+    cp.ReadFile(out_dir + "mismatch.txt");
+    EXPECT_THROW(cp.Load(&sys), std::exception);
+}
