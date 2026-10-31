@@ -22,6 +22,7 @@
 //   an angle motor turned over several turns
 // - SYSTEM checkpoints with the HHT integrator (accelerations, Lagrange multipliers, step size control state, quaternion
 //   derivatives of bodies), for an ANCF beam and for a pendulum on a revolute joint with a cable clamped to it
+// - SYSTEM and COMPONENT checkpoints of a gear pair and a pulley with enforced phase, turned over several turns
 // - loading a checkpoint into a different system fails
 //
 // =============================================================================
@@ -38,6 +39,8 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkLock.h"
+#include "chrono/physics/ChLinkLockGear.h"
+#include "chrono/physics/ChLinkLockPulley.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChExternalDynamicsDAE.h"
@@ -438,6 +441,87 @@ static double MotorAngle(ChSystem& sys) {
     return 0;
 }
 
+// Wheel driven by a speed motor, meshing with a gear and driving a pulley, both with enforced phase
+static void BuildGears(ChSystem& sys) {
+    sys.SetGravitationalAcceleration(VNULL);
+
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    sys.Add(ground);
+
+    auto add_wheel = [&sys](const ChVector3d& pos) {
+        auto wheel = chrono_types::make_shared<ChBody>();
+        wheel->SetMass(10);
+        wheel->SetInertiaXX(ChVector3d(1, 1, 1));
+        wheel->SetPos(pos);
+        sys.Add(wheel);
+        return wheel;
+    };
+    auto wheel1 = add_wheel(ChVector3d(0, 0, 0));
+    auto wheel2 = add_wheel(ChVector3d(3, 0, 0));
+    auto wheel3 = add_wheel(ChVector3d(0, -5, 0));
+
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    motor->Initialize(wheel1, ground, ChFramed(wheel1->GetPos()));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(6));
+    sys.AddLink(motor);
+
+    auto revolute2 = chrono_types::make_shared<ChLinkLockRevolute>();
+    revolute2->Initialize(wheel2, ground, ChFramed(wheel2->GetPos()));
+    sys.AddLink(revolute2);
+    auto revolute3 = chrono_types::make_shared<ChLinkLockRevolute>();
+    revolute3->Initialize(wheel3, ground, ChFramed(wheel3->GetPos()));
+    sys.AddLink(revolute3);
+
+    auto gear = chrono_types::make_shared<ChLinkLockGear>();
+    gear->Initialize(wheel1, wheel2, ChFramed());
+    gear->SetTransmissionRatio(0.5);
+    gear->SetEnforcePhase(true);
+    gear->SetPhaseAutomatically();
+    gear->SetPressureAngle(20 * CH_DEG_TO_RAD);
+    sys.AddLink(gear);
+
+    auto pulley = chrono_types::make_shared<ChLinkLockPulley>();
+    pulley->Initialize(wheel1, wheel3, ChFramed());
+    pulley->SetRadius1(1.0);
+    pulley->SetRadius2(1.5);
+    pulley->SetEnforcePhase(true);
+    sys.AddLink(pulley);
+
+    // Place the gear and pulley markers (set at updates of visual assets) before the first step
+    sys.Setup();
+    sys.Update();
+}
+
+// Component lists of the model built by BuildGears
+static ChAssembly::Components GearsComponents(ChSystem& sys) {
+    ChAssembly::Components c;
+    const auto& bodies = sys.GetAssembly().GetBodies();
+    c.bodies.assign(bodies.begin() + 1, bodies.end());
+    for (const auto& link : sys.GetAssembly().GetLinks()) {
+        if (auto motor = std::dynamic_pointer_cast<ChLinkMotorRotation>(link))
+            c.rot_motors.push_back(motor);
+        else
+            c.joints.push_back(std::dynamic_pointer_cast<ChLink>(link));
+    }
+    return c;
+}
+
+// Total rotations of the gear and pulley wheels in the model built by BuildGears (including full turns)
+static std::vector<double> GearRotations(ChSystem& sys) {
+    std::vector<double> rotations;
+    for (const auto& link : sys.GetAssembly().GetLinks()) {
+        if (auto gear = std::dynamic_pointer_cast<ChLinkLockGear>(link)) {
+            rotations.push_back(gear->GetRotation1());
+            rotations.push_back(gear->GetRotation2());
+        } else if (auto pulley = std::dynamic_pointer_cast<ChLinkLockPulley>(link)) {
+            rotations.push_back(pulley->GetRotation1());
+            rotations.push_back(pulley->GetRotation2());
+        }
+    }
+    return rotations;
+}
+
 // -----------------------------------------------------------------------------
 
 TEST(ChCheckpoint, system_ANCF) {
@@ -568,6 +652,50 @@ TEST(ChCheckpoint, system_ANCF_HHT) {
 TEST(ChCheckpoint, system_constrained_HHT) {
     ChSystemSMC sys1, sys2;
     RunSystemRestart(sys1, sys2, BuildPendulumCable, 500, 500, 1e-3, "pendulum_hht.txt", false, ChTimestepper::Type::HHT);
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, system_gears) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildGears, 1500, 1500, 1e-3, "gears.txt");
+    EXPECT_GT(std::abs(GearRotations(sys1).front()), 2 * CH_2PI);
+    EXPECT_EQ(GearRotations(sys1), GearRotations(sys2));
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, component_gears) {
+    ASSERT_TRUE(CreateOutputDirectory(std::filesystem::path(out_dir)));
+    const std::string filename = out_dir + "gears_component.txt";
+
+    ChSystemSMC sys1, sys2;
+    Configure(sys1);
+    BuildGears(sys1);
+    Configure(sys2);
+    BuildGears(sys2);
+
+    for (int i = 0; i < 1500; i++)
+        sys1.DoStepDynamics(1e-3);
+    ASSERT_GT(std::abs(GearRotations(sys1).front()), CH_2PI);
+    {
+        ChCheckpointASCII cp(ChCheckpoint::Type::COMPONENT);
+        cp.Save(sys1.GetChTime(), GearsComponents(sys1));
+        cp.WriteFile(filename);
+    }
+    for (int i = 0; i < 1500; i++)
+        sys1.DoStepDynamics(1e-3);
+
+    {
+        auto c = GearsComponents(sys2);
+        ChCheckpointASCII cp(ChCheckpoint::Type::COMPONENT);
+        cp.ReadFile(filename);
+        double time;
+        cp.Load(time, c);
+        sys2.SetChTime(time);
+    }
+    for (int i = 0; i < 1500; i++)
+        sys2.DoStepDynamics(1e-3);
+
+    EXPECT_EQ(GearRotations(sys1), GearRotations(sys2));
     EXPECT_EQ(StateDiff(sys1, sys2), 0);
 }
 
