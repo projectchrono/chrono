@@ -335,7 +335,12 @@ void ChCheckpointASCII::SaveLinSprings(const std::vector<std::shared_ptr<ChLinkT
 void ChCheckpointASCII::SaveRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     CheckIfComponentType();
 
-    // No states
+    // No states, but an internal state (the number of full turns)
+    for (const auto& spring : springs) {
+        ChCheckpointWriter internal;
+        spring->SaveInternalState(internal);
+        WriteBlock(internal);
+    }
 }
 
 void ChCheckpointASCII::SaveBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
@@ -534,7 +539,17 @@ void ChCheckpointASCII::LoadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>&
     CheckIfOpen();
     CheckIfComponentType();
 
-    // No states
+    // No states, but an internal state (the number of full turns)
+    std::string line;
+    for (auto& spring : springs) {
+        if (!std::getline(m_istream, line)) {
+            cerr << "Error: missing checkpoint data for RSDA '" << spring->GetName() << "'" << endl;
+            throw std::runtime_error("Missing checkpoint data for RSDA");
+        }
+        auto internal = ParseBlock(line);
+        spring->LoadInternalState(internal);
+        internal.CheckAtEnd();
+    }
 }
 
 void ChCheckpointASCII::LoadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {

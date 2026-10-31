@@ -155,6 +155,12 @@ class ChApi ChLinkRSDA : public ChLink {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+    /// Save the internal state of this RSDA (the number of full turns and the angle at the last update).
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of this RSDA, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
   private:
     virtual void Update(double time, UpdateFlags update_flags) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

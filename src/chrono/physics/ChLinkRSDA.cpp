@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChLinkRSDA.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
@@ -389,6 +390,16 @@ void ChLinkRSDA::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_csys1);
     archive_out << CHNVP(m_csys2);
+    archive_out << CHNVP(m_auto_rest_angle);
+    archive_out << CHNVP(m_rest_angle);
+    archive_out << CHNVP(m_turns);
+    archive_out << CHNVP(m_last_angle);
+    archive_out << CHNVP(m_angle);
+    archive_out << CHNVP(m_angle_dt);
+    archive_out << CHNVP(m_stiff);
+    archive_out << CHNVP(m_k);
+    archive_out << CHNVP(m_r);
+    archive_out << CHNVP(m_t);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -402,6 +413,32 @@ void ChLinkRSDA::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(m_csys1);
     archive_in >> CHNVP(m_csys2);
+    archive_in >> CHNVP(m_auto_rest_angle);
+    archive_in >> CHNVP(m_rest_angle);
+    archive_in >> CHNVP(m_turns);
+    archive_in >> CHNVP(m_last_angle);
+    archive_in >> CHNVP(m_angle);
+    archive_in >> CHNVP(m_angle_dt);
+    archive_in >> CHNVP(m_stiff);
+    archive_in >> CHNVP(m_k);
+    archive_in >> CHNVP(m_r);
+    archive_in >> CHNVP(m_t);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChLinkRSDA::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChLink::SaveInternalState(writer);
+
+    writer.Write(m_turns);
+    writer.Write(m_last_angle);
+}
+
+void ChLinkRSDA::LoadInternalState(ChCheckpointReader& reader) {
+    ChLink::LoadInternalState(reader);
+
+    reader.Read(m_turns);
+    reader.Read(m_last_angle);
 }
 
 }  // end namespace chrono
