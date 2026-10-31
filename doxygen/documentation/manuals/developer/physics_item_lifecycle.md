@@ -1,12 +1,8 @@
 Physics Item Lifecycle {#physics_item_lifecycle}
 ==========================
 
-This manual describes how a ChPhysicsItem is initialized, set up, and updated during a simulation, and how checkpoints restore its state.
+This manual describes how a ChPhysicsItem is initialized, set up, and updated during a simulation, and how checkpoints save and restore its state.
 It is written for developers who implement new physics items, FEA elements, or FEA nodes, and for anyone who changes ChSystem, ChAssembly, ChMesh, or the checkpoint classes.
-
-It also served as the design document for a redesign of the lifecycle.
-Sections [Previous lifecycle](@ref lifecycle_current) and [Problems](@ref lifecycle_problems) describe Chrono before the redesign and why it was changed.
-Sections from [New design](@ref lifecycle_design) onward describe the current design.
 
 [TOC]
 
@@ -14,82 +10,35 @@ Sections from [New design](@ref lifecycle_design) onward describe the current de
 
 Several unrelated functions in Chrono have "initialize" or "setup" in their name. This manual uses the following terms:
 
-- **Construction-time initialization**: functions such as `ChLinkLock::Initialize(body1, body2, frame)`, `ChLinkNodeFace::Initialize(...)`, or the `Initialize(...)` functions of Chrono::Vehicle subsystems. They connect an item to other items and set its parameters while the model is being built. They are part of building the model, not of the lifecycle described here, and are not affected by this design.
-- **Reference configuration**: the stress-free configuration of an item, for example the undeformed shape of an FEA element. Elements record it from the current node positions the first time they are initialized.
+- **Construction-time initialization**: functions such as `ChLinkLock::Initialize(body1, body2, frame)`, `ChLinkNodeFace::Initialize(...)`, or the `Initialize(...)` functions of Chrono::Vehicle subsystems. They connect an item to other items and set its parameters while the model is being built. They are part of building the model, not of the lifecycle described here.
+- **Reference configuration**: the stress-free configuration of an item, for example the undeformed shape of an FEA element. Elements record it from the current node positions when they are initialized.
 - **Initial conditions**: the values of an item's coordinates (positions, velocities) and internal states at the start of the simulation.
-- **Internal state**: data an item carries from step to step that is not part of the system state vectors, for example the plastic strains of a ChElementBeamIGA or the internal state of an FMU.
+- **Internal state**: data an item carries from step to step that is not part of the system state vectors, for example the plastic strains of a ChElementBeamIGA.
 - **Item**: a ChPhysicsItem. **Container**: an item that owns other items or sub-objects: ChAssembly (and ChModalAssembly), ChMesh (nodes and elements), ChFEModel, ChPeridynamics.
 
-# Previous lifecycle {#lifecycle_current}
-
-## Hooks
-
-Each item takes part in the simulation through three hooks:
-
-| Hook | Called | Purpose before the redesign |
-|------|--------|---------------|
-| `SetupInitial()` (private virtual) | from `ChSystem::Initialize()` and from several other places (see below) | Record the reference configuration, precompute constants (for example element stiffness matrices), allocate data, count active coordinates |
-| `Setup()` | at the start of every step, by `ChSystem::Setup()` | Count coordinates and constraints; assign offsets in the system state vectors |
-| `Update(time, flags)` | at least once per step, often many times (once per Newton iteration) | Recompute auxiliary data from the current state and time (rotation matrices, forces, visual assets) |
-
-FEA nodes and elements are not physics items. ChMesh calls their own `SetupInitial(ChSystem*)` from its `SetupInitial()`, and their update functions from its `Setup()` and `Update()`.
-
-## ChSystem::Initialize
-
-`ChSystem::Initialize()` runs once, guarded by the system-wide flag `ChSystem::is_initialized`. It calls `assembly.SetupInitial()`, then initializes the collision system and the visualization system. All analysis functions (`DoStepDynamics`, `DoAssembly`, `DoStaticLinear`, and so on) and `ChSystem::Update()` call it, so a user does not have to.
-
-`ChAssembly::SetupInitial()` visits its lists in a fixed order: bodies, shafts, links, meshes, then other physics items.
-
-## Initial conditions
-
-There is no common hook for initial conditions. Each item type that needs them has its own mechanism:
-
-- ChExternalDynamicsODE and ChExternalDynamicsDAE require the user to call `Initialize()`, which sizes the item and evaluates the virtual `SetInitialConditions()`.
-- ChHydraulicActuatorBase adds `Initialize()` and the virtual `OnInitialize(...)`, which computes the initial pressures from the cylinder length.
-- ChExternalFmu initializes its FMU in `Initialize()` and keeps a private `m_initialized` flag to reject parameter changes afterwards.
-- Other items use the order in which `ChAssembly::SetupInitial()` visits them. For example, an item in the "other physics items" list can rely on all meshes having recorded their reference configuration, and then stretch the mesh to pretension it.
-
-# Problems {#lifecycle_problems}
-
-1. **A system-wide flag controls a per-item operation.**
-   `ChAssembly::AddMesh`, `ChAssembly::AddBatch`, `ChMesh::AddNode` and `ChMesh::AddElement` reset `ChSystem::is_initialized`. Adding one mesh (or one node) after the simulation started therefore reruns `SetupInitial()` on every item in the system. Meshes that are already deformed record their deformed shape as their new reference configuration, which silently removes their elastic forces.
-
-2. **`SetupInitial()` is not idempotent, yet it is called from several places.**
-   - `ChSystem::Setup()` calls `assembly.SetupInitial()` whenever `is_initialized` is false, but does not set the flag, so it repeats on every call to `Setup()` before `Initialize()`. This includes the `Setup()` in `ChCheckpointASCII::LoadState()`.
-   - `ChMesh::ComputeMassProperties()` calls it.
-   - `ChModalAssembly::GetSubassemblyMatrices()` and `ChModalAssembly::DoModalReduction()` call it.
-   - `ChPeridynamics::SetupInitialBonds()` calls it, on purpose, a second time after bonds are created.
-   - `SCMLoader::Initialize(...)` calls its own `SetupInitial()`, which appends a default active domain on every call.
-
-3. **One hook does four jobs.** `SetupInitial()` records the reference configuration, precomputes constants, sizes data, and counts active coordinates. These jobs need to run at different times: counting active coordinates depends on which nodes are fixed, and that can change at any time.
-   This caused a stale active coordinate count in ANCF gradient nodes (ChNodeFEAxyzD, DD, DDD) after `SetFixed()`, fixed with `UpdateActiveCoords()` in those nodes.
-   ChMesh also skips `SetupInitial()` of fixed nodes, so a node that is fixed during initialization and released later never runs it.
-
-4. **Ordering between items is implicit.** Item code that depends on another item being initialized relies on the list order in `ChAssembly::SetupInitial()`, which is not documented and differs between containers (ChModalAssembly visits its internal lists after all of ChAssembly's lists).
-
-5. **Initial conditions are inconsistent.** Each item type has its own initialization call (see above). Forgetting the call, or calling it twice, is not detected uniformly.
-
-6. **Checkpoint loading ignores the lifecycle.** `ChCheckpointASCII::LoadState()` calls only `Setup()` before it scatters the saved state. In a freshly built system that has never been initialized, `SetupInitial()` runs inside that `Setup()` (by accident, through problem 2), before the state is scattered, so the reference configuration happens to be correct. Any change to problem 2 without a deliberate design would make elements record the loaded, deformed state as their reference.
-
-# New design {#lifecycle_design}
-
-The redesign keeps the existing hook names, `SetupInitial()`, `Setup()` and `Update()`, to minimize the change for the ~55 FEA classes and for user code that overrides them. Names that should be consolidated later are collected in [Future naming cleanup](@ref lifecycle_naming).
-
-## Overview
+# Overview {#lifecycle_overview}
 
 Every step runs, in this order:
 
 1. **Initialize what is new**, in two phases, each across all items before the next phase starts:
    - Phase 1, `SetupInitial()`: structure and reference configuration.
-   - Phase 2, `SetupInitialState()` (new): initial conditions.
-2. **`Setup()`**: counts, offsets, active coordinates.
-3. **`Update()`**: auxiliary data from the current state.
+   - Phase 2, `SetupInitialState()`: initial conditions.
+2. `Setup()`: counts, offsets, active coordinates.
+3. `Update()`: auxiliary data from the current state.
 
 Step 1 does nothing for items that are already initialized, so in a running simulation its cost is a flag check.
 
-## A. Each item initializes itself, once
+The design rests on three principles:
 
-- ChPhysicsItem gets a private initialization stage, `m_init_stage`, with values `NONE`, `STRUCTURE` (phase 1 done) and `STATE` (phase 2 done). A copy (copy constructor or `Clone()`) and an item restored with `ArchiveIn()` start at `NONE`.
+- **Each item initializes itself, once.** Initialization is tracked per item (and per FEA node and element), so an item added at any time is initialized alone, and the reference configuration of an item that is already initialized is never recorded again by accident.
+- **Two phases, with a clear contract.** Phase 1 records every reference configuration before phase 2 sets any initial condition, so an item can set initial conditions that deform other items (for example, pretension a mesh) without depending on the order in which items are visited.
+- **One-time work and per-step work are separate.** Anything that can change during a simulation (for example, which nodes are fixed) is evaluated in `Setup()`, every time it runs.
+
+# Initialization {#lifecycle_initialization}
+
+## Per-item initialization
+
+- ChPhysicsItem has a private initialization stage, `m_init_stage`, with values `NONE`, `STRUCTURE` (phase 1 done) and `STATE` (phase 2 done). A copy (copy constructor or `Clone()`) and an item restored with `ArchiveIn()` start at `NONE`.
 - A non-virtual wrapper runs the hooks. For a given phase, it runs the hook only if the item has not completed that phase, then forwards to the item's children:
 
 ~~~{.cpp}
@@ -107,9 +56,9 @@ void ChPhysicsItem::InitializePhase(InitPhase phase) {
 }
 ~~~
 
-  A container's own hook runs before its children's hooks. A container that needs results from its children (for example totals) computes them in `Setup()`, where such counts belong anyway.
+  A container's own hook runs before its children's hooks. A container that needs results from its children (for example totals) computes them in `Setup()`.
 
-- `ChSystem::Initialize()` becomes cheap and safe to call anywhere:
+- `ChSystem::Initialize()` is cheap and safe to call at any time:
 
 ~~~{.cpp}
 void ChSystem::Initialize() {
@@ -129,55 +78,55 @@ void ChSystem::InitializeItems() {
 }
 ~~~
 
-  `m_items_pending` is only an optimization that avoids walking the item tree on every step. `ChAssembly::Add*()` (and `FlushBatch()` through them), `ChModalAssembly::AddInternal*()`, `ChMesh::AddNode()`, `ChMesh::AddElement()` and `ResetInitialization()` set it, the latter two through the protected helper `ChPhysicsItem::SetInitializationPending()`. They no longer reset `is_initialized`, and nothing reruns the hooks of items that are already initialized.
+  `m_items_pending` avoids walking the item tree on every step. `ChAssembly::Add*()` (and `FlushBatch()` through them), `ChModalAssembly::AddInternal*()`, `ChMesh::AddNode()`, `ChMesh::AddElement()` and `ResetInitialization()` set it, the latter two through the protected helper `ChPhysicsItem::SetInitializationPending()`.
 
-- Everything that needs initialized items calls a wrapper, never a raw hook:
-  - `ChSystem::Setup()` calls `InitializeItems()` first (not the one-time system work, which stays in `Initialize()`).
+- Code that needs initialized items calls a wrapper, never a raw hook:
+  - `ChSystem::Setup()` calls `InitializeItems()` first (but not the one-time system work, which is in `Initialize()`).
   - `ChMesh::ComputeMassProperties()` runs phase 1 on the mesh (only nodes and elements not yet initialized run their hooks).
   - `ChModalAssembly::GetSubassemblyMatrices()` and `DoModalReduction()` run both phases on the modal assembly (`ChModalAssembly::InitializeItems()`).
   - Checkpoint loading calls `ChSystem::Setup()`, which initializes items first (see [Checkpoints](@ref lifecycle_checkpoint)).
-  - `SCMLoader::Initialize(...)` stops calling `SetupInitial()` itself, and `SCMLoader::SetupInitial()` creates its default active domain only if there is none.
-  - Exception: the beam extruders (`ChExtruderBeamEuler`, `ChExtruderBeamIGA`) still call `SetupInitial(ChSystem*)` directly on elements they create or modify while the simulation runs. A new element is initialized again by its mesh at the next step, as before; an existing element whose knots changed keeps the reference the extruder recorded.
+  - The beam extruders (`ChExtruderBeamEuler`, `ChExtruderBeamIGA`) call `SetupInitial(ChSystem*)` directly on elements they create or modify during a simulation. A new element is initialized again by its mesh at the next step; an existing element whose knots changed keeps the reference the extruder recorded.
 
 - Public API on ChPhysicsItem:
   - `void InitializePhase(InitPhase phase)`: the wrapper above. Requesting phase 2 on an item that has not completed phase 1 runs phase 1 first.
   - `bool IsInitialized() const`: true once both phases ran.
-  - `void ResetInitialization()`: sets the stage back to `NONE` (for containers, also for all children, including FEA nodes and elements), so the next `ChSystem::Initialize()` reruns both phases and the item records a new reference configuration from its current state. This is the only supported way to re-record a reference on purpose.
-  - ChExternalFmu replaces its private `m_initialized` with `IsInitialized()`.
+  - `void ResetInitialization()`: sets the stage back to `NONE` (for containers, also for all children, including FEA nodes and elements), so the next `ChSystem::Initialize()` reruns both phases and the item records a new reference configuration from its current state. This is the supported way to re-record a reference on purpose.
 
-- Containers forward through `InitializeChildren(phase)`:
-  - **ChAssembly**: all its lists (bodies, shafts, links, meshes, other items). Order between items is not part of the contract (see B).
-  - **ChModalAssembly**: ChAssembly's lists, then its internal lists.
-  - **ChMesh**: nodes, then elements. FEA nodes and elements are not physics items, so ChNodeFEAbase and ChElementBase each get their own initialization flag (private, accessed by ChMesh as a friend), and ChMesh calls their `SetupInitial(ChSystem*)` only if the flag is not set. A node or element added to an initialized mesh is therefore initialized alone, and existing elements keep their reference configuration. Fixed nodes are no longer skipped.
-  - **ChFEModel** (multiphysics) keeps its own `SetupInitial()`, which sets up its data maps and initializes its elements. It now runs once, like any other item's hook.
-  - **ChPeridynamics** is unchanged. Its `SetupInitial()` recomputes its data from scratch, so running it once through the wrapper and again from `ChPeridynamics::SetupInitialBonds()` (after collision detection has created the bonds) gives the same result as before.
+## Containers
 
-## B. Two phases
+Containers forward through `InitializeChildren(phase)`:
+
+- **ChAssembly**: all its lists (bodies, shafts, links, meshes, other items). The order between items is not part of the contract.
+- **ChModalAssembly**: ChAssembly's lists, then its internal lists.
+- **ChMesh**: nodes, then elements. FEA nodes and elements are not physics items, so ChNodeFEAbase and ChElementBase each have their own initialization flag (private, accessed by ChMesh as a friend), and ChMesh calls their `SetupInitial(ChSystem*)` only if the flag is not set. A node or element added to an initialized mesh is therefore initialized alone, and the other elements keep their reference configuration. Fixed nodes are initialized like any other node.
+- **ChFEModel** (multiphysics) sets up its data maps and initializes its elements in its own `SetupInitial()`.
+- **ChPeridynamics** sets up its nodes and materials in its own `SetupInitial()`, which recomputes its data from scratch. `ChPeridynamics::SetupInitialBonds()` calls it again after collision detection has created the bonds.
+
+## Two phases
 
 | Phase | Hook | What belongs here | May assume |
 |-------|------|-------------------|------------|
-| 1 | `SetupInitial()` | Allocate and size data (including internal state such as plasticity data); precompute constants (for example element stiffness matrices); record the reference configuration from the current state | The item's own children have completed phase 1 if the container's documented order says so (for example nodes before elements in ChMesh). Nothing about other items. |
-| 2 | `SetupInitialState()` (new, private virtual, empty by default) | Set initial conditions: initial coordinates and velocities, initial values of internal states (for example ODE states, hydraulic pressures). May also set the current coordinates of items it is coupled to, for example stretching a mesh to pretension it. | All items in the system have completed phase 1, so every reference configuration is recorded. |
+| 1 | `SetupInitial()` (private virtual, empty by default) | Allocate and size data (including internal state such as plasticity data); precompute constants (for example element stiffness matrices); record the reference configuration from the current state | The item's own children have completed phase 1 if the container's documented order says so (for example nodes before elements in ChMesh). Nothing about other items. |
+| 2 | `SetupInitialState()` (private virtual, empty by default) | Set initial conditions: initial coordinates and velocities, initial values of internal states (for example ODE states, hydraulic pressures). May also set the current coordinates of items it is coupled to, for example stretching a mesh to pretension it. | All items in the system have completed phase 1, so every reference configuration is recorded. |
 
 Rules:
 
 - Phase 1 must not change the current coordinates of any item. Phase 2 must not change any reference configuration.
 - The order of items within a phase is not part of the contract. An item that needs another item's phase 1 results does that work in phase 2. If two items' phase 2 hooks write the same coordinates, the result is undefined; such items must be combined or coupled explicitly.
-- Running phase 1 early on part of the system (for example `ChMesh::ComputeMassProperties()`) is allowed. Phase 2 runs only through `ChSystem::Initialize()`, apart from the deprecated `Initialize()` calls below.
-- Neither phase counts coordinates or constraints; that is `Setup()`'s job (see C).
+- Running phase 1 early on part of the system (for example `ChMesh::ComputeMassProperties()`) is allowed. Phase 2 runs through `ChSystem::Initialize()`, or for a single item through the `Initialize()` and `GetInitialStates()` functions of the external dynamics items below.
+- Neither phase counts coordinates or constraints; that is the job of `Setup()`.
 
-Migration of the existing initial-condition mechanisms:
+Items with initial conditions:
 
-- **ChExternalDynamicsODE / ChExternalDynamicsDAE**: sizing and allocating `ChVariables` and Jacobian storage moves to `SetupInitial()`; the call to `SetInitialConditions(...)` moves to `SetupInitialState()`. For a DAE not in explicit form, the mass matrix is still evaluated once, right after the initial conditions are set (in `SetupInitialState()`), as before. Users no longer call `Initialize()`. `Initialize()` stays as a deprecated function that runs both phases on this item through the wrappers, so existing code keeps working and the system does not run them again. `GetInitialStates()` (and `GetInitialStateDerivatives()` for a DAE) initializes the item first if needed, since it needs the sizes from phase 1 and, for the hydraulic actuators, the data from phase 2.
-- **ChHydraulicActuatorBase**: `OnInitialize(...)` is called from `SetupInitialState()`, before the parent's call to `SetInitialConditions(...)`. Construction-time `Initialize(body1, body2, ...)` keeps connecting the bodies but no longer initializes the dynamics. A using-declaration keeps the deprecated `Initialize()` visible next to that overload.
-- **ChExternalFmu**: its `Initialize()` override is removed; instantiating and initializing the FMU (with the user's initial conditions and parameters) moves to `SetupInitial()`; reading the FMU's continuous states into the ODE states happens in `SetupInitialState()` through `SetInitialConditions(...)`. Setters that must be called before initialization check `IsInitialized()`.
-- **Pretensioning and similar setups** (for example spokes stretched after the mesh recorded its reference): an item overrides `SetupInitialState()` instead of relying on list order.
+- **ChExternalDynamicsODE / ChExternalDynamicsDAE**: `SetupInitial()` sizes the states and allocates the `ChVariables` and Jacobian storage; `SetupInitialState()` calls `SetInitialConditions(...)`. For a DAE not in explicit form, the mass matrix is evaluated once, right after the initial conditions are set. These items do not need an explicit initialization call; the deprecated `Initialize()` runs both phases on the item through the wrapper, and later calls have no effect. `GetInitialStates()` (and `GetInitialStateDerivatives()` for a DAE) initializes the item first if needed.
+- **ChHydraulicActuatorBase**: `SetupInitialState()` calls `OnInitialize(...)`, then the parent's `SetupInitialState()`. Construction-time `Initialize(body1, body2, ...)` connects the bodies only.
+- **ChExternalFmu**: `SetupInitial()` initializes the FMU (with the user's initial conditions and parameters) and then the parent; `SetupInitialState()` reads the FMU's continuous states into the ODE states through `SetInitialConditions(...)`. Setters that must be called before initialization check `IsInitialized()`.
+- **Pretensioning and similar setups** (for example spokes stretched after the mesh recorded its reference): an item overrides `SetupInitialState()`.
 
-## C. Active coordinates are counted in Setup()
+## Active coordinates
 
-- `Setup()` reads the fixed status of every node and body each time it runs. ChMesh calls a new virtual `ChNodeFEAbase::UpdateActiveCoords()` (empty by default; the existing function in ChNodeFEAxyzD, DD and DDD becomes its override) for every node in `ChMesh::Setup()`, before counting.
-- The calls to `UpdateActiveCoords()` in `SetFixed()` and related setters stay as a backstop, so the count is current between steps as well.
-- Counting code in `ChMesh::SetupInitial()` is removed (ChPeridynamics is left as it is).
+- `Setup()` reads the fixed status of every node and body each time it runs. ChMesh calls the virtual `ChNodeFEAbase::UpdateActiveCoords()` (empty by default, overridden by ChNodeFEAxyzD, DD and DDD) for every node in `ChMesh::Setup()`, before counting.
+- `SetFixed()` and related setters of those nodes also call `UpdateActiveCoords()`, so the count is current between steps as well.
 
 ## What belongs in each hook
 
@@ -188,7 +137,7 @@ Migration of the existing initial-condition mechanisms:
 | `Setup()` | at least once per step, and before analyses | count coordinates and constraints, assign offsets, update active coordinates | change the state; allocate data whose contents must persist |
 | `Update(time, flags)` | many times per step | recompute auxiliary data from the current state | change the reference configuration or the initial conditions |
 
-End-of-step commit functions, such as `ChElementBase::EleDoIntegration()` (which commits the plastic strains of ChElementBeamIGA), are not part of the lifecycle and keep their current role.
+End-of-step commit functions, such as `ChElementBase::EleDoIntegration()` (which commits the plastic strains of ChElementBeamIGA), are not part of the lifecycle.
 
 ## Implementing a new item
 
@@ -225,9 +174,9 @@ class MyItem : public ChPhysicsItem {
 };
 ~~~
 
-A new FEA element overrides `SetupInitial(ChSystem*)` to record its reference configuration and allocate its data, as before. It no longer needs to worry about being called more than once. If it carries internal state, it overrides the element-level `SaveInternalState()`/`LoadInternalState()` (see below).
+A new FEA element overrides `SetupInitial(ChSystem*)` to record its reference configuration and allocate its data; its mesh calls it once. If the element carries internal state, it overrides the element-level `SaveInternalState()`/`LoadInternalState()` (see below).
 
-A new container overrides `InitializeChildren(phase)` and calls the wrappers (or, for non-item children, the hook guarded by the child's flag), and forwards `ResetInitialization()`, `SaveInternalState()` and `LoadInternalState()` to its children.
+A new container overrides `InitializeChildren(phase)` and calls the wrappers (or, for children that are not physics items, the hook guarded by the child's flag), and forwards `ResetInitialization()`, `SaveInternalState()` and `LoadInternalState()` to its children.
 
 # Checkpoints {#lifecycle_checkpoint}
 
@@ -238,9 +187,9 @@ Checkpoints are built on top of the lifecycle. The classes are ChCheckpoint and 
 - A checkpoint saves **current** state only: coordinates, velocities, accelerations, and internal state. It does not save reference configurations; those are rebuilt by phase 1 in the system that loads the checkpoint, which must be built the same way as the system that wrote it.
 - Accelerations are saved because some items read them when computing forces or Jacobians (for example the inertial terms of ChElementBeamIGA use node accelerations). The timestepper stores them in the items at the end of each step.
 - An item whose reference configuration can change during a run (because of `ResetInitialization()`, or by design) must save its reference as part of its internal state.
-- The checkpoint time is written with full precision, so that time-dependent inputs (motor functions, loads) see exactly the same time after a restart.
+- The checkpoint time and states are written with full precision, so that time-dependent inputs (motor functions, loads) see exactly the same time after a restart.
 
-A SYSTEM checkpoint (ASCII) stores the position and velocity vectors of the whole system, followed by one line holding a block with the system acceleration vector and the internal state of all items (from `ChSystem::SaveInternalState()`). Files written before this line existed still load; their accelerations and internal state are not restored.
+A SYSTEM checkpoint (ASCII) stores the position and velocity vectors of the whole system, followed by one line holding a block with the system acceleration vector and the internal state of all items (from `ChSystem::SaveInternalState()`). A file without that line loads without accelerations and internal state.
 
 ## Loading order
 
@@ -264,43 +213,18 @@ Because phase 2 runs before the state is loaded, an item must not assume that th
 
 ## COMPONENT checkpoints
 
-A generic per-item path complements the per-type functions: for each item, its coordinates, velocities and accelerations through `IntStateGather()`/`IntStateScatter()` and `IntStateGatherAcceleration()`/`IntStateScatterAcceleration()` with local offsets, its reactions through `IntStateGatherReactions()`/`IntStateScatterReactions()` (for example, the multipliers of a ChExternalDynamicsDAE), then its internal state block, all on one line. `ChAssembly::Components` has a `meshes` list (whole meshes, separate from the output-only `mesh_nodes`) and an `items` list (any other physics item); both use this path, after the per-type lists, so that files written before still load. Loading sets up the containing systems first, which initializes items that are not yet initialized.
+A generic per-item path complements the per-type functions: for each item, its coordinates, velocities and accelerations through `IntStateGather()`/`IntStateScatter()` and `IntStateGatherAcceleration()`/`IntStateScatterAcceleration()` with local offsets, its reactions through `IntStateGatherReactions()`/`IntStateScatterReactions()` (for example, the multipliers of a ChExternalDynamicsDAE), then its internal state block, all on one line. `ChAssembly::Components` has a `meshes` list (whole meshes, separate from the output-only `mesh_nodes`) and an `items` list (any other physics item); both use this path, after the per-type lists. Loading sets up the containing systems first, which initializes items that are not yet initialized.
 
 Chrono::Vehicle deformable tires (ChFEATire and derived) add their mesh to the `meshes` list of their components, and implement `WriteCheckpoint()`/`ReadCheckpoint()` with a COMPONENT checkpoint of those components.
 
 ## Known limits
 
-- ChExternalFmu saves its continuous states (they are part of the system state vectors), but not the internal state of the FMU itself (discrete states, event indicators, and outputs cached from the last evaluation, which may have been a perturbed state used for a finite-difference Jacobian). Restarts with FMUs are therefore close to, but not exactly, a continuous run. Saving it requires the FMI state functions (`fmi2GetFMUstate`, `fmi2SerializeFMUstate`, `fmi2DeSerializeFMUstate` and the FMI 3 equivalents) in fmu-forge, which neither loads them on import nor implements them on export yet.
+- ChExternalFmu saves its continuous states (they are part of the system state vectors), but not the internal state of the FMU itself (discrete states, event indicators, and outputs cached from the last evaluation, which may have been a perturbed state used for a finite-difference Jacobian). Restarts with FMUs are therefore close to, but not exactly, a continuous run.
 - The state of the collision system is not saved. With contact, a restart in a freshly built system can process contacts in a different order than the continuous run (a reload into the running system does not), which gives roundoff-level differences that grow over time.
-- Lagrange multipliers (in SYSTEM checkpoints) and the history of multistep timesteppers (for example HHT) are not saved, so restarts with such integrators are close to, but not exactly, a continuous run. Saving them is a separate, optional extension.
-- Items with hidden state that is not saved yet: ChPeridynamics (bonds and their broken status), ChFunctionSetpoint and other stateful functions, contact history (for example tangential displacement in SMC contact), the SCM terrain grid, Chrono::Vehicle drivers and powertrain internals outside the physics items, and the shared web mesh of ANCF band tracks (which is not in any component list).
-
-# Behavior changes {#lifecycle_changes}
-
-- Adding a mesh, node, element, or batch after the first step no longer re-records the reference configuration of existing items. Use `ResetInitialization()` on an item to re-record its reference on purpose.
-- `ChMesh::ComputeMassProperties()` no longer re-records the reference configuration of the mesh elements on every call. Before, any call during a simulation (for example through the inertia properties of a Chrono::Vehicle FEA tire or ANCF track shoe) made the elements treat their current, deformed shape as stress free.
-- `ChSystem::Setup()` called before `ChSystem::Initialize()` no longer reruns `SetupInitial()` on every call.
-- ChExternalDynamicsODE, ChExternalDynamicsDAE, ChHydraulicActuator2/3 and ChExternalFmu no longer need a call to `Initialize()`; existing calls keep working.
-- Item code that relied on the visiting order of `ChAssembly::SetupInitial()` should move cross-item work to `SetupInitialState()`.
-- Loading a checkpoint into a freshly built, never-initialized system initializes it first, so reference configurations come from the construction state, not from the loaded state.
-- SYSTEM checkpoints also save accelerations and the internal state of all items, and the checkpoint time and states are written with full precision, so restarts reproduce a continuous run exactly (with implicit Euler integrators).
-
-# Future naming cleanup {#lifecycle_naming}
-
-The redesign deliberately keeps existing names. The following candidates are collected for a later, separate cleanup; none of them is renamed now:
-
-- `SetupInitial()` and `SetupInitialState()` describe neither phase well. Candidates: `InitializeStructure()`/`InitializeState()`, or `SetupReference()`/`SetupInitialConditions()`.
-- `SetupInitial()` takes no argument on ChPhysicsItem but `SetupInitial(ChSystem*)` on FEA nodes and elements.
-- Initial-condition functions with divergent names: `ChExternalDynamicsODE::SetInitialConditions()`, `ChHydraulicActuatorBase::OnInitialize()`, `ChExternalFmu::SetInitialCondition()` (a user setter, not a hook).
-- "Initialize" means three different things: construction-time connection (`ChLinkLock::Initialize(...)`, `ChLinkNodeFace::Initialize(...)`), one-time system setup (`ChSystem::Initialize()`), and item initialization (`ChExternalDynamicsODE::Initialize()`, deprecated by this design).
-- Initialization flags: `ChSystem::is_initialized` versus `m_initialized` in ChExternalFmu, ChLinkNodeFace, ChVisualSystem, ChCollisionSystem, and Chrono::Vehicle's ChPart.
-- `ChPeridynamics::SetupInitialBonds()` and `SCMLoader::SetupInitial()` call lifecycle hooks directly.
-- Active-coordinate queries: `GetNumCoordsPosLevelActive()`, `m_dof_actual`, `UpdateActiveCoords()`.
-- Checkpoint functions: `ChCheckpoint::SaveState()/LoadState()` versus `Save()/Load()` in the class documentation, and the per-type `SaveBodies()`, `SaveJoints()`, ... functions now that the generic COMPONENT path (`SaveItems()`/`LoadItems()`) exists.
-- Checkpoint naming at three levels: `ChPhysicsItem::SaveInternalState()`, `ChBeamMaterialInternalData::SaveCheckpoint()`, `ChPart::SaveCheckpoint()`, and `ChTire::WriteCheckpoint()`.
+- Lagrange multipliers (in SYSTEM checkpoints) and the history of multistep timesteppers (for example HHT) are not saved, so restarts with such integrators are close to, but not exactly, a continuous run.
+- Items with hidden state that is not saved: ChPeridynamics (bonds and their broken status), ChFunctionSetpoint and other stateful functions, contact history (for example tangential displacement in SMC contact), the SCM terrain grid, Chrono::Vehicle drivers and powertrain internals outside the physics items, and the shared web mesh of ANCF band tracks (which is not in any component list).
 
 # Design decisions {#lifecycle_decisions}
 
-- The names of the new functions (`InitializePhase()`, `InitializeChildren()`, `InitPhase`, `IsInitialized()`, `ResetInitialization()`, `SetupInitialState()`, `SaveInternalState()`/`LoadInternalState()`, `SupportsCheckpoint()`, `ChCheckpointWriter`/`ChCheckpointReader`) are accepted for now; they are candidates for the [future naming cleanup](@ref lifecycle_naming).
-- FEA nodes and elements get no phase 2 hook. Phase 2 on the containing mesh, or on a separate item, covers the known cases; a node or element hook can be added later if a need appears.
-- Chrono::Peridynamics keeps its current initialization, including `ChPeridynamics::SetupInitialBonds()`, and its behavior must not change.
+- FEA nodes and elements have no phase 2 hook. Phase 2 on the containing mesh, or on a separate item, covers the cases that need initial conditions on nodes or elements.
+- Chrono::Peridynamics uses its own initialization, including `ChPeridynamics::SetupInitialBonds()`, which reruns `SetupInitial()` after the bonds are created.
