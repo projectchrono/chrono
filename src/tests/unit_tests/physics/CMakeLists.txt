@@ -13,6 +13,7 @@ SET(TESTS
     utest_CH_applied_loads
     utest_CH_item_lifecycle
     utest_CH_checkpoint
+    utest_CH_spring_jacobians
 )
 
 if(CH_ENABLE_MODULE_PARDISO_MKL)
