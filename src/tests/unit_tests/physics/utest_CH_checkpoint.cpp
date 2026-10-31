@@ -19,6 +19,8 @@
 // - loading a checkpoint without the internal state block (older file format) loses the plastic history
 // - COMPONENT checkpoint of an FEA mesh and a DAE physics item
 // - SYSTEM and COMPONENT checkpoints of an RSDA wound over several turns, a TSDA with an ODE state and a speed motor
+// - SYSTEM checkpoints with the HHT integrator (accelerations, Lagrange multipliers, step size control state, quaternion
+//   derivatives of bodies), for an ANCF beam and for a pendulum on a revolute joint with a cable clamped to it
 // - loading a checkpoint into a different system fails
 //
 // =============================================================================
@@ -41,11 +43,14 @@
 #include "chrono/functions/ChFunctionRamp.h"
 #include "chrono/functions/ChFunctionSine.h"
 #include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/timestepper/ChTimestepperHHT.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChBeamSectionCosserat.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamIGA.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/input_output/ChCheckpointASCII.h"
 
 #include "gtest/gtest.h"
@@ -58,13 +63,18 @@ const std::string out_dir = GetChronoTestOutputPath() + "/ch_checkpoint/";
 // -----------------------------------------------------------------------------
 
 // Deterministic solver settings, so that restarts can be compared exactly
-static void Configure(ChSystem& sys) {
+static void Configure(ChSystem& sys, ChTimestepper::Type integrator = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED) {
     sys.SetNumThreads(1);
     auto solver = chrono_types::make_shared<ChSolverSparseLU>();
     solver->UseSparsityPatternLearner(true);
     solver->LockSparsityPattern(true);
     sys.SetSolver(solver);
-    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    sys.SetTimestepperType(integrator);
+    if (auto hht = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
+        hht->SetAlpha(-0.2);
+        hht->SetMaxIters(50);
+        hht->SetAbsTolerances(1e-5);
+    }
 }
 
 // Maximum difference between the states of two systems
@@ -113,11 +123,18 @@ static std::string StripInternalState(const std::string& filename) {
 
 // Run a continuous simulation of n1+n2 steps in sys1, writing a SYSTEM checkpoint after n1 steps.
 // Then restart from that checkpoint in sys2, freshly built, and simulate n2 steps.
-static void
-RunSystemRestart(ChSystem& sys1, ChSystem& sys2, const std::function<void(ChSystem&)>& build, int n1, int n2, double step, const std::string& filename, bool strip = false) {
+static void RunSystemRestart(ChSystem& sys1,
+                             ChSystem& sys2,
+                             const std::function<void(ChSystem&)>& build,
+                             int n1,
+                             int n2,
+                             double step,
+                             const std::string& filename,
+                             bool strip = false,
+                             ChTimestepper::Type integrator = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED) {
     ASSERT_TRUE(CreateOutputDirectory(std::filesystem::path(out_dir)));
 
-    Configure(sys1);
+    Configure(sys1, integrator);
     build(sys1);
     for (int i = 0; i < n1; i++)
         sys1.DoStepDynamics(step);
@@ -129,7 +146,7 @@ RunSystemRestart(ChSystem& sys1, ChSystem& sys2, const std::function<void(ChSyst
     for (int i = 0; i < n2; i++)
         sys1.DoStepDynamics(step);
 
-    Configure(sys2);
+    Configure(sys2, integrator);
     build(sys2);
     {
         ChCheckpointASCII cp(ChCheckpoint::Type::SYSTEM);
@@ -360,6 +377,41 @@ static ChAssembly::Components SpringsAndMotorComponents(ChSystem& sys) {
     return c;
 }
 
+// Rigid pendulum on a revolute joint, with an ANCF cable clamped to its tip (joint and node constraints)
+static void BuildPendulumCable(ChSystem& sys) {
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
+
+    auto ground = chrono_types::make_shared<ChBody>();
+    ground->SetFixed(true);
+    sys.Add(ground);
+
+    auto arm = chrono_types::make_shared<ChBody>();
+    arm->SetMass(2);
+    arm->SetInertiaXX(ChVector3d(0.01, 0.1, 0.1));
+    arm->SetPos(ChVector3d(0.25, 0, 0));
+    sys.Add(arm);
+
+    auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
+    revolute->Initialize(ground, arm, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
+    sys.Add(revolute);
+
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
+    section->SetDiameter(0.01);
+    section->SetYoungModulus(1e8);
+    ChBuilderCableANCF builder;
+    builder.BuildBeam(mesh, section, 8, ChVector3d(0.5, 0, 0), ChVector3d(1.0, 0, 0));
+    sys.Add(mesh);
+
+    auto node = builder.GetLastBeamNodes().front();
+    auto point = chrono_types::make_shared<ChLinkNodeFrame>();
+    point->Initialize(node, arm);
+    sys.Add(point);
+    auto direction = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
+    direction->Initialize(node, arm);
+    sys.Add(direction);
+}
+
 // Angle of the RSDA in the model built by BuildSpringsAndMotor (including full turns)
 static double RSDAAngle(ChSystem& sys) {
     return SpringsAndMotorComponents(sys).rsdas.front()->GetAngle();
@@ -479,6 +531,18 @@ TEST(ChCheckpoint, component_springs_and_motor) {
         sys2.DoStepDynamics(1e-3);
 
     EXPECT_EQ(RSDAAngle(sys1), RSDAAngle(sys2));
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, system_ANCF_HHT) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildANCF, 500, 500, 1e-3, "ancf_hht.txt", false, ChTimestepper::Type::HHT);
+    EXPECT_EQ(StateDiff(sys1, sys2), 0);
+}
+
+TEST(ChCheckpoint, system_constrained_HHT) {
+    ChSystemSMC sys1, sys2;
+    RunSystemRestart(sys1, sys2, BuildPendulumCable, 500, 500, 1e-3, "pendulum_hht.txt", false, ChTimestepper::Type::HHT);
     EXPECT_EQ(StateDiff(sys1, sys2), 0);
 }
 
