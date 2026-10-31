@@ -75,6 +75,12 @@ Summary of time-steppers:
 	- Works for DVI contacts (hard contacts)
 	- Delivers first order accuracy for FEA
 	- Constraints kept closed using stabilization
+	- A single Newton iteration per step: with stiff, strongly nonlinear FEA models (for example pretensioned cables or beams) it can add spurious energy and become unstable
+- ```EULER_IMPLICIT```
+	- Implicit Euler with Newton iterations until convergence (up to a maximum number of iterations, see `SetMaxIters`)
+	- First order accuracy
+	- Recommended for stiff, strongly nonlinear FEA models, together with a direct sparse linear solver
+	- Converges in few iterations only if the stiff forces provide their Jacobians (for example, call `IsStiff(true)` on ChLinkTSDA and ChLinkRSDA)
 - ```HHT```
 	- Implicit integrator, based on the Hilber-Hughes-Taylor formula
 	- Typically slower than the INT_EULER_IMPLICIT_LINEARIZED choice
