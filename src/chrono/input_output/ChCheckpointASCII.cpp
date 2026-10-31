@@ -317,11 +317,12 @@ void ChCheckpointASCII::LoadState(ChSystem* sys) {
     }
 
     // Internal state last, since it may refine data set by the scatter (e.g., quaternion derivatives of bodies); then
-    // update the system with the complete state
+    // update the system with the complete state. Visual assets were updated by the scatter; they are not updated again,
+    // since some items (e.g., gears) set data there that depends on the previous step and is restored as internal state.
     if (has_acc) {
         sys->LoadInternalState(internal);
         internal.CheckAtEnd();
-        sys->Update(UpdateFlags::UPDATE_ALL);
+        sys->Update(UpdateFlags::UPDATE_ALL_NO_VISUAL);
     }
 }
 
@@ -360,7 +361,10 @@ void ChCheckpointASCII::SaveShafts(const std::vector<std::shared_ptr<ChShaft>>& 
 void ChCheckpointASCII::SaveJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     CheckIfComponentType();
 
-    // No states
+    // No states, but internal states (e.g., the total rotations of gears and pulleys), all on one line
+    ChCheckpointWriter internal;
+    internal.WriteIndexedBlocks(joints.size(), [&joints](size_t i, ChCheckpointWriter& block) { joints[i]->SaveInternalState(block); });
+    WriteBlock(internal);
 }
 
 void ChCheckpointASCII::SaveCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
@@ -555,7 +559,15 @@ void ChCheckpointASCII::LoadJoints(std::vector<std::shared_ptr<ChLink>>& joints)
     CheckIfOpen();
     CheckIfComponentType();
 
-    // No states
+    // No states, but internal states (e.g., the total rotations of gears and pulleys), all on one line
+    std::string line;
+    if (!std::getline(m_istream, line)) {
+        cerr << "Error: missing checkpoint data for joints" << endl;
+        throw std::runtime_error("Missing checkpoint data for joints");
+    }
+    auto internal = ParseBlock(line);
+    internal.ReadIndexedBlocks(joints.size(), [&joints](size_t i, ChCheckpointReader& block) { joints[i]->LoadInternalState(block); });
+    internal.CheckAtEnd();
 }
 
 void ChCheckpointASCII::LoadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
@@ -732,10 +744,11 @@ void ChCheckpointASCII::LoadItems(std::vector<std::shared_ptr<ChPhysicsItem>>& i
         item->IntStateScatterAcceleration(0, a);
         item->IntStateScatterReactions(0, L);
 
-        // Internal state last, since it may refine data set by the scatter; then update the item
+        // Internal state last, since it may refine data set by the scatter; then update the item (except for visual
+        // assets, as for SYSTEM checkpoints)
         item->LoadInternalState(internal);
         internal.CheckAtEnd();
-        item->Update(m_time, UpdateFlags::UPDATE_ALL);
+        item->Update(m_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
     }
 }
 

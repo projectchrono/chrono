@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChLinkLockPulley.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 
@@ -204,6 +205,46 @@ void ChLinkLockPulley::Update(double time, UpdateFlags update_flags) {
 
     // Inherit to parent class
     ChLinkLock::Update(time, update_flags);
+}
+
+// The total rotations are accumulated from their values at the previous update, so they cannot be recovered from the
+// body states alone. The markers, the imposed belt length and the belt end points are set at updates of visual assets.
+void ChLinkLockPulley::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChLinkLockLock::SaveInternalState(writer);
+
+    writer.Write(a1);
+    writer.Write(a2);
+    writer.Write(shaft_dist);
+    writer.Write(belt_up1);
+    writer.Write(belt_up2);
+    writer.Write(belt_low1);
+    writer.Write(belt_low2);
+    writer.Write(deltaC.pos);
+    writer.Write(marker1->GetPos());
+    writer.Write(marker1->GetRot());
+    writer.Write(marker2->GetPos());
+    writer.Write(marker2->GetRot());
+}
+
+void ChLinkLockPulley::LoadInternalState(ChCheckpointReader& reader) {
+    ChLinkLockLock::LoadInternalState(reader);
+
+    ChVector3d pos1, pos2;
+    ChQuaterniond rot1, rot2;
+    reader.Read(a1);
+    reader.Read(a2);
+    reader.Read(shaft_dist);
+    reader.Read(belt_up1);
+    reader.Read(belt_up2);
+    reader.Read(belt_low1);
+    reader.Read(belt_low2);
+    reader.Read(deltaC.pos);
+    reader.Read(pos1);
+    reader.Read(rot1);
+    reader.Read(pos2);
+    reader.Read(rot2);
+    marker1->ImposeRelativeTransform(ChFramed(pos1, rot1));
+    marker2->ImposeRelativeTransform(ChFramed(pos2, rot2));
 }
 
 void ChLinkLockPulley::ArchiveOut(ChArchiveOut& archive_out) {
