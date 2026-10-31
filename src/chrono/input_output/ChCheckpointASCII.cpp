@@ -35,6 +35,26 @@ using std::endl;
 
 namespace chrono {
 
+// A speed motor (ChLinkMotorRotationSpeed, ChLinkMotorLinearSpeed, ChShaftsMotorSpeed) integrates the imposed speed into
+// an internal state (an angle or a position), which it stores in the velocity-level state vector. Access it through
+// the motor's state gather/scatter functions (the solver variable state only holds the result of the last solve).
+static double GetSpeedMotorState(ChPhysicsItem& motor) {
+    ChState x(motor.GetNumCoordsPosLevel(), nullptr);
+    ChStateDelta v(motor.GetNumCoordsVelLevel(), nullptr);
+    double time;
+    motor.IntStateGather(0, x, 0, v, time);
+    return v(0);
+}
+
+static void SetSpeedMotorState(ChPhysicsItem& motor, double state, double time) {
+    ChState x(motor.GetNumCoordsPosLevel(), nullptr);
+    ChStateDelta v(motor.GetNumCoordsVelLevel(), nullptr);
+    double t;
+    motor.IntStateGather(0, x, 0, v, t);
+    v(0) = state;
+    motor.IntStateScatter(0, x, 0, v, time, UpdateFlags::UPDATE_ALL);
+}
+
 ChCheckpointASCII::ChCheckpointASCII(Type type) : ChCheckpoint(type), m_file_read(false), m_np(0), m_nv(0) {
     m_csv.SetDelimiter(" ");
 
@@ -295,7 +315,7 @@ void ChCheckpointASCII::SaveCouples(const std::vector<std::shared_ptr<ChShaftsCo
 
     for (const auto& motor : couples) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChShaftsMotorSpeed>(motor)) {
-            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_csv << GetSpeedMotorState(*motor_speed) << endl;
             m_np += 1;
         }
     }
@@ -329,7 +349,7 @@ void ChCheckpointASCII::SaveLinMotors(const std::vector<std::shared_ptr<ChLinkMo
 
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(motor)) {
-            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_csv << GetSpeedMotorState(*motor_speed) << endl;
             m_np += 1;
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
             auto s1 = motor_drvl->GetInnerShaft1Lin();
@@ -348,7 +368,7 @@ void ChCheckpointASCII::SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMo
 
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(motor)) {
-            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_csv << GetSpeedMotorState(*motor_speed) << endl;
             m_np += 1;
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
             auto s1 = motor_drvl->GetInnerShaft1();
@@ -487,7 +507,7 @@ void ChCheckpointASCII::LoadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>
             std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
-            motor_speed->Variables().State()(0, 0) = state;
+            SetSpeedMotorState(*motor_speed, state, m_time);
         }
     }
 }
@@ -539,7 +559,7 @@ void ChCheckpointASCII::LoadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLin
             std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
-            motor_speed->Variables().State()(0, 0) = state;
+            SetSpeedMotorState(*motor_speed, state, m_time);
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
             std::getline(m_istream, line);
             std::istringstream iss(line);
@@ -572,7 +592,7 @@ void ChCheckpointASCII::LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
             std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
-            motor_speed->Variables().State()(0, 0) = state;
+            SetSpeedMotorState(*motor_speed, state, m_time);
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
             std::getline(m_istream, line);
             std::istringstream iss(line);
