@@ -18,7 +18,8 @@
 // - SYSTEM checkpoint of a yielding IGA beam (element internal state, accelerations, time-dependent motor)
 // - loading a checkpoint without the internal state block (older file format) loses the plastic history
 // - COMPONENT checkpoint of an FEA mesh and a DAE physics item
-// - SYSTEM and COMPONENT checkpoints of an RSDA wound over several turns, a TSDA with an ODE state and a speed motor
+// - SYSTEM and COMPONENT checkpoints of an RSDA wound over several turns, a TSDA with an ODE state, a speed motor and
+//   an angle motor turned over several turns
 // - SYSTEM checkpoints with the HHT integrator (accelerations, Lagrange multipliers, step size control state, quaternion
 //   derivatives of bodies), for an ANCF beam and for a pendulum on a revolute joint with a cable clamped to it
 // - loading a checkpoint into a different system fails
@@ -35,6 +36,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTSDA.h"
@@ -311,10 +313,11 @@ class LaggedForce : public ChLinkTSDA::ForceFunctor {
     virtual double evaluate(double time, double rest_length, double length, double vel, const ChLinkTSDA& link) override { return link.GetStates()(0); }
 };
 
-// Bodies connected to the ground by springs and a motor:
+// Bodies connected to the ground by springs and motors:
 // - a flywheel on a revolute joint, spinning against a soft RSDA that winds up over several turns
 // - a body suspended from the ground by a TSDA with an internal ODE state
 // - a body driven by a speed motor
+// - a body driven by an angle motor over several turns
 static void BuildSpringsAndMotor(ChSystem& sys) {
     static LaggedForceODE ode;
 
@@ -357,6 +360,15 @@ static void BuildSpringsAndMotor(ChSystem& sys) {
     motor->Initialize(rotor, ground, ChFramed(rotor->GetPos()));
     motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionSine>(3, 0.8));
     sys.AddLink(motor);
+
+    auto spinner = chrono_types::make_shared<ChBody>();
+    spinner->SetPos(ChVector3d(-1, 1, 0));
+    sys.Add(spinner);
+
+    auto angle_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    angle_motor->Initialize(spinner, ground, ChFramed(spinner->GetPos()));
+    angle_motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, 12));
+    sys.AddLink(angle_motor);
 }
 
 // Component lists of the model built by BuildSpringsAndMotor
@@ -415,6 +427,15 @@ static void BuildPendulumCable(ChSystem& sys) {
 // Angle of the RSDA in the model built by BuildSpringsAndMotor (including full turns)
 static double RSDAAngle(ChSystem& sys) {
     return SpringsAndMotorComponents(sys).rsdas.front()->GetAngle();
+}
+
+// Angle of the angle motor in the model built by BuildSpringsAndMotor (including full turns)
+static double MotorAngle(ChSystem& sys) {
+    for (const auto& motor : SpringsAndMotorComponents(sys).rot_motors) {
+        if (std::dynamic_pointer_cast<ChLinkMotorRotationAngle>(motor))
+            return motor->GetMotorAngle();
+    }
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -495,6 +516,8 @@ TEST(ChCheckpoint, system_springs_and_motor) {
     RunSystemRestart(sys1, sys2, BuildSpringsAndMotor, 500, 500, 1e-3, "springs.txt");
     EXPECT_GT(std::abs(RSDAAngle(sys1)), 2 * CH_2PI);
     EXPECT_EQ(RSDAAngle(sys1), RSDAAngle(sys2));
+    EXPECT_GT(std::abs(MotorAngle(sys1)), CH_2PI);
+    EXPECT_EQ(MotorAngle(sys1), MotorAngle(sys2));
     EXPECT_EQ(StateDiff(sys1, sys2), 0);
 }
 
@@ -511,6 +534,7 @@ TEST(ChCheckpoint, component_springs_and_motor) {
     for (int i = 0; i < 500; i++)
         sys1.DoStepDynamics(1e-3);
     ASSERT_GT(std::abs(RSDAAngle(sys1)), CH_2PI);
+    ASSERT_GT(std::abs(MotorAngle(sys1)), CH_PI);
     {
         ChCheckpointASCII cp(ChCheckpoint::Type::COMPONENT);
         cp.Save(sys1.GetChTime(), SpringsAndMotorComponents(sys1));
@@ -531,6 +555,7 @@ TEST(ChCheckpoint, component_springs_and_motor) {
         sys2.DoStepDynamics(1e-3);
 
     EXPECT_EQ(RSDAAngle(sys1), RSDAAngle(sys2));
+    EXPECT_EQ(MotorAngle(sys1), MotorAngle(sys2));
     EXPECT_EQ(StateDiff(sys1, sys2), 0);
 }
 

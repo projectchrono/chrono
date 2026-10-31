@@ -436,6 +436,11 @@ void ChCheckpointASCII::SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMo
             m_np += 2;
             m_nv += 2;
         }
+
+        // Internal state (the multi-turn rotation angle)
+        ChCheckpointWriter internal;
+        motor->SaveInternalState(internal);
+        WriteBlock(internal);
     }
 }
 
@@ -672,6 +677,15 @@ void ChCheckpointASCII::LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
             s1->SetPosDt(pos1_dt);
             s2->SetPosDt(pos2_dt);
         }
+
+        // Internal state (the multi-turn rotation angle), loaded last since setting the motor state updates the motor
+        if (!std::getline(m_istream, line)) {
+            cerr << "Error: missing checkpoint data for rotation motor '" << motor->GetName() << "'" << endl;
+            throw std::runtime_error("Missing checkpoint data for rotation motor");
+        }
+        auto internal = ParseBlock(line);
+        motor->LoadInternalState(internal);
+        internal.CheckAtEnd();
     }
 }
 
