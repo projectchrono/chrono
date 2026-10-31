@@ -184,12 +184,15 @@ Checkpoints are built on top of the lifecycle. The classes are ChCheckpoint and 
 
 ## What a checkpoint contains
 
-- A checkpoint saves **current** state only: coordinates, velocities, accelerations, and internal state. It does not save reference configurations; those are rebuilt by phase 1 in the system that loads the checkpoint, which must be built the same way as the system that wrote it.
+- A checkpoint saves **current** state only: coordinates, velocities, accelerations, Lagrange multipliers, and internal state. It does not save reference configurations; those are rebuilt by phase 1 in the system that loads the checkpoint, which must be built the same way as the system that wrote it.
 - Accelerations are saved because some items read them when computing forces or Jacobians (for example the inertial terms of ChElementBeamIGA use node accelerations). The timestepper stores them in the items at the end of each step.
+- The Lagrange multipliers of the assembly constraints are saved because some integrators use them as part of their history (for example HHT). Contact multipliers are not saved, since contacts are recreated at each step.
+- Bodies and rotational FEA nodes (ChNodeFEAxyzrot) save the derivatives of their rotation quaternion as internal state. Their coordinates hold the angular velocity and acceleration, which do not convert back to the same quaternion derivatives exactly.
+- The timestepper saves its own internal state (`ChTimestepper::SaveInternalState()`); for the implicit integrators, this is the step size control state (internal step size and number of successive successful steps).
 - An item whose reference configuration can change during a run (because of `ResetInitialization()`, or by design) must save its reference as part of its internal state.
 - The checkpoint time and states are written with full precision, so that time-dependent inputs (motor functions, loads) see exactly the same time after a restart.
 
-A SYSTEM checkpoint (ASCII) stores the position and velocity vectors of the whole system, followed by one line holding a block with the system acceleration vector and the internal state of all items (from `ChSystem::SaveInternalState()`). A file without that line loads without accelerations and internal state.
+A SYSTEM checkpoint (ASCII) stores the position and velocity vectors of the whole system, followed by one line holding a block with the system acceleration vector, the internal state of all items (from `ChSystem::SaveInternalState()`), the Lagrange multipliers of the assembly constraints, and the timestepper type and internal state. The timestepper state is restored only into a timestepper of the same type. A file that ends earlier loads without the missing data.
 
 ## Loading order
 
@@ -197,8 +200,10 @@ Loading a checkpoint into a system, either freshly built or already running:
 
 1. Item initialization (`ChSystem::InitializeItems()`, run by `ChSystem::Setup()`): both phases for every item not yet initialized. In a fresh system, this records the reference configurations from the construction state and sets the initial conditions. In a running system, it does nothing for existing items, so their references are kept.
 2. The rest of `Setup()`, then check that the coordinate counts match the checkpoint.
-3. Load the internal state (`LoadInternalState()`). This overwrites internal state that phase 2 set, for example ODE states.
-4. Scatter the saved coordinates and velocities (which also updates the items), then the accelerations. This overwrites what phase 2 set.
+3. Load the timestepper state.
+4. Scatter the saved coordinates and velocities (which also updates the items), then the accelerations and the Lagrange multipliers. This overwrites what phase 2 set.
+5. Load the internal state (`LoadInternalState()`). This overwrites internal state that phase 2 set (for example ODE states) and may refine data set by the scatter (for example the quaternion derivatives of bodies).
+6. Update the system with the complete state.
 
 Because phase 2 runs before the state is loaded, an item must not assume that the state it set in phase 2 survives; anything it needs to keep must be part of the coordinates or the internal state.
 
@@ -209,19 +214,25 @@ Because phase 2 runs before the state is loaded, an item must not assume that th
 - ChCheckpointWriter accepts numbers (integral values are stored exactly), ChVector3d, ChQuaterniond, `std::vector<double>`, Eigen matrices and vectors (with their dimensions), opaque byte sequences, and nested blocks. ChCheckpointReader reads them back in the same order; every read checks the type of the next entry and throws on a mismatch or on missing data, and the caller checks that a block was read completely. The ASCII format writes a block as one line of space-separated entries, with byte sequences as hexadecimal tokens.
 - Containers write their children's blocks with `ChCheckpointWriter::WriteIndexedBlocks()`: each non-empty child block is tagged with the child's index, and loading checks the index range and that each child consumes its whole block.
 - ChAssembly forwards the calls to all its items (ChModalAssembly also to its internal items). ChMesh writes its numbers of nodes, elements and fixed nodes (checked when loading), then the blocks of its nodes and elements; ChNodeFEAbase and ChElementBase have the same optional virtuals.
+- ChTimestepper has the same pair of virtual functions for the integrator's own state; ChTimestepperImplicit saves its step size control state.
+- Items and nodes with internal state: ChBody and ChNodeFEAxyzrot (quaternion derivatives).
 - Elements with internal state: ChElementBeamIGA (plasticity data at the integration points, through `ChBeamMaterialInternalData::SaveCheckpoint()`/`LoadCheckpoint()`), ChElementHexaANCF_3813_9 (plastic strains and hardening parameters), ChElementHexaANCF_3813 (enhanced assumed strain parameters).
 
 ## COMPONENT checkpoints
 
-A generic per-item path complements the per-type functions: for each item, its coordinates, velocities and accelerations through `IntStateGather()`/`IntStateScatter()` and `IntStateGatherAcceleration()`/`IntStateScatterAcceleration()` with local offsets, its reactions through `IntStateGatherReactions()`/`IntStateScatterReactions()` (for example, the multipliers of a ChExternalDynamicsDAE), then its internal state block, all on one line. `ChAssembly::Components` has a `meshes` list (whole meshes, separate from the output-only `mesh_nodes`) and an `items` list (any other physics item); both use this path, after the per-type lists. Loading sets up the containing systems first, which initializes items that are not yet initialized.
+A generic per-item path complements the per-type functions: for each item, its coordinates, velocities and accelerations through `IntStateGather()`/`IntStateScatter()` and `IntStateGatherAcceleration()`/`IntStateScatterAcceleration()` with local offsets, its reactions through `IntStateGatherReactions()`/`IntStateScatterReactions()` (for example, the multipliers of a ChExternalDynamicsDAE), then its internal state block, all on one line. When loading, the internal state is loaded after the coordinates, accelerations and reactions, and the item is then updated. `ChAssembly::Components` has a `meshes` list (whole meshes, separate from the output-only `mesh_nodes`) and an `items` list (any other physics item); both use this path, after the per-type lists. Loading sets up the containing systems first, which initializes items that are not yet initialized.
 
 Chrono::Vehicle deformable tires (ChFEATire and derived) add their mesh to the `meshes` list of their components, and implement `WriteCheckpoint()`/`ReadCheckpoint()` with a COMPONENT checkpoint of those components.
+
+## Integrators
+
+A restart reproduces a continuous run exactly when everything the integrator carries from one step to the next is part of the checkpoint: the state, the accelerations, the Lagrange multipliers (held by the items) and the timestepper state. For this reason, HHT evaluates the constraint Jacobians at the state at the beginning of the step when it forms the residual term with the previous multipliers, rather than using the Jacobians cached in the constraint objects by the last linear solve.
 
 ## Known limits
 
 - ChExternalFmu saves its continuous states (they are part of the system state vectors), but not the internal state of the FMU itself (discrete states, event indicators, and outputs cached from the last evaluation, which may have been a perturbed state used for a finite-difference Jacobian). Restarts with FMUs are therefore close to, but not exactly, a continuous run.
 - The state of the collision system is not saved. With contact, a restart in a freshly built system can process contacts in a different order than the continuous run (a reload into the running system does not), which gives roundoff-level differences that grow over time.
-- Lagrange multipliers (in SYSTEM checkpoints) and the history of multistep timesteppers (for example HHT) are not saved, so restarts with such integrators are close to, but not exactly, a continuous run.
+- The matrices and factorizations kept by the solver are not saved. With a Jacobian update strategy that reuses a Jacobian across steps (`JacobianUpdate::NEVER` or `AUTOMATIC`), a restart evaluates a new Jacobian and is close to, but not exactly, a continuous run.
 - Items with hidden state that is not saved: ChPeridynamics (bonds and their broken status), ChFunctionSetpoint and other stateful functions, contact history (for example tangential displacement in SMC contact), the SCM terrain grid, Chrono::Vehicle drivers and powertrain internals outside the physics items, and the shared web mesh of ANCF band tracks (which is not in any component list).
 
 # Design decisions {#lifecycle_decisions}

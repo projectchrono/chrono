@@ -208,9 +208,24 @@ void ChCheckpointASCII::SaveState(ChSystem* sys) {
     ChCheckpointWriter internal;
     sys->SaveInternalState(internal);
 
+    // Lagrange multipliers of the assembly constraints (contact multipliers are not saved, since contacts are
+    // recreated at each step), used by some integrators (e.g., HHT) as part of their history
+    ChVectorDynamic<> L(sys->GetNumConstraints());
+    sys->StateGatherReactions(L);
+    auto nc = sys->GetNumConstraints() - sys->GetContactContainer()->GetNumConstraints();
+
+    // Timestepper internal state, tagged with the timestepper type
+    ChCheckpointWriter timestepper;
+    auto ts = sys->GetTimestepper();
+    if (ts)
+        ts->SaveInternalState(timestepper);
+
     ChCheckpointWriter writer;
     writer.Write(a);
     writer.Write(internal);
+    writer.Write(L.head(nc));
+    writer.Write(ts ? static_cast<int>(ts->GetType()) : -1);
+    writer.Write(timestepper);
     WriteBlock(writer);
 }
 
@@ -250,26 +265,64 @@ void ChCheckpointASCII::LoadState(ChSystem* sys) {
 
     // Load accelerations and the internal state of all physics items, if present (older checkpoint files do not
     // include them)
+    // Lagrange multipliers and timestepper state follow, if present (older checkpoint files do not include them)
     bool has_acc = false;
+    bool has_reactions = false;
     ChStateDelta a(nv, sys);
+    ChVectorDynamic<> L_saved;
+    ChCheckpointReader internal;
     if (std::getline(m_istream, line) && !line.empty()) {
         auto reader = ParseBlock(line);
-        ChCheckpointReader internal;
         reader.Read(a);
         reader.Read(internal);
-        reader.CheckAtEnd();
         if (a.size() != nv) {
             cerr << "Error: inconsistent number of accelerations" << endl;
             throw std::runtime_error("Inconsistent number of accelerations");
         }
-        sys->LoadInternalState(internal);
-        internal.CheckAtEnd();
         has_acc = true;
+
+        if (!reader.IsAtEnd()) {
+            int ts_type;
+            ChCheckpointReader timestepper;
+            reader.Read(L_saved);
+            reader.Read(ts_type);
+            reader.Read(timestepper);
+            reader.CheckAtEnd();
+
+            auto nc = sys->GetNumConstraints() - sys->GetContactContainer()->GetNumConstraints();
+            if (L_saved.size() != nc) {
+                cerr << "Error: inconsistent number of constraints" << endl;
+                throw std::runtime_error("Inconsistent number of constraints");
+            }
+            has_reactions = true;
+
+            // Restore the timestepper state only for the same type of timestepper
+            auto ts = sys->GetTimestepper();
+            if (ts && static_cast<int>(ts->GetType()) == ts_type) {
+                ts->LoadInternalState(timestepper);
+                timestepper.CheckAtEnd();
+            }
+        }
     }
 
     sys->StateScatter(x, v, m_time, UpdateFlags::UPDATE_ALL);
     if (has_acc)
         sys->StateScatterAcceleration(a);
+    if (has_reactions) {
+        // Keep the current contact multipliers, if any; contacts are recreated at the next step
+        ChVectorDynamic<> L(sys->GetNumConstraints());
+        sys->StateGatherReactions(L);
+        L.head(L_saved.size()) = L_saved;
+        sys->StateScatterReactions(L);
+    }
+
+    // Internal state last, since it may refine data set by the scatter (e.g., quaternion derivatives of bodies); then
+    // update the system with the complete state
+    if (has_acc) {
+        sys->LoadInternalState(internal);
+        internal.CheckAtEnd();
+        sys->Update(UpdateFlags::UPDATE_ALL);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -661,13 +714,14 @@ void ChCheckpointASCII::LoadItems(std::vector<std::shared_ptr<ChPhysicsItem>>& i
             throw std::runtime_error("Inconsistent number of states or constraints");
         }
 
-        // Internal state first, since scattering the coordinates updates the item
-        item->LoadInternalState(internal);
-        internal.CheckAtEnd();
-
         item->IntStateScatter(0, x, 0, v, m_time, UpdateFlags::UPDATE_ALL);
         item->IntStateScatterAcceleration(0, a);
         item->IntStateScatterReactions(0, L);
+
+        // Internal state last, since it may refine data set by the scatter; then update the item
+        item->LoadInternalState(internal);
+        internal.CheckAtEnd();
+        item->Update(m_time, UpdateFlags::UPDATE_ALL);
     }
 }
 

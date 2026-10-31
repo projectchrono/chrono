@@ -99,6 +99,14 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
     virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
+    /// Save the rotation velocity and acceleration as stored (quaternion derivatives).
+    /// The coordinates hold the angular velocity and acceleration, which do not convert back to the same quaternion
+    /// derivatives exactly; saving these makes a restart reproduce a continuous run.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the rotation velocity and acceleration (quaternion derivatives).
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

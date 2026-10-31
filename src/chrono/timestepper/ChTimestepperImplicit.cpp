@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "chrono/timestepper/ChTimestepperImplicit.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 using std::cout;
 using std::cerr;
@@ -62,6 +63,20 @@ void ChTimestepperImplicit::SetJacobianUpdateMethod(JacobianUpdate method) {
     }
 
     jacobian_update_method = method;
+}
+
+void ChTimestepperImplicit::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChTimestepper::SaveInternalState(writer);
+
+    writer.Write(h);
+    writer.Write(num_successful_steps);
+}
+
+void ChTimestepperImplicit::LoadInternalState(ChCheckpointReader& reader) {
+    ChTimestepper::LoadInternalState(reader);
+
+    reader.Read(h);
+    reader.Read(num_successful_steps);
 }
 
 void ChTimestepperImplicit::Advance(double dt) {

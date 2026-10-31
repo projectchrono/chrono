@@ -20,6 +20,7 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 
@@ -959,6 +960,23 @@ void ChBody::ComputeNF(
 
 // ---------------------------------------------------------------------------
 // FILE I/O
+
+void ChBody::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChPhysicsItem::SaveInternalState(writer);
+
+    writer.Write(GetRotDt());
+    writer.Write(GetRotDt2());
+}
+
+void ChBody::LoadInternalState(ChCheckpointReader& reader) {
+    ChPhysicsItem::LoadInternalState(reader);
+
+    ChQuaterniond rot_dt, rot_dtdt;
+    reader.Read(rot_dt);
+    reader.Read(rot_dtdt);
+    SetRotDt(rot_dt);
+    SetRotDt2(rot_dtdt);
+}
 
 void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

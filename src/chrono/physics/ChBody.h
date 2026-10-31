@@ -324,6 +324,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
 
+    // CHECKPOINTING
+
+    /// Save the rotation velocity and acceleration as stored (quaternion derivatives).
+    /// The coordinates hold the angular velocity and acceleration, which do not convert back to the same quaternion
+    /// derivatives exactly; saving these makes a restart reproduce a continuous run.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the rotation velocity and acceleration (quaternion derivatives).
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.

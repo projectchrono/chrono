@@ -96,6 +96,7 @@ void ChTimestepperHHT::PrepareStep() {
     Vnew = V + Anew * h;
     Xnew = X + Vnew * h + Anew * (h * h);
     integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
+    integrable->LoadConstraintJacobians();                          // Cq at the state at time T
     integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
     CalcErrorWeights(A, reltol, abstolS, ewtS);
 

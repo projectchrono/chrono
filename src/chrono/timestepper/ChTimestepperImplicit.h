@@ -146,6 +146,12 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// This base class manages the Newton iteration counters and defers the integrator implementation to OnAdvance.
     virtual void Advance(double dt) override final;
 
+    /// Save the step size control state (internal step size and number of successive successful steps).
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the step size control state.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
   public:
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override {

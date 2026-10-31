@@ -684,7 +684,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void InjectConstraints(ChSystemDescriptor& sys_descriptor);
 
     /// Compute and load current Jacobians in encapsulated ChConstraint objects.
-    void LoadConstraintJacobians();
+    virtual void LoadConstraintJacobians() override;
 
     /// Register with the given system descriptor any ChKRMBlock objects associated with items in the system.
     void InjectKRMMatrices(ChSystemDescriptor& sys_descriptor);

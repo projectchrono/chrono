@@ -122,7 +122,8 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void SaveInternalState(ChCheckpointWriter& writer) const {}
 
     /// Load the internal state of this item, as saved by SaveInternalState.
-    /// Called after the item was initialized and before the saved coordinates are loaded.
+    /// Called after the item was initialized and its saved coordinates, accelerations and reactions were loaded, and
+    /// before the item is updated.
     /// Derived classes that override this function must first call the base class implementation.
     virtual void LoadInternalState(ChCheckpointReader& reader) {}
 

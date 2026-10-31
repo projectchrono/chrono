@@ -172,6 +172,13 @@ described in the developer manual "Physics Item Lifecycle".
   `ReadCheckpoint`.
 - The checkpoint time and states are now written with full precision. Previously, the time was written
   with 6 significant digits, so time-dependent inputs did not match after a restart.
+- SYSTEM checkpoints also save the Lagrange multipliers of the assembly constraints and the timestepper
+  state (the step size control state of the implicit integrators), and bodies and rotational FEA nodes
+  save the derivatives of their rotation quaternion, so that restarts with HHT and the other implicit
+  integrators reproduce a continuous run exactly.
+- The HHT integrator now evaluates the constraint Jacobians at the beginning of each step for the term
+  that involves the previous Lagrange multipliers, instead of reusing the Jacobians cached by the last
+  linear solve. Results of HHT simulations of constrained systems change slightly.
 
 ## [Changed] Initialization of physics items
 
