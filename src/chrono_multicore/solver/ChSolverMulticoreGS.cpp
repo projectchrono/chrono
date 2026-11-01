@@ -19,6 +19,10 @@
 using namespace chrono;
 
 uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct, ChProjectConstraints& Project, const uint max_iter, const uint size, const VectorType& r, VectorType& gamma) {
+    if (size == 0) {
+        return 0;
+    }
+
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
@@ -37,7 +41,10 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct, ChProjectConstrain
     }
     const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N ? data_manager->host_data.Nschur : nschur_local;
     VectorType D;
-    D.resize(num_constraints, false);
+    D.resize(num_constraints);
+
+    int nc = num_contacts;
+    int nfc = num_rigid_particle_contacts;
 
     auto diag = Nschur.diagonal();
     for (int index = 0; index < (signed)num_contacts; index++) {
@@ -55,26 +62,27 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct, ChProjectConstrain
     if (data_manager->num_particles) {
         offset += data_manager->num_bilaterals;
 
-        for (size_t i = 0; i < data_manager->num_particles; i++) {
-            D[offset + i] = 1.0 / Nschur.coeff(offset + i, offset + i);
-        }
-
-        offset += data_manager->num_particles;
-
+        // Rigid-particle contacts: normal rows, followed by two tangential rows per contact if there is friction
         for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
             if (data_manager->node_container->contact_mu == 0) {
                 D[offset + i] = Nschur.coeff(offset + i, offset + i);
                 D[offset + i] = 3.0 / D[offset + i];
             } else {
-                D[offset + i] = diag[offset + i] + diag[offset + i * 2 + 0] + diag[offset + i * 2 + 1];
+                D[offset + i] = diag[offset + i] + diag[offset + nfc + i * 2 + 0] + diag[offset + nfc + i * 2 + 1];
                 D[offset + i] = 3.0 / D[offset + i];
-                D[offset + i * 2 + 0] = D[offset + i];
-                D[offset + i * 2 + 1] = D[offset + i];
+                D[offset + nfc + i * 2 + 0] = D[offset + i];
+                D[offset + nfc + i * 2 + 1] = D[offset + i];
             }
         }
+
+        offset += (data_manager->node_container->contact_mu == 0) ? nfc : 3 * nfc;
+
+        // Remaining 3-DOF constraints (fluid density and viscosity, particle-particle contacts)
+        for (size_t i = offset; i < num_constraints; i++) {
+            D[i] = 1.0 / Nschur.coeff(i, i);
+        }
     }
-    int nc = num_contacts;
-    int nfc = num_rigid_particle_contacts;
+
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         real omega = .2;
         offset = 0;
@@ -95,12 +103,6 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct, ChProjectConstrain
         if (data_manager->num_particles) {
             offset += data_manager->num_bilaterals;
 
-            for (size_t i = 0; i < data_manager->num_particles; i++) {
-                ml[offset + i] = ml[offset + i] - omega * D[offset + i] * (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
-            }
-
-            offset += data_manager->num_particles;
-
             for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
                 ml[offset + i] = ml[offset + i] - omega * D[offset + i] * (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
                 if (data_manager->node_container->contact_mu != 0) {
@@ -111,6 +113,13 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct, ChProjectConstrain
                 }
                 data_manager->node_container->Project(ml.data());
             }
+
+            offset += (data_manager->node_container->contact_mu == 0) ? nfc : 3 * nfc;
+
+            for (size_t i = offset; i < num_constraints; i++) {
+                ml[i] = ml[i] - omega * D[i] * (Nschur.row(i).dot(ml) - r[i]);
+            }
+            data_manager->node_container->Project(ml.data());
         }
 
         gamma = ml;
