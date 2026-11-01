@@ -115,6 +115,11 @@ class CH_MULTICORE_API ChSolverMulticore {
 
     real LargestEigenValue(ChSchurProduct& SchurProduct, VectorType& temp, real lambda = 0);
 
+    /// Compute the inverse diagonal of the Schur complement for the Jacobi and Gauss-Seidel solvers.
+    /// The diagonal includes the constraint compliance. The rows of a contact that are projected together share an
+    /// averaged entry, and rows of constraints that are not active in the current solver mode get a zero entry.
+    void ComputeInverseDiagonal(const SparseMatrixType& Nschur, VectorType& D);
+
     int current_iteration;  ///< The current iteration number of the solver
 
     ChConstraintRigidRigid* rigid_rigid;

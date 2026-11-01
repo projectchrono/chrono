@@ -31,93 +31,63 @@ uint ChSolverMulticoreGS::Solve(ChSchurProduct& SchurProduct, ChProjectConstrain
     Project(ml.data());
 
     uint num_constraints = data_manager->num_constraints;
-    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
-    uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
+    uint nc = data_manager->cd_data->num_rigid_contacts;
+    uint nfc = data_manager->cd_data->num_rigid_particle_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
+
+    // Rows of rigid contacts updated in the current solver mode
+    SolverMode mode = data_manager->settings.solver.local_solver_mode;
+    bool sliding = (mode == SolverMode::SLIDING || mode == SolverMode::SPINNING);
+    bool spinning = (mode == SolverMode::SPINNING);
 
     SparseMatrixType nschur_local;
     if (!data_manager->settings.solver.compute_N) {
         nschur_local = data_manager->host_data.D_T * data_manager->host_data.M_invD;
     }
     const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N ? data_manager->host_data.Nschur : nschur_local;
+    const VectorType& E = data_manager->host_data.E;
     VectorType D;
-    D.resize(num_constraints);
+    ComputeInverseDiagonal(Nschur, D);
 
-    int nc = num_contacts;
-    int nfc = num_rigid_particle_contacts;
-
-    auto diag = Nschur.diagonal();
-    for (int index = 0; index < (signed)num_contacts; index++) {
-        D[index] = diag[index] + diag[num_contacts + index * 2] + diag[num_contacts + index * 2 + 1];
-        D[index] = 3.0 / D[index];
-        D[num_contacts + index * 2 + 0] = D[index];
-        D[num_contacts + index * 2 + 1] = D[index];
-    }
-    uint offset = data_manager->num_unilaterals;
-
-    for (size_t i = 0; i < num_bilaterals; i++) {
-        D[offset + i] = 1.0 / Nschur.coeff(offset + i, offset + i);
-    }
-
-    if (data_manager->num_particles) {
-        offset += data_manager->num_bilaterals;
-
-        // Rigid-particle contacts: normal rows, followed by two tangential rows per contact if there is friction
-        for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
-            if (data_manager->node_container->contact_mu == 0) {
-                D[offset + i] = Nschur.coeff(offset + i, offset + i);
-                D[offset + i] = 3.0 / D[offset + i];
-            } else {
-                D[offset + i] = diag[offset + i] + diag[offset + nfc + i * 2 + 0] + diag[offset + nfc + i * 2 + 1];
-                D[offset + i] = 3.0 / D[offset + i];
-                D[offset + nfc + i * 2 + 0] = D[offset + i];
-                D[offset + nfc + i * 2 + 1] = D[offset + i];
-            }
-        }
-
-        offset += (data_manager->node_container->contact_mu == 0) ? nfc : 3 * nfc;
-
-        // Remaining 3-DOF constraints (fluid density and viscosity, particle-particle contacts)
-        for (size_t i = offset; i < num_constraints; i++) {
-            D[i] = 1.0 / Nschur.coeff(i, i);
-        }
-    }
+    real omega = .2;
+    auto update_row = [&](uint i) { ml[i] = ml[i] - omega * D[i] * (Nschur.row(i).dot(ml) + E[i] * ml[i] - r[i]); };
 
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
-        real omega = .2;
-        offset = 0;
-
-        for (int i = 0; i < (signed)num_contacts; i++) {
-            ml[offset + i] = ml[offset + i] - omega * D[offset + i] * (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
-            ml[nc + i * 2 + 0] = ml[nc + i * 2 + 0] - omega * D[nc + i * 2 + 0] * (Nschur.row(nc + i * 2 + 0).dot(ml) - r[nc + i * 2 + 0]);
-            ml[nc + i * 2 + 1] = ml[nc + i * 2 + 1] - omega * D[nc + i * 2 + 1] * (Nschur.row(nc + i * 2 + 1).dot(ml) - r[nc + i * 2 + 1]);
-
+        for (uint i = 0; i < nc; i++) {
+            update_row(i);
+            if (sliding) {
+                update_row(nc + i * 2 + 0);
+                update_row(nc + i * 2 + 1);
+            }
+            if (spinning) {
+                update_row(3 * nc + i * 3 + 0);
+                update_row(3 * nc + i * 3 + 1);
+                update_row(3 * nc + i * 3 + 2);
+            }
             data_manager->rigid_rigid->Project_Single(i, ml.data());
         }
 
-        offset += data_manager->num_unilaterals;
+        uint offset = data_manager->num_unilaterals;
 
-        for (size_t i = 0; i < num_bilaterals; i++) {
-            ml[offset + i] = ml[offset + i] - omega * D[offset + i] * (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
+        for (uint i = 0; i < num_bilaterals; i++) {
+            update_row(offset + i);
         }
         if (data_manager->num_particles) {
-            offset += data_manager->num_bilaterals;
+            offset += num_bilaterals;
 
-            for (size_t i = 0; i < num_rigid_particle_contacts; i++) {
-                ml[offset + i] = ml[offset + i] - omega * D[offset + i] * (Nschur.row(offset + i * 1 + 0).dot(ml) - r[offset + i]);
+            for (uint i = 0; i < nfc; i++) {
+                update_row(offset + i);
                 if (data_manager->node_container->contact_mu != 0) {
-                    ml[offset + nfc + i * 2 + 0] =
-                        ml[offset + nfc + i * 2 + 0] - omega * D[offset + nfc + i * 2 + 0] * (Nschur.row(offset + nfc + i * 2 + 0).dot(ml) - r[offset + nfc + i * 2 + 0]);
-                    ml[offset + nfc + i * 2 + 1] =
-                        ml[offset + nfc + i * 2 + 1] - omega * D[offset + nfc + i * 2 + 1] * (Nschur.row(offset + nfc + i * 2 + 1).dot(ml) - r[offset + nfc + i * 2 + 1]);
+                    update_row(offset + nfc + i * 2 + 0);
+                    update_row(offset + nfc + i * 2 + 1);
                 }
                 data_manager->node_container->Project(ml.data());
             }
 
             offset += (data_manager->node_container->contact_mu == 0) ? nfc : 3 * nfc;
 
-            for (size_t i = offset; i < num_constraints; i++) {
-                ml[i] = ml[i] - omega * D[i] * (Nschur.row(i).dot(ml) - r[i]);
+            for (uint i = offset; i < num_constraints; i++) {
+                update_row(i);
             }
             data_manager->node_container->Project(ml.data());
         }

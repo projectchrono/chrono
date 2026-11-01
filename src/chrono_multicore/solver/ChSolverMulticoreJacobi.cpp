@@ -26,10 +26,6 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct, ChProjectConst
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
-    uint num_constraints = data_manager->num_constraints;
-    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
-    uint num_rigid_particle_contacts = data_manager->cd_data->num_rigid_particle_contacts;
-    uint num_bilaterals = data_manager->num_bilaterals;
     ml = gamma;
     ml_old = gamma;
     VectorType temp;
@@ -41,51 +37,14 @@ uint ChSolverMulticoreJacobi::Solve(ChSchurProduct& SchurProduct, ChProjectConst
         nschur_local = data_manager->host_data.D_T * data_manager->host_data.M_invD;
     }
     const SparseMatrixType& Nschur = data_manager->settings.solver.compute_N ? data_manager->host_data.Nschur : nschur_local;
+    const VectorType& E = data_manager->host_data.E;
     VectorType D;
-    D.resize(num_constraints);
+    ComputeInverseDiagonal(Nschur, D);
     // real eignenval = LargestEigenValue(SchurProduct, temp);
-
-    auto diag = Nschur.diagonal();
-    for (int index = 0; index < (signed)num_contacts; index++) {
-        D[index] = diag[index] + diag[num_contacts + index * 2] + diag[num_contacts + index * 2 + 1];
-        D[index] = 3.0 / D[index];
-        D[num_contacts + index * 2 + 0] = D[index];
-        D[num_contacts + index * 2 + 1] = D[index];
-    }
-    uint offset = data_manager->num_unilaterals;
-
-    for (size_t i = 0; i < num_bilaterals; i++) {
-        D[offset + i] = 1.0 / Nschur.coeff(offset + i, offset + i);
-    }
-
-    if (data_manager->num_particles) {
-        offset += data_manager->num_bilaterals;
-
-        // Rigid-particle contacts: normal rows, followed by two tangential rows per contact if there is friction
-        uint nfc = num_rigid_particle_contacts;
-        for (size_t i = 0; i < nfc; i++) {
-            if (data_manager->node_container->contact_mu == 0) {
-                D[offset + i] = Nschur.coeff(offset + i, offset + i);
-                D[offset + i] = 3.0 / D[offset + i];
-            } else {
-                D[offset + i] = diag[offset + i] + diag[offset + nfc + i * 2 + 0] + diag[offset + nfc + i * 2 + 1];
-                D[offset + i] = 3.0 / D[offset + i];
-                D[offset + nfc + i * 2 + 0] = D[offset + i];
-                D[offset + nfc + i * 2 + 1] = D[offset + i];
-            }
-        }
-
-        offset += (data_manager->node_container->contact_mu == 0) ? nfc : 3 * nfc;
-
-        // Remaining 3-DOF constraints (fluid density and viscosity, particle-particle contacts)
-        for (size_t i = offset; i < num_constraints; i++) {
-            D[i] = 1.0 / Nschur.coeff(i, i);
-        }
-    }
 
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         real omega = .2;  // 2.0 / eignenval;//1.0 / 3.0;
-        ml = ml_old - omega * D.cwiseProduct(Nschur * ml_old - r);
+        ml = ml_old - omega * D.cwiseProduct(Nschur * ml_old + E.cwiseProduct(ml_old) - r);
 
         Project(ml.data());
         gamma = ml;
