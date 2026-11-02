@@ -720,6 +720,11 @@ Notable fixes since the 10.0.0 release:
   `DoAssembly()` no longer leaves its internal 1e-6 step in the system, so `DoFrameKinematics()`
   advances by the requested step. Unit tests check a pendulum against its closed form at two lengths
   (#846).
+- In the Bullet collision system, cone shapes collided as if larger than the cone by the collision
+  margin (radially by the envelope plus the safe margin, at the base and apex by half the envelope
+  plus the safe margin), capsule ends extended one envelope too far, and capsule-box contacts used
+  the wrong capsule axis, so that, for example, a capsule standing on or lying across a box generated
+  no contacts.
 
 # Release 10.0.0 (2026-03-27)
 
