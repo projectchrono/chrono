@@ -698,10 +698,17 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->fullscreen = m_use_fullscreen;
     windowTraits->screenNum = m_screen_num;
 
+    // The label font is the first file read from the Chrono data directory, which also provides the shaders and GUI
+    // textures, so stop here if it cannot be found
     m_label_font = vsg::read_cast<vsg::Font>(m_label_font_path, m_options);
     if (!m_label_font) {
-        cout << "Failed to read font : " << m_label_font_path << endl;
-        return;
+        std::string search_paths;
+        for (const auto& path : m_options->paths)
+            search_paths += " '" + path.string() + "'";
+        std::string msg = "ChVisualSystemVSG: cannot read font file '" + m_label_font_path + "' (search paths:" + search_paths +
+                          "). Call SetChronoDataPath with the Chrono data directory before creating the visual system.";
+        cerr << "Error: " << msg << endl;
+        throw std::runtime_error(msg);
     }
 
     m_scene = vsg::Group::create();
@@ -798,8 +805,8 @@ void ChVisualSystemVSG::Initialize() {
 
     m_window = vsg::Window::create(windowTraits);
     if (!m_window) {
-        cout << "Could not create window." << endl;
-        return;
+        cerr << "Error: ChVisualSystemVSG: could not create window." << endl;
+        throw std::runtime_error("ChVisualSystemVSG: could not create window");
     }
 
     ////auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
@@ -877,8 +884,9 @@ void ChVisualSystemVSG::Initialize() {
             ImGuiIO& io = ImGui::GetIO();
             auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_gui_font_size);
             if (!imguiFont) {
-                cout << "Failed to load font: " << c_fontFile << endl;
-                return;
+                std::string msg = "ChVisualSystemVSG: cannot load GUI font file '" + c_fontFile + "'";
+                cerr << "Error: " << msg << endl;
+                throw std::runtime_error(msg);
             }
         }
 #ifdef __APPLE__

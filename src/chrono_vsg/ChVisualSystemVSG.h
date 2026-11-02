@@ -77,6 +77,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     void AttachPlugin(std::shared_ptr<ChVisualSystemVSGPlugin> plugin);
 
     /// Initialize the visualization system.
+    /// Throws std::runtime_error on failure, e.g., if the fonts cannot be read from the Chrono data directory.
     virtual void Initialize() override;
 
     /// Process all visual assets in the associated ChSystem.
