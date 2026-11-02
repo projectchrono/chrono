@@ -676,9 +676,8 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // CreateCylindricalContainerFromBoxes
 //
 // Create a fixed body with contact and asset geometry representing a cylindrical
-// container with no top.
-// hdim = (rad, rad, height) (the second and the third components are the same)
-// by default, it is z_up
+// container aligned with the body z axis. The side wall is a ring of plates
+// tangent to the inner radius; the bottom and the top are optional.
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             ChContactMaterialSharedPtr mat,
@@ -692,7 +691,8 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             bool overlap,
                                                             bool closed,
                                                             bool isBoxBase,
-                                                            bool partialVisualization) {
+                                                            bool partialVisualization,
+                                                            bool bottom) {
     // Verify consistency of input arguments.
     assert(mat->GetContactMethod() == system->GetContactMethod());
 
@@ -713,32 +713,34 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     ChVector3d plate_size = ChVector3d((box_side + thickness / 2), thickness, height + o_lap);  // size of plates
     double delta_angle = CH_2PI / numBoxes;
 
+    // Plate i is centered at angle a_i, measured from the y axis towards the x axis. Its local y axis is radial and its
+    // local x axis is tangent to the ring. The plate positions are in the body frame.
     for (int i = 0; i < numBoxes; i++) {
         double angle = i * delta_angle;
-        auto plate_pos =
-            pos + ChVector3d(std::sin(angle) * (hthick + radius), std::cos(angle) * (hthick + height / 2), height / 2);
-        auto plate_rot = QuatFromAngleZ(angle);
+        auto plate_pos = ChVector3d(std::sin(angle) * (radius + hthick), std::cos(angle) * (radius + hthick), height / 2);
+        auto plate_rot = QuatFromAngleZ(-angle);
 
         bool visualize = !partialVisualization || angle > CH_PI_2;
         utils::AddBoxGeometry(body.get(), mat, plate_size, plate_pos, plate_rot, visualize);
     }
 
+    // The bottom and top pieces cover the wall plates (outer radius radius + thickness)
+    double base_width = 2 * (radius + thickness);
+
     // Add bottom piece
-    if (isBoxBase)
-        utils::AddBoxGeometry(body.get(), mat, ChVector3d(2 * radius + thickness, height + thickness, thickness),
-                              ChVector3d(0, 0, -hthick), QUNIT, true);
-    else
-        utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector3d(0, 0, -hthick),
-                                   QuatFromAngleX(CH_PI_2));
+    if (bottom) {
+        if (isBoxBase)
+            utils::AddBoxGeometry(body.get(), mat, ChVector3d(base_width, base_width, thickness), ChVector3d(0, 0, -hthick), QUNIT, true);
+        else
+            utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector3d(0, 0, -hthick), QUNIT);
+    }
 
     // Add top piece
     if (closed) {
         if (isBoxBase)
-            utils::AddBoxGeometry(body.get(), mat, ChVector3d(2 * radius + thickness, height + thickness, thickness),
-                                  ChVector3d(0, 0, height + hthick), QUNIT, true);
+            utils::AddBoxGeometry(body.get(), mat, ChVector3d(base_width, base_width, thickness), ChVector3d(0, 0, height + hthick), QUNIT, true);
         else
-            utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness,
-                                       ChVector3d(0, 0, height + hthick), QuatFromAngleX(CH_PI_2));
+            utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector3d(0, 0, height + hthick), QUNIT);
     }
 
     body->GetCollisionModel()->SetEnvelope(0.2 * thickness);
