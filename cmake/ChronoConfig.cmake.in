@@ -731,6 +731,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "Chrono_multicore.dll")
       endif()
+
+      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_multicore_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_multicore_vsg.dll")
+        endif()
+      endif()
     endif()
 
   elseif(${COMPONENT_UPPER} STREQUAL "MODAL")
