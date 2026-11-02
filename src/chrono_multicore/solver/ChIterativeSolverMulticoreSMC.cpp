@@ -815,6 +815,9 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
         data_manager->system_timer.start("ChIterativeSolverMulticoreSMC_ProcessContact");
         ProcessContacts();
         data_manager->system_timer.stop("ChIterativeSolverMulticoreSMC_ProcessContact");
+    } else if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+        // No contact persists through a step without contacts: free all contact history slots.
+        Thrust_Fill(data_manager->host_data.shear_neigh, vec3(-1, -1, -1));
     }
 
     // Generate the mass matrix and compute M_inv_k
