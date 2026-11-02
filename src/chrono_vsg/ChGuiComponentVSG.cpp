@@ -36,6 +36,11 @@ void TextCentered(const char* text, float offset) {
     ImGui::TextUnformatted(text);
 }
 
+// Format of a colorbar label: fixed point, unless the value is too large or too small to show with 2 decimals
+static const char* LabelFormat(double val) {
+    return (val == 0 || (std::abs(val) >= 0.01 && std::abs(val) < 100)) ? "%.2f" : "%6.1e";
+}
+
 void ChGuiComponentVSG::Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
                                  const ChVector2d& range,
                                  bool bimodal,
@@ -62,7 +67,7 @@ void ChGuiComponentVSG::Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
         float delta_neg = (0 - min_val) / half;
         for (int i = 0; i <= half; i++) {
             double val = min_val + i * delta_neg;
-            sprintf(buffer, (std::abs(val) < 100) ? "%.2f" : "%6.1e", val);
+            sprintf(buffer, LabelFormat(val), val);
             TextCentered(buffer, offset + i * item_width);
             ImGui::SameLine();
         }
@@ -70,7 +75,7 @@ void ChGuiComponentVSG::Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
         for (int step = 1; step <= half; step++) {
             double val = step * delta_pos;
             int column = half + step;
-            sprintf(buffer, (std::abs(val) < 100) ? "%.2f" : "%6.1e", val);
+            sprintf(buffer, LabelFormat(val), val);
             TextCentered(buffer, offset + column * item_width);
             if (column < num_items - 1)
                 ImGui::SameLine();
@@ -79,7 +84,7 @@ void ChGuiComponentVSG::Colorbar(vsg::ref_ptr<vsgImGui::Texture> texture,
         float delta = (max_val - min_val) / (num_items - 1);
         for (int i = 0; i < num_items; i++) {
             double val = min_val + i * delta;
-            sprintf(buffer, (std::abs(val) < 100) ? "%.2f" : "%6.1e", val);
+            sprintf(buffer, LabelFormat(val), val);
             TextCentered(buffer, offset + i * item_width);
             ImGui::SameLine();
         }

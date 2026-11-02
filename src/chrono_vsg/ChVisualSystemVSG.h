@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <vsg/all.h>
 #include <vsgXchange/all.h>
@@ -89,6 +90,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// This function must be called if a new physics item is added to the system or if changes to its visual model
     /// occur after the call to Initialize().
     virtual void BindItem(std::shared_ptr<ChPhysicsItem> item) override;
+
+    /// Exclude the specified body from the default binding of visual assets.
+    /// The visual and collision shapes, frames, and labels of an excluded body are not bound, so that a plugin can draw
+    /// the body by other means (for example, as GPU instances with ChInstancedShapesVSG). This function must be called
+    /// before the body is bound: for bodies in the system at initialization, before or during Initialize() (e.g., in the
+    /// OnBindAssets() function of a plugin).
+    void ExcludeFromBinding(std::shared_ptr<ChBody> body);
 
     /// Check if rendering is running.
     /// Returns `false` if the viewer was closed.
@@ -666,6 +674,8 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Export screen image as file (png, bmp, tga, jpg).
     void ExportScreenImage();
+
+    std::unordered_set<const ChBody*> m_excluded_bodies;  ///< bodies excluded from the default binding
 
     std::map<std::size_t, vsg::ref_ptr<vsg::Node>> m_objCache;
     std::hash<std::string> m_stringHash;

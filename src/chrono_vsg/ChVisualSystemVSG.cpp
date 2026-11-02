@@ -1756,7 +1756,14 @@ void ChVisualSystemVSG::BindAll() {
 
 // -----------------------------------------------------------------------------
 
+void ChVisualSystemVSG::ExcludeFromBinding(std::shared_ptr<ChBody> body) {
+    m_excluded_bodies.insert(body.get());
+}
+
 void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
+    if (m_excluded_bodies.count(body.get()) > 0)
+        return;
+
     if (!body->IsFixed()) {
         BindReferenceFrame(body, ObjectType::BODY);
         BindBodyCOMFrame(body);

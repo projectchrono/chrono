@@ -455,6 +455,54 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
     return stateGroup;
 }
 
+vsg::ref_ptr<vsg::StateGroup> createPbrInstancedStateGroup(vsg::ref_ptr<const vsg::Options> options, std::shared_ptr<ChVisualMaterial> material, bool double_faced) {
+    vsg::ref_ptr<vsg::SharedObjects> sharedObjects = options ? options->sharedObjects : vsg::ref_ptr<vsg::SharedObjects>();
+
+    auto graphicsPipelineConfig = vsg::GraphicsPipelineConfigurator::create(createPbrShaderSet(options, material));
+
+    // The instance colors replace the diffuse color of the material (baseColor = vertexColor * baseColorFactor)
+    auto pbrMat = createPbrMaterialFromChronoMaterial(material);
+    pbrMat->value().baseColorFactor.set(1.0f, 1.0f, 1.0f, 1.0f);
+    pbrMat->value().diffuseFactor.set(1.0f, 1.0f, 1.0f, 1.0f);
+    pbrMat->value().alphaMask = 1.0f;
+    graphicsPipelineConfig->assignDescriptor("PbrMaterial", pbrMat);
+
+    // Vertex arrays first, then the instance arrays in the order in which vsg::InstanceDrawIndexed binds them
+    graphicsPipelineConfig->enableArray("vsg_Vertex", VK_VERTEX_INPUT_RATE_VERTEX, 12);
+    graphicsPipelineConfig->enableArray("vsg_Normal", VK_VERTEX_INPUT_RATE_VERTEX, 12);
+    graphicsPipelineConfig->enableArray("vsg_Color", VK_VERTEX_INPUT_RATE_INSTANCE, 16);
+    graphicsPipelineConfig->enableArray("vsg_Translation", VK_VERTEX_INPUT_RATE_INSTANCE, 12);
+    graphicsPipelineConfig->enableArray("vsg_Rotation", VK_VERTEX_INPUT_RATE_INSTANCE, 16);
+    graphicsPipelineConfig->enableArray("vsg_Scale", VK_VERTEX_INPUT_RATE_INSTANCE, 12);
+
+    graphicsPipelineConfig->shaderHints->defines.insert("VSG_TWO_SIDED_LIGHTING");
+
+    struct SetPipelineStates : public vsg::Visitor {
+        bool double_faced;
+
+        SetPipelineStates(bool double_faced) : double_faced(double_faced) {}
+
+        void apply(vsg::Object& object) { object.traverse(*this); }
+        void apply(vsg::RasterizationState& rs) {
+            if (double_faced)
+                rs.cullMode = VK_CULL_MODE_NONE;
+        }
+    };
+
+    SetPipelineStates sps(double_faced);
+    graphicsPipelineConfig->accept(sps);
+
+    if (sharedObjects)
+        sharedObjects->share(graphicsPipelineConfig, [](auto gpc) { gpc->init(); });
+    else
+        graphicsPipelineConfig->init();
+
+    auto stateGroup = vsg::StateGroup::create();
+    graphicsPipelineConfig->copyTo(stateGroup, sharedObjects);
+
+    return stateGroup;
+}
+
 vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat) {
     auto pbrMat = vsg::PbrMaterialValue::create();
     float alpha = chronoMat->GetOpacity();
