@@ -26,11 +26,11 @@ namespace dem {
 
 // -----------------------------------------------------------------------------
 
-ChSystemDem::ChSystemDem(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O) {
+ChSystemDem::ChSystemDem(float sphere_rad, float density, const ChVector3f& boxDims, ChVector3f O) : m_RTF(0) {
     m_sys = new ChSystemDem_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()), make_float3(O.x(), O.y(), O.z()));
 }
 
-ChSystemDem::ChSystemDem(const std::string& checkpoint) {
+ChSystemDem::ChSystemDem(const std::string& checkpoint) : m_RTF(0) {
     m_sys = new ChSystemDem_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
@@ -1296,8 +1296,17 @@ void ChSystemDem::Initialize() {
 // -----------------------------------------------------------------------------
 
 double ChSystemDemMesh::AdvanceSimulation(float duration) {
+    m_timer.reset();
+    m_timer.start();
+
     ChSystemDemMesh_impl* sys_trimesh = static_cast<ChSystemDemMesh_impl*>(m_sys);
-    return sys_trimesh->AdvanceSimulation(duration);
+    double dt = sys_trimesh->AdvanceSimulation(duration);
+
+    m_timer.stop();
+    if (dt > 0)
+        m_RTF = (float)(m_timer() / dt);
+
+    return dt;
 }
 
 double ChSystemDem::AdvanceSimulation(float duration) {
@@ -1307,7 +1316,8 @@ double ChSystemDem::AdvanceSimulation(float duration) {
     float dt = m_sys->AdvanceSimulation(duration);
 
     m_timer.stop();
-    m_RTF = m_timer() / dt;
+    if (dt > 0)
+        m_RTF = (float)(m_timer() / dt);
 
     return dt;
 }

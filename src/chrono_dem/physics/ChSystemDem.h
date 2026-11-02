@@ -345,7 +345,7 @@ class CH_DEM_API ChSystemDem {
 
   protected:
     /// Protected default constructor.  Derived class must create m_sys.
-    ChSystemDem() : m_sys(nullptr) {}
+    ChSystemDem() : m_sys(nullptr), m_RTF(0) {}
 
     ChSystemDem_impl* m_sys;  ///< underlying system implementation
 

@@ -168,6 +168,10 @@ void ChDemVisualizationVSG::OnBindAssets() {
 }
 
 void ChDemVisualizationVSG::OnRender() {
+    // For display in the VSG GUI, which reports the time and RTF of the internal Chrono system
+    m_sysMBS->SetChTime(m_sysDEM->GetSimTime());
+    m_sysMBS->SetRTF(m_sysDEM->GetRTF());
+
     if (!m_show_particles)
         return;
 
