@@ -421,6 +421,60 @@ unsigned int ChSystemDem::GetNumContacts() const {
     return m_sys->GetNumContacts();
 }
 
+bool ChSystemDem::GetContacts(std::vector<Contact>& contacts) const {
+    contacts.clear();
+
+    const auto& params = *m_sys->gran_params;
+    if (!params.recording_contactInfo || params.friction_mode == CHDEM_FRICTION_MODE::FRICTIONLESS)
+        return false;
+
+    const unsigned int num_spheres = m_sys->nSpheres;
+    const bool history = params.friction_mode == CHDEM_FRICTION_MODE::MULTI_STEP;
+    const double force_scale = m_sys->FORCE_SU2UU;
+    const double length_scale = m_sys->LENGTH_SU2UU;
+    auto convert = [](const float3& v, double scale) { return ChVector3f((float)(v.x * scale), (float)(v.y * scale), (float)(v.z * scale)); };
+
+    // Each sphere has a fixed number of contact slots, holding the index of the other sphere or, for a boundary
+    // condition, the number of spheres plus the BC index plus one
+    for (unsigned int i = 0; i < num_spheres; i++) {
+        for (unsigned int k = 0; k < MAX_SPHERES_TOUCHED_BY_SPHERE; k++) {
+            size_t slot = (size_t)i * MAX_SPHERES_TOUCHED_BY_SPHERE + k;
+            unsigned int partner = m_sys->contact_partners_map[slot];
+            if (partner == NULL_CHDEM_ID)
+                continue;
+
+            Contact contact;
+            contact.particle = i;
+            if (partner < num_spheres) {
+                // A particle-particle contact is stored on both particles
+                if (partner <= i)
+                    continue;
+                contact.partner = partner;
+                contact.boundary = false;
+            } else {
+                if (!params.use_mat_based)
+                    continue;
+                contact.partner = partner - num_spheres - 1;
+                contact.boundary = true;
+            }
+            contact.normal_force = convert(m_sys->normal_contact_force[slot], force_scale);
+            contact.tangential_force = convert(m_sys->tangential_friction_force[slot], force_scale);
+            contact.tangential_displacement = history ? convert(m_sys->contact_history_map[slot], length_scale) : ChVector3f(0);
+            contacts.push_back(contact);
+        }
+    }
+
+    return true;
+}
+
+float ChSystemDem::GetStaticFrictionCoeff_SPH2SPH() const {
+    return m_sys->gran_params->static_friction_coeff_s2s;
+}
+
+float ChSystemDem::GetStaticFrictionCoeff_SPH2WALL() const {
+    return m_sys->gran_params->static_friction_coeff_s2w;
+}
+
 float ChSystemDem::GetSimTime() const {
     return m_sys->elapsedSimTime;
 }

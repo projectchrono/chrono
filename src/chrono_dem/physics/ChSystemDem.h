@@ -293,6 +293,30 @@ class CH_DEM_API ChSystemDem {
     /// Return number of particle-particle contacts.
     unsigned int GetNumContacts() const;
 
+    /// Contact of a particle with another particle or with a boundary condition.
+    struct Contact {
+        unsigned int particle;               ///< index of the particle
+        unsigned int partner;                ///< index of the other particle, or of the boundary condition
+        bool boundary;                       ///< true if the partner is a boundary condition
+        ChVector3f normal_force;             ///< normal contact force on the particle
+        ChVector3f tangential_force;         ///< tangential contact force on the particle
+        ChVector3f tangential_displacement;  ///< stored tangential displacement (MULTI_STEP friction mode)
+    };
+
+    /// Get the current contacts of all particles with other particles and with boundary conditions.
+    /// Each particle-particle contact is reported once, with the forces on the particle with the smaller index.
+    /// Contacts are available only in frictional simulations with contact recording enabled (see SetFrictionMode and
+    /// SetRecordingContactInfo); otherwise, this function returns false. Contacts with boundary conditions are reported
+    /// only with the material-based contact model, the only one that records their forces. Contacts with meshes are not
+    /// reported.
+    bool GetContacts(std::vector<Contact>& contacts) const;
+
+    /// Return the static friction coefficient for particle-particle contacts.
+    float GetStaticFrictionCoeff_SPH2SPH() const;
+
+    /// Return the static friction coefficient for particle-wall contacts.
+    float GetStaticFrictionCoeff_SPH2WALL() const;
+
     /// Return number of subdomains in the big domain.
     unsigned int GetNumSDs() const;
 

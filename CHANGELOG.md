@@ -178,6 +178,10 @@ has a VSG plugin that uses them.
   contact counts, NSC iterations and residual, number of threads, and contact history overflows, and
   can write an image of every n-th rendered frame (`SetImageOutput`, off by default). See the new demo
   `demo_MCORE_force_network`.
+- `ChDemVisualizationVSG`, the VSG plugin for Chrono::DEM, draws the contact force network too, with the
+  same coloring, threshold, and region options, from the new bulk accessor `ChSystemDem::GetContacts`
+  (frictional simulations with contact recording; contacts with boundary conditions require the
+  material-based contact model). See the new demo `demo_DEM_force_network`.
 
 ## [Added] Checkpointing of FEA meshes and internal state
 
