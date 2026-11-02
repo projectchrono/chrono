@@ -30,13 +30,13 @@ namespace dem {
 // Custom stats overlay
 class DEMStatsVSG : public vsg3d::ChGuiComponentVSG {
   public:
-    DEMStatsVSG(ChDemVisualizationVSG* vsysFSI) : m_visDEM(vsysFSI) {}
+    DEMStatsVSG(ChDemVisualizationVSG* visDEM) : m_visDEM(visDEM) {}
 
     virtual void render(vsg::CommandBuffer& cb) override {
         vsg3d::ChVisualSystemVSG& vsys = m_visDEM->GetVisualSystemVSG();
 
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DEM DEM");
+        ImGui::Begin("Chrono::DEM");
 
         if (ImGui::BeginTable("DEM", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
@@ -179,7 +179,7 @@ void ChDemVisualizationVSG::OnRender() {
     m_vel.resize(num_particles);
 
     for (unsigned int i = 0; i < num_particles; i++) {
-        // Copy SPH particle positions from device to host
+        // Copy particle positions from device to host
         m_pos[i] = m_sysDEM->GetParticlePosition(i);
         if (m_color_fun) {
             m_vel[i] = m_sysDEM->GetParticleVelocity(i);
@@ -205,7 +205,7 @@ ParticleHeightColorCallback::ParticleHeightColorCallback(double hmin, double hma
     : m_hmin(hmin), m_hmax(hmax), m_up(up) {}
 
 std::string ParticleHeightColorCallback::GetTile() const {
-    return "Height (m)";
+    return "Height";
 }
 
 ChVector2d ParticleHeightColorCallback::GetDataRange() const {
@@ -222,7 +222,7 @@ ParticleVelocityColorCallback::ParticleVelocityColorCallback(double vmin, double
 
 
 std::string ParticleVelocityColorCallback::GetTile() const {
-    return "Velocity (m/s)";
+    return "Velocity";
 }
 
 ChVector2d ParticleVelocityColorCallback::GetDataRange() const {

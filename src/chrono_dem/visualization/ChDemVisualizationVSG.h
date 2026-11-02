@@ -32,9 +32,9 @@ namespace dem {
 /// @addtogroup dem_visualization
 /// @{
 
-/// VSG-based run-time visualization system for SPH-based FSI systems.
+/// VSG-based run-time visualization system for Chrono::DEM systems.
 /// Used as a plugin to a Chrono::VSG visualization system.
-/// Note that using run-time visualization for an FSI system incurs the penalty of collecting positions of all
+/// Note that using run-time visualization for a DEM system incurs the penalty of collecting positions of all
 /// particles every time the Render() function is invoked.
 class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
   public:
@@ -56,7 +56,7 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     /// Get the colormap object in current use.
     const ChColormap& GetColormap() const;
 
-    /// Class to be used as a callback interface for dynamic coloring of SPH particles.
+    /// Class to be used as a callback interface for dynamic coloring of particles.
     class CH_DEM_API ParticleColorCallback : public ChParticleCloud::ColorCallback {
       public:
         virtual std::string GetTile() const = 0;
@@ -72,8 +72,8 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         virtual ChColor get(unsigned int n, const ChParticleCloud& cloud) const override final { return GetColor(n); }
     };
 
-    /// Set a callback for dynamic coloring of SPH particles.
-    /// If none provided, SPH particles are rendered with a default color.
+    /// Set a callback for dynamic coloring of particles.
+    /// If none provided, particles are rendered with a default color.
     void SetColorCallback(std::shared_ptr<ParticleColorCallback> functor,
                           ChColormap::Type type = ChColormap::Type::JET);
 
@@ -88,8 +88,8 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
         virtual bool get(unsigned int n, const ChParticleCloud& cloud) const override final { return get(n); }
     };
 
-    /// Set a callback for dynamic visibility of SPH particles.
-    /// If none provided, all SPH particles are visible.
+    /// Set a callback for dynamic visibility of particles.
+    /// If none provided, all particles are visible.
     void SetVisibilityCallback(std::shared_ptr<ParticleVisibilityCallback> functor) { m_vis_fun = functor; }
 
     /// Set output directory for saving frame snapshots (default: ".").
@@ -98,7 +98,7 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     /// Enable/disable writing of frame snapshots to file.
     void SetImageOutput(bool val) { m_write_images = val; }
 
-    /// Enable/disable rendering of fluid SPH particles (default: true).
+    /// Enable/disable rendering of particles (default: true).
     void EnableParticles(bool val) { m_show_particles = val; }
 
     /// Add additional proxy body to supplemental system.
@@ -121,9 +121,9 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     std::shared_ptr<ChParticleCloud> m_particle_cloud;  ///< particle cloud proxy for granular material
 
-    ChColor m_default_color;  ///< color for SPH particles
+    ChColor m_default_color;  ///< default particle color
 
-    std::unique_ptr<ChColormap> m_colormap;  ///< colormap for SPH particle false coloring
+    std::unique_ptr<ChColormap> m_colormap;  ///< colormap for particle false coloring
     ChColormap::Type m_colormap_type;        ///< colormap type
 
     std::shared_ptr<ParticleColorCallback> m_color_fun;     ///< color functor for particles
@@ -131,7 +131,7 @@ class CH_DEM_API ChDemVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     // Data for color and visibility functors
     std::vector<ChVector3f> m_pos;  ///< particle positions
-    std::vector<ChVector3f> m_vel;  ///< particle positions
+    std::vector<ChVector3f> m_vel;  ///< particle velocities
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files
