@@ -29,26 +29,11 @@
 #include <vector>
 #include <functional>
 
-#ifdef UNIX
-    #include <sys/socket.h>
-    #include <unistd.h>
-    #include <fcntl.h>
-    #include <cerrno>
-    #include <arpa/inet.h>
-    #include <netdb.h>
-    #include <netinet/in.h>
-    #include <sys/types.h>
-    #include <sys/ioctl.h>
-    #include <cstring>
-    #ifdef __APPLE__
-        // be sure to have TARGET_OS_MAC defined
-        #include "TargetConditionals.h"
-    #endif
-#else
-    #include <winsock2.h>
-#endif
-
 #include "chrono/core/ChApiCE.h"
+
+/// Forward declarations.
+struct hostent;
+struct sockaddr_in;
 
 namespace chrono {
 namespace utils {
@@ -122,11 +107,11 @@ class ChApi ChSocket {
     ChSocket() {}
     void SetSocketId(int socketFd) { socketId = socketFd; }
 
-    int socketId;            ///< socket file descriptor
-    int portNumber;          ///< socket port number
-    int blocking;            ///< blocking flag
-    int bindFlag;            ///< binding flag
-    sockaddr_in clientAddr;  ///< address of the client that sent data
+    int socketId;             ///< socket file descriptor
+    int portNumber;           ///< socket port number
+    int blocking;             ///< blocking flag
+    int bindFlag;             ///< binding flag
+    sockaddr_in* clientAddr;  ///< address of the client that sent data
 
   private:
     /// Get the system errors.
@@ -137,7 +122,7 @@ class ChApi ChSocket {
 #endif
 
 #ifdef UNIX
-    char* sGetError() { return strerror(errno); }
+    char* sGetError();
 #endif
 };
 
@@ -163,9 +148,9 @@ class ChApi ChSocket {
 class ChApi ChSocketTCP : public ChSocket {
   public:
     /// Constructor used for creating instances dedicated to client communication.
-    /// When accept() is successful, a socketId is generated and returned. This socket id is then used
-    /// to build a *new* socket using the following constructor.
-    /// Therefore, the next necessary call should be SetSocketId() using this newly generated socket fd.
+    /// When accept() is successful, a socketId is generated and returned.
+    /// This socket id is then used to build a *new* socket using the following constructor.
+    /// Therefore, the next necessary call should be SetSocketId() using this newly generated socket id.
     ChSocketTCP() {}
 
     /// Create a TCP socket and assign it a unique ID.
@@ -175,7 +160,7 @@ class ChApi ChSocketTCP : public ChSocket {
     /// Destroy TCP socket.
     ~ChSocketTCP() {}
 
-    /// Server-side functionalities --------------------------------------------
+    // Server-side functionalities --------------------------------------------
 
     /// Bind the socket to an address and a port number [SERVER SIDE].
     /// Return true on success.
@@ -188,29 +173,29 @@ class ChApi ChSocketTCP : public ChSocket {
     bool ListenToClient(int max_pending_connections = 5);
 
     /// Accept an incoming client connection [SERVER SIDE].
-    /// If successful, return a new heap-allocated socket with the ID of the accepted connection (which must be managed by the user).
+    /// If successful, return a *new* heap-allocated socket with the ID of the accepted connection (which must be managed by the user).
     /// If unsuccessful, return a null pointer.
     /// The resolved host name of the connected client is returned as function argument.
     ChSocketTCP* AcceptClient(std::string& client_host_name);
 
-    /// Client-side functionalities --------------------------------------------
+    // Client-side functionalities --------------------------------------------
 
     /// Connect to a server using the port number configured for this socket [CLIENT SIDE].
     /// Target server can be specified either by host name or IP address.
     /// Return true on success.
-    bool ConnectToServer(std::string& server_name_or_addr, HostType host_type);
+    bool ConnectToServer(const std::string& server_name_or_addr, HostType host_type);
 
-    /// Manual communication functionalities -----------------------------------
+    // Manual communication functionalities -----------------------------------
 
     /// Send a string message to the connected host.
     /// This method automatically prepends a fixed-length header, specifying the message size in bytes.
     /// Return the number of bytes sent.
-    int SendString(const std::string& message);
+    int SendString(const std::string& message_out);
 
     /// Receive a string message from the connected host into the given argument.
     /// This method automatically determines the message size from a fixed-length header, which is not exposed to the user.
     /// Return the number of bytes received.
-    int ReceiveString(std::string& message);
+    int ReceiveString(std::string& message_in);
 
     /// Send a buffer of raw bytes to the connected host.
     /// This method does not send any header, so the receiver must know in advance the length of the buffer.
@@ -223,7 +208,7 @@ class ChApi ChSocketTCP : public ChSocket {
     /// Return the number of bytes received.
     int ReceiveBuffer(std::vector<char>& destination_buffer, int byte_size);
 
-    /// Buffered communication functionalities ---------------------------------
+    // Buffered communication functionalities ---------------------------------
 
     /// Add data to the internal sending buffer.
     /// When operation is completed, collected data can be sent at once using SendDataBuffer().
@@ -242,7 +227,7 @@ class ChApi ChSocketTCP : public ChSocket {
     int SendDataBuffer();
 
     /// Receive a given amount of bytes and store them into the internal receiving buffer.
-    /// Received data can be subsequently read  using ParseReceivedData().
+    /// Received data can be subsequently read using ParseReceivedData().
     /// This method clears the internal reading buffer before operating.
     /// Return the number of bytes received.
     int ReceiveDataBuffer(int data_in_size);
@@ -347,7 +332,7 @@ class ChApi ChSocketHostInfo {
     char* GetHostIPAddress();
 
     /// Retrieve the hosts name.
-    char* GetHostName() { return hostPtr->h_name; }
+    char* GetHostName();
 
 #ifdef UNIX
 
@@ -355,11 +340,7 @@ class ChApi ChSocketHostInfo {
     char getNextHost();
 
     /// Opens the host entry database.
-    void openHostDb() {
-        endhostent();
-        searchHostDB = 1;
-        sethostent(1);
-    }
+    void openHostDb();
 
 #endif
 

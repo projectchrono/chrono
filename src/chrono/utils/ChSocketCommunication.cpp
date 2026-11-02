@@ -16,6 +16,25 @@
 
 #include "chrono/utils/ChSocketCommunication.h"
 
+#ifdef UNIX
+    #include <sys/socket.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <cerrno>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <netinet/in.h>
+    #include <sys/types.h>
+    #include <sys/ioctl.h>
+    #include <cstring>
+    #ifdef __APPLE__
+        // Be sure to have TARGET_OS_MAC defined
+        #include "TargetConditionals.h"
+    #endif
+#else
+    #include <winsock2.h>
+#endif
+
 using namespace chrono::utils;
 
 namespace chrono {
