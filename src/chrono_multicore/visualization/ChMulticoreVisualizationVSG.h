@@ -55,7 +55,7 @@ class CH_MULTICORE_API ChMulticoreVisualizationVSG : public vsg3d::ChVisualSyste
   public:
     /// Quantity used to color the force network.
     enum class NetworkColoring {
-        NORMAL_FORCE,            ///< normal contact force (N)
+        NORMAL_FORCE,            ///< normal contact force
         COULOMB_RATIO,           ///< tangential contact force over its Coulomb limit
         TANGENTIAL_DISPLACEMENT  ///< magnitude of the stored tangential displacement (SMC, MultiStep model)
     };
@@ -228,9 +228,6 @@ class CH_MULTICORE_API ChMulticoreVisualizationVSG : public vsg3d::ChVisualSyste
 
     /// Return true if the body with the given index can anchor network half-segments (it is not a large body).
     bool IsAnchor(unsigned int body);
-
-    /// Get the name of a network coloring quantity, with its units.
-    static std::string GetColoringName(NetworkColoring quantity);
 
     ChSystemMulticore* m_sys;  ///< associated Multicore system
 

@@ -117,15 +117,15 @@ class MulticoreStatsVSG : public vsg3d::ChGuiComponentVSG {
             ImGui::RadioButton("Cylinders", &mode, static_cast<int>(vsg3d::ChForceNetworkVSG::Mode::CYLINDERS));
             m_plugin->m_network_mode = static_cast<vsg3d::ChForceNetworkVSG::Mode>(mode);
 
+            // Quantity used to color the network (the combo box has no label and spans the panel width)
             const char* quantities[] = {"Normal force", "Coulomb ratio", "Tangential displacement"};
             int coloring = static_cast<int>(m_plugin->m_coloring);
-            if (ImGui::Combo("Color", &coloring, quantities, 3))
+            ImGui::SetNextItemWidth(-FLT_MIN);
+            if (ImGui::Combo("##coloring", &coloring, quantities, 3))
                 m_plugin->m_coloring = static_cast<ChMulticoreVisualizationVSG::NetworkColoring>(coloring);
 
-            if (m_plugin->m_use_colormap) {
-                ImGui::TextUnformatted(ChMulticoreVisualizationVSG::GetColoringName(m_plugin->m_coloring).c_str());
+            if (m_plugin->m_use_colormap)
                 Colorbar(vsys.GetColormapTexture(m_plugin->m_colormap_type), m_plugin->m_current_range, false, 300.0f, cb.deviceID);
-            }
         }
 
         ImGui::End();
@@ -273,18 +273,6 @@ unsigned int ChMulticoreVisualizationVSG::GetNumNetworkSegments() const {
 
 unsigned int ChMulticoreVisualizationVSG::GetNumNetworkSegmentsDropped() const {
     return (m_network && m_network_visible) ? m_network->GetNumDropped() : 0;
-}
-
-std::string ChMulticoreVisualizationVSG::GetColoringName(NetworkColoring quantity) {
-    switch (quantity) {
-        case NetworkColoring::NORMAL_FORCE:
-            return "Normal force (N)";
-        case NetworkColoring::COULOMB_RATIO:
-            return "Coulomb ratio (-)";
-        case NetworkColoring::TANGENTIAL_DISPLACEMENT:
-            return "Tangential displacement (m)";
-    }
-    return "";
 }
 
 bool ChMulticoreVisualizationVSG::InRegion(const ChVector3d& p) const {
