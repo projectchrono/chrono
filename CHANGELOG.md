@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
   - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
   - [\[Changed\] Initialization of physics items](#changed-initialization-of-physics-items)
   - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
@@ -149,6 +150,34 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Added] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies
+
+Chrono::VSG has two new components for plugins that visualize granular systems, and Chrono::Multicore
+has a VSG plugin that uses them.
+
+- `ChInstancedShapesVSG` draws granular bodies as GPU instances of shape templates: one unit template
+  per primitive type (sphere and ellipsoid, box, cylinder, cone), scaled per instance, and one template
+  per distinct geometry for capsules, rounded boxes and cylinders, triangle meshes, and convex hulls.
+  Bodies are decomposed into their collision shapes (or, optionally, their visual shapes). The bodies
+  drawn as instances are selected automatically by size (at most 10 times the median body size, among
+  the bodies active at initialization) or explicitly; larger bodies, such as walls, keep the default
+  binding. Per-body color and visibility callbacks are supported; inactive bodies are hidden by default.
+- `ChForceNetworkVSG` draws a force network as segments between arbitrary points, either as lines or
+  as lit cylinders, colored from a per-segment value (through a colormap or a two-color ramp) or with
+  explicit colors, with a constant, value-mapped, or explicit radius in world units. Its capacity is
+  fixed at construction; segments beyond it are dropped and counted.
+- `ChVisualSystemVSG::ExcludeFromBinding` excludes a body from the default binding of visual assets,
+  so that a plugin can draw it by other means.
+- `ChMulticoreVisualizationVSG`, in the new library `Chrono_multicore_vsg` (built when Chrono::VSG is
+  enabled, and linked by `find_package(Chrono)` when both the MULTICORE and VSG components are
+  requested), draws the granular bodies of a Chrono::Multicore system as instances and the contact
+  force network, walls included. The network is colored by the normal force, the Coulomb ratio, or the
+  magnitude of the stored tangential displacement (SMC, MultiStep model), with a force threshold and
+  slab and box region filters for section cuts. The plugin shows a panel with the Multicore timers,
+  contact counts, NSC iterations and residual, number of threads, and contact history overflows, and
+  can write an image of every n-th rendered frame (`SetImageOutput`, off by default). See the new demo
+  `demo_MCORE_force_network`.
 
 ## [Added] Checkpointing of FEA meshes and internal state
 
