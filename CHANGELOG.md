@@ -758,6 +758,13 @@ Notable fixes since the 10.0.0 release:
   plus the safe margin), capsule ends extended one envelope too far, and capsule-box contacts used
   the wrong capsule axis, so that, for example, a capsule standing on or lying across a box generated
   no contacts.
+- All implicit integrators now skip the analyze phase of a sparse direct solver when the system
+  structure did not change (previously only HHT did), which reduces the cost of each step with, for
+  example, the linearized Euler integrator and Pardiso MKL. The ADMM solver also skips it when it
+  refactorizes after updating its penalty parameter. In addition, the direct solvers now perform
+  the analyze phase whenever the problem size or the number of matrix nonzeros changed: some changes
+  made during a simulation (such as fixing a body or disabling a link) are not flagged as structural
+  changes, and skipping the analysis in those cases could produce wrong results or a crash.
 
 # Release 10.0.0 (2026-03-27)
 

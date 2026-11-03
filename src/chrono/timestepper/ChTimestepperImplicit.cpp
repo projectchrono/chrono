@@ -85,6 +85,16 @@ void ChTimestepperImplicit::Advance(double dt) {
     num_step_setups = 0;
     num_step_solves = 0;
 
+    // If the integrable object was modified, force a call to the solver's Setup, including the analyze phase.
+    // Otherwise, keep any pending request for an analyze phase (e.g., at the first step). Integrators clear the request
+    // after their first call to the solver's Setup.
+    if (GetIntegrable()->StateModified()) {
+        call_setup = true;
+        call_analyze = true;
+        if (verbose)
+            cout << "  Force full Setup" << endl;
+    }
+
     // Call the integrator-specific advance method
     try {
         OnAdvance(dt);
@@ -115,17 +125,7 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
     // On entry, call_setup is true only:
     // - at the first iteration on the first step
     // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
-
-    // If the integrable object was modified, force a call to setup (including the analyze phase).
-    // Otherwise, a potential call to setup need not include the analyze phase.
-    if (GetIntegrable()->StateModified()) {
-        call_setup = true;
-        call_analyze = true;
-        if (verbose)
-            cout << "  Force full Setup" << endl;
-    } else {
-        call_analyze = false;
-    }
+    // - if the integrable object was modified (see Advance)
 
     // Let the concrete integrator initialize step
     InitializeStep();
@@ -176,9 +176,12 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             // Solve linear system and increment state
             Increment();
 
-            // If the Jacobian was updated at this iteration, mark it as up-to-date
-            if (call_setup)
+            // If the Jacobian was updated at this iteration, mark it as up-to-date.
+            // The sparsity pattern does not change during a step, so further Setup calls need no analyze phase.
+            if (call_setup) {
                 jacobian_is_current = true;
+                call_analyze = false;
+            }
 
             // Increment counters
             num_step_iters++;
@@ -426,8 +429,9 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
             false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
             UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
             true,                               // always call the solver's Setup
-            true                                // always call the solver's Setup analyze phase
+            call_analyze                        // if true, call the solver's Setup analyze phase
         );
+        call_analyze = false;
 
         num_step_iters++;
         num_step_setups++;
@@ -522,8 +526,13 @@ void ChTimestepperEulerImplicitLinearized::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+    call_analyze = false;
+
+    num_step_iters++;
+    num_step_setups++;
+    num_step_solves++;
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -598,8 +607,13 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+    call_analyze = false;
+
+    num_step_iters++;
+    num_step_setups++;
+    num_step_solves++;
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -635,8 +649,11 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+
+    num_step_setups++;
+    num_step_solves++;
 
     X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
 
@@ -733,8 +750,9 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
             false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
             UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
             true,                               // always call the solver's Setup
-            true                                // always call the solver's Setup analyze phase
+            call_analyze                        // if true, call the solver's Setup analyze phase
         );
+        call_analyze = false;
 
         num_step_iters++;
         num_step_setups++;
@@ -834,8 +852,9 @@ void ChTimestepperTrapezoidalLinearized::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+    call_analyze = false;
 
     num_step_iters = 1;
     num_step_setups = 1;
@@ -930,7 +949,6 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
     // [ Cq                                      0   ] [ -Dl  ] = [ -1/(beta*dt^2)*C              ]
     //
     call_setup = true;
-    call_analyze = true;
 
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; ++iteration) {
@@ -977,8 +995,10 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
 
         num_step_iters++;
         num_step_solves++;
-        if (call_setup)
+        if (call_setup) {
             num_step_setups++;
+            call_analyze = false;
+        }
 
         // If using modified Newton, do not call Setup again
         call_setup = (jacobian_update_method == JacobianUpdate::EVERY_ITERATION);

@@ -305,9 +305,6 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 
   protected:
     ChStateDelta Vold;
-    ChVectorDynamic<> Dl;
-    ChVectorDynamic<> R;
-    ChVectorDynamic<> Qc;
 };
 
 /// Euler implicit for II order systems, with projection.
@@ -334,9 +331,6 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 
   protected:
     ChStateDelta Vold;
-    ChVectorDynamic<> Dl;
-    ChVectorDynamic<> R;
-    ChVectorDynamic<> Qc;
 };
 
 /// Trapezoidal implicit for II order systems.
