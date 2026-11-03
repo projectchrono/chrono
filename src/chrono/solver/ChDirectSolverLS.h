@@ -148,7 +148,8 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// The system descriptor contains the constraints and variables.
     /// The argument `analyze` indicates if a full analysis of the system matrix is required. This is true when a
     /// structural change in the system was detected (e.g., when a physical component was added to or removed from the
-    /// Chrono system).
+    /// Chrono system). Regardless of this flag, a full analysis is performed if the problem size or the number of
+    /// matrix nonzeros changed since the last analysis.
     virtual bool Setup(ChSystemDescriptor& sysd, bool analyze) override;
 
     /// Solve the linear system.
@@ -160,7 +161,10 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     /// in cases where a sparse matrix has been already assembled.
     /// Performs the solver setup operations, assuming someone
     /// has already filled A() matrix before calling this.
-    virtual bool SetupCurrent();
+    /// Set `analyze` to false only if the sparsity pattern of A() did not change since the last call. Regardless of
+    /// this flag, a full analysis is performed if the matrix size or the number of nonzeros changed since the last
+    /// analysis.
+    virtual bool SetupCurrent(bool analyze = true);
 
     /// Generic setup-solve without passing through the ChSystemDescriptor,
     /// in cases where the a sparse matrix has been already assembled.
@@ -214,6 +218,9 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     unsigned int m_solve_call;  ///< counter for calls to Solve
     unsigned int m_setup_call;  ///< counter for calls to Setup
 
+    int m_analyzed_dim;  ///< matrix size at the last analysis (-1 if no valid analysis)
+    int m_analyzed_nnz;  ///< number of matrix nonzeros at the last analysis (-1 if no valid analysis)
+
     bool m_lock;          ///< is the matrix sparsity pattern locked?
     bool m_use_learner;   ///< use the sparsity pattern learner?
     bool m_force_update;  ///< force a call to the sparsity pattern learner?
@@ -228,6 +235,9 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     ChTimer m_timer_solve_solvercall;  ///< timer for solution
 
   private:
+    /// Record the size and number of nonzeros of the matrix after an analysis (invalidate them if it failed).
+    void RecordAnalysis(bool success);
+
     void WriteMatrix(const std::string& filename, const ChSparseMatrix& M);
     void WriteVector(const std::string& filename, const ChVectorDynamic<double>& v);
 };

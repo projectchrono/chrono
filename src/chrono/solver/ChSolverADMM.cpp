@@ -423,7 +423,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 for (int i = 0; i < nc; ++i)
                     LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));
 
-                LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
+                // Only diagonal values changed, so refactorize without a new analysis of the sparsity pattern
+                LS_solver->SetupCurrent(false);  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_refactorize.stop();
                 if (verbose)
@@ -836,7 +837,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 for (int i = 0; i < nc; ++i)
                     LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));
 
-                LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
+                // Only diagonal values changed, so refactorize without a new analysis of the sparsity pattern
+                LS_solver->SetupCurrent(false);  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_refactorize.stop();
                 if (verbose)
