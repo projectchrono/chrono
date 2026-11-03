@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     cout << "Working directory: " << crt_path << endl;
     auto run_script = std::filesystem::path(crt_path + "/run.sh");
     if (!exists(run_script)) {
-        cerr << "Incorrect working directory. Run through the 'run.sh' script in the data/precice/flap_openfoam/solid_chrono/ directory." << endl;
+        cerr << "Incorrect working directory. Run through the 'run.sh' script in the data/precice/flap_openfoam_2D/solid_chrono/ directory." << endl;
         return 1;
     }
 
