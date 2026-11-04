@@ -239,10 +239,10 @@ void GenerateData(FlapModel model) {
     // Mass and inertia
     constexpr double density = 10000;
     if (model == FlapModel::FLAP_2D) {
-        // Mass per unit depth and moment of inertia about the rotation center
+        // Mass per unit depth and moment of inertia about the center of mass
         constexpr double mass = length * height * density;
-        constexpr double inertia_moment = (1. / 12) * mass * (4 * length * length + height * height);
-        std::cout << mass << " ... " << inertia_moment << endl;
+        constexpr double inertia_zz = (1. / 12) * mass * (length * length + height * height);
+        std::cout << mass << " ... " << inertia_zz << endl;
     } else {
         // Mass and principal moments of inertia about the center of mass
         constexpr double mass = length * height * width * density;
