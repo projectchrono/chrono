@@ -23,21 +23,19 @@ namespace chrono {
 /// @{
 
 /// Base class for explicit integrators.
-/// Such integrators might require solution of a nonlinear problem if constraints are added, otherwise they can use
-/// penalty in constraints and lumped masses to avoid the linear system. Diagonal lumping is off by default.
+/// Such integrators might require solution of linear problems if constraints are added, otherwise they can use
+/// penalty in constraints and lumped mass solvers to avoid the linear system. Constraints as penalty is off by default.
 class ChApi ChTimestepperExplicit : public ChTimestepper {
   public:
     virtual ~ChTimestepperExplicit();
 
-    /// Turn on the diagonal lumping.
+    /// Turn on the constraints as penalty.
     /// This can achieve a large speedup because no linear system is needed to compute the derivative (i.e.
-    /// acceleration in II order systems), but not all Chintegrable might support the diagonal lumping.
-    /// - If lumping is not supported because ChIntegrable::LoadLumpedMass_Md() not implemented, throw exception.
-    /// - If lumping introduces some approximation, you'll get nonzero in GetLumpingError().
+    /// acceleration in II order systems), but not all ChIntegrable might support the constraints as penalty.
     /// Optionally parameters: the stiffness penalty for constraints, and damping penalty for constraints.
-    void SetDiagonalLumpingON(double Ck = 1000, double Cr = 0);
+    void SetConstraintsAsPenaltyON(double Ck = 1000, double Cr = 0);
 
-    /// Turn off the diagonal lumping (default is off)
+    /// Turn off the constraints as penalty (default is off)
     void SetConstraintsAsPenaltyOFF();
 
     /// Gets the diagonal lumping error done last time the integrator has been called
@@ -55,7 +53,7 @@ class ChApi ChTimestepperExplicit : public ChTimestepper {
   protected:
     ChTimestepperExplicit();
 
-    ChLumpingParms* lumping_parameters;
+    ChConstrParms* c_penalty;
 };
 
 /// Euler explicit timestepper.

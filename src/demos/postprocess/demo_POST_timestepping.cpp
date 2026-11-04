@@ -51,8 +51,7 @@ void example1(const std::string& out_dir) {
                                 const double dt,                   // timestep (if needed)
                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
                                 UpdateFlags update_flags,           // if true, perform a full update during scatter
-                                ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
-                                                                   // inverting a mass matrix. Not significant here.
+                                ChConstrParms* c_penalty = nullptr  // if not null, uses penalty-based compliant constraints, e.g. to allow lumped mass solvers
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, update_flags);  // state -> system   (not needed here, btw.)
@@ -150,8 +149,7 @@ void example2(const std::string& out_dir) {
                                 const double dt,                   // timestep (if needed)
                                 bool force_state_scatter,          // if false, y and T are not scattered to the system
                                 UpdateFlags update_flags,           // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
-                                ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
-                                                                   // inverting a mass matrix. Not significant here.
+                                ChConstrParms* c_penalty = nullptr  // if not null, uses penalty-based compliant constraints, e.g. to allow lumped mass solvers
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, t, update_flags);
@@ -268,8 +266,7 @@ void example3(const std::string& out_dir) {
                                  const double dt,                   // timestep (if needed)
                                  bool force_state_scatter,          // if false, y and T are not scattered to the system
                                  UpdateFlags update_flags,           // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
-                                 ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
-                                                                    // inverting a mass matrix. Not significant here.
+                                 ChConstrParms* c_penalty = nullptr  // if not null, uses penalty-based compliant constraints, e.g. to allow lumped mass solvers
                                  ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, update_flags);
@@ -390,8 +387,7 @@ void example4(const std::string& out_dir) {
             const double dt,                   // timestep (if needed)
             bool force_state_scatter,          // if false, y and T are not scattered to the system
             UpdateFlags update_flags,           // if UpdateFlags::UPDATE_ALL, do a full update during scatter, otherwise skip graphics etc.
-            ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid inverting a mass matrix,
-                                               // and uses penalty for constraints. Not significant here.
+            ChConstrParms* c_penalty = nullptr  // if not null, uses penalty-based compliant constraints, e.g. to allow lumped mass solvers
             ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, update_flags);
@@ -637,8 +633,8 @@ void example5(const std::string& out_dir) {
                 this->StateScatter(x, v, T, update_flags);
 
             if (!Qc.size()) {
-                // User has enabled SetDiagonalLumpingON(), do not use constraint jacobians
-                // and moreover use lumped mass matrix
+                // User has enabled SetConstraintsAsPenaltyON(), do not use constraint jacobians
+                // Moreover use lumped mass matrix to solve via quick diagonal inversion.
                 ChVectorDynamic<> b_(2);
                 b_(0) = R(0);
                 b_(1) = R(1);
@@ -670,7 +666,7 @@ void example5(const std::string& out_dir) {
         }
 
         // Adds the lumped mass to a Md vector. This method is OPTIONAL, and needed only
-        // if you want to use an explicit integrator with SetDiagonalLumpingON.
+        // because we want to test an explicit integrator with SetConstraintsAsPenaltyON.
         virtual void LoadLumpedMass_Md(ChVectorDynamic<>& Md,  // diagonal of the lumped mass matrix
                                        double& err,            // not touched if lumping does not introduce errors
                                        const double c          // a scaling factor
@@ -763,7 +759,7 @@ void example5(const std::string& out_dir) {
 
     // ChTimestepperEulerExplicitIIorder mystepper7(&mintegrable7);
     ChTimestepperRungeKutta mystepper7(&mintegrable7);
-    mystepper7.SetDiagonalLumpingON(20000);  // this avoids calling the linear solver completely, even with constraints.
+    mystepper7.SetConstraintsAsPenaltyON(20000);  // this avoids calling the linear solver completely, even with constraints.
 
     // B) - same pendulum, but multibody:
     //

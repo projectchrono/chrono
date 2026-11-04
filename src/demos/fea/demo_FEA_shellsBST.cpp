@@ -389,8 +389,8 @@ int main(int argc, char* argv[]) {
     // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add  
     // structural damping, this might help with stability, by the way)
     //
-    // In explicit integrators, you can optionally enable constraint handling via penalty, using SetDiagonalLumpingON():
-    // - Constraints, if any, will turn into penalty forces. Penalty factors can be set as optional parameters in SetDiagonalLumpingON(..)
+    // In explicit integrators, you can optionally enable constraint handling via penalty, using SetConstraintsAsPenaltyON():
+    // - Constraints, if any, will turn into penalty forces. Penalty factors can be set as optional parameters in SetConstraintsAsPenaltyON(..)
     //   It is not the case of this demo, but if you add constraints, you'll see that they will be satisfied
     //   approximately with some oscillatory clearance. The higher the penalty, the smaller the amplitude of such
     //   clearances, but the higher the risk of divergence.
@@ -403,7 +403,7 @@ int main(int argc, char* argv[]) {
     // video rendering could become the real bottleneck.
     /*
     auto explicit_timestepper = chrono_types::make_shared<ChTimestepperHeun>(&sys);
-    explicit_timestepper->SetDiagonalLumpingON(); // use diagonal mass lumping, skip linear systems completely
+    explicit_timestepper->SetConstraintsAsPenaltyON(); // use diagonal mass lumping, skip linear systems completely
     sys.SetTimestepper(explicit_timestepper);
     auto lumped_solver = chrono_types::make_shared<ChSolverLumped>();
     sys.SetSolver(lumped_solver);

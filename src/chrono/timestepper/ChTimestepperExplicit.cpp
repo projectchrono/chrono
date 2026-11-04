@@ -22,46 +22,46 @@ namespace chrono {
 
 CH_UPCASTING(ChTimestepperExplicit, ChTimestepper)
 
-ChTimestepperExplicit::ChTimestepperExplicit() : lumping_parameters(nullptr) {}
+ChTimestepperExplicit::ChTimestepperExplicit() : c_penalty(nullptr) {}
 
 ChTimestepperExplicit::~ChTimestepperExplicit() {
-    if (lumping_parameters)
-        delete (lumping_parameters);
+    if (c_penalty)
+        delete (c_penalty);
 }
 
-void ChTimestepperExplicit::SetDiagonalLumpingON(double Ck, double Cr) {
-    lumping_parameters = new ChLumpingParms(Ck, Cr);
+void ChTimestepperExplicit::SetConstraintsAsPenaltyON(double Ck, double Cr) {
+    c_penalty = new ChConstrParms(Ck, Cr);
 }
 
 void ChTimestepperExplicit::SetConstraintsAsPenaltyOFF() {
-    if (lumping_parameters)
-        delete (lumping_parameters);
+    if (c_penalty)
+        delete (c_penalty);
 }
 
 double ChTimestepperExplicit::GetLumpingError() {
-    if (this->lumping_parameters)
-        return lumping_parameters->error;
+    if (this->c_penalty)
+        return c_penalty->error;
     else
         return 0;
 }
 
 void ChTimestepperExplicit::ResetLumpingError() {
-    if (this->lumping_parameters)
-        lumping_parameters->error = 0;
+    if (this->c_penalty)
+        c_penalty->error = 0;
 }
 
 void ChTimestepperExplicit::ArchiveOut(ChArchiveOut& archive) {
     // version number
     archive.VersionWrite(1);
     // serialize all member data:
-    archive << CHNVP(lumping_parameters);
+    archive << CHNVP(c_penalty);
 }
 
 void ChTimestepperExplicit::ArchiveIn(ChArchiveIn& archive) {
     // version number
     /*int version =*/archive.VersionRead();
     // stream in all member data:
-    archive >> CHNVP(lumping_parameters);
+    archive >> CHNVP(c_penalty);
 }
 
 // -----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void ChTimestepperEulerExplicitIorder::Advance(double dt) {
 
     integrable->StateGather(Y, T);  // state <- system
 
-    integrable->StateSolve(dYdt, L, Y, T, dt, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);  // dY/dt = f(Y,T)
+    integrable->StateSolve(dYdt, L, Y, T, dt, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);  // dY/dt = f(Y,T)
 
     // Euler formula
     //   y_new= y + dy/dt * dt
@@ -138,7 +138,7 @@ void ChTimestepperEulerExplicitIIorder::Advance(double dt) {
 
     integrable->StateGather(X, V, T);  // state <- system
 
-    integrable->StateSolveA(A, L, X, V, T, dt, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);  // Dv/dt = f(x,v,T)
+    integrable->StateSolveA(A, L, X, V, T, dt, false, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);  // Dv/dt = f(x,v,T)
 
     // Euler formula!
 
@@ -192,7 +192,7 @@ void ChTimestepperEulerSemiImplicit::Advance(double dt) {
     integrable->StateGather(X, V, T);  // state <- system
 
     integrable->StateSolveA(A, L, X, V, T, dt, false, UpdateFlags::UPDATE_ALL_NO_VISUAL,
-                            lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+                            c_penalty);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // Semi-implicit Euler formula!   (note the order of update of x and v, respect to original Euler II order explicit)
 
@@ -250,17 +250,17 @@ void ChTimestepperRungeKutta::Advance(double dt) {
     integrable->StateSolve(Dydt1, L, Y, T, dt,
                            false,              // no need to scatter state before computation
                            UpdateFlags::UPDATE_ALL_NO_VISUAL,  // full update? (not used since no scatter)
-                           lumping_parameters  // optional lumping?
+                           c_penalty  // optional: handle constraints via penalty?
     );
 
     y_new = Y + Dydt1 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt1*0.5*dt);
-    integrable->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);
+    integrable->StateSolve(Dydt2, L, y_new, T + dt * 0.5, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);
 
     y_new = Y + Dydt2 * 0.5 * dt;  // integrable.StateIncrement(y_new, Y, Dydt2*0.5*dt);
-    integrable->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);
+    integrable->StateSolve(Dydt3, L, y_new, T + dt * 0.5, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);
 
     y_new = Y + Dydt3 * dt;  // integrable.StateIncrement(y_new, Y, Dydt3*dt);
-    integrable->StateSolve(Dydt4, L, y_new, T + dt, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);
+    integrable->StateSolve(Dydt4, L, y_new, T + dt, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);
 
     Y = Y + (Dydt1 + Dydt2 * 2.0 + Dydt3 * 2.0 + Dydt4) * CH_1_6 * dt;  // integrable.StateIncrement(...);
     dYdt = Dydt4;                                                       // to check
@@ -313,10 +313,10 @@ void ChTimestepperHeun::Advance(double dt) {
     integrable->StateSolve(Dydt1, L, Y, T, dt,
                            false,              // no need to scatter state before computation
                            UpdateFlags::UPDATE_ALL_NO_VISUAL,  // full update? ( not used, since no scatter)
-                           lumping_parameters  // optional lumping?
+                           c_penalty  // optional: handle constraints via penalty?
     );
     y_new = Y + Dydt1 * dt;
-    integrable->StateSolve(Dydt2, L, y_new, T + dt, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);
+    integrable->StateSolve(Dydt2, L, y_new, T + dt, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);
 
     Y = Y + (Dydt1 + Dydt2) * (dt / 2.);
     dYdt = Dydt2;
@@ -369,7 +369,7 @@ void ChTimestepperLeapfrog::Advance(double dt) {
     X = X + V * dt + Aold * (0.5 * dt * dt);
 
     // computes new A  (NOTE!!true for imposing a state-> system scatter update,because X changed..)
-    integrable->StateSolveA(A, L, X, V, T, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, lumping_parameters);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
+    integrable->StateSolveA(A, L, X, V, T, dt, true, UpdateFlags::UPDATE_ALL_NO_VISUAL, c_penalty);  // Dv/dt = f(x,v,T)   Dv = f(x,v,T)*dt
 
     // advance V
 

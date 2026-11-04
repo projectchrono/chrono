@@ -26,10 +26,10 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
-/// Helper class for lumping parameters
-class ChLumpingParms {
+/// Helper class for penalty-based constraint parameters
+class ChConstrParms {
   public:
-    ChLumpingParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0) {};
+    ChConstrParms(double Ck = 1000, double Cr = 0) : Ck_penalty(Ck), Cr_penalty(Cr), error(0) {};
     double Ck_penalty;  // stiffness penalty for constraints if any
     double Cr_penalty;  // damping penalty for constraints if any
     double error;       // store here the error done when trying lumping masses
@@ -127,7 +127,7 @@ class ChApi ChIntegrable {
                             const double dt,                   ///< timestep (if needed, e.g. in NSC)
                             bool force_state_scatter,          ///< if false, y and T are not scattered to the system
                             UpdateFlags update_flags,           ///< flags used in case of an update
-                            ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
+                            ChConstrParms* c_penalty = nullptr  ///< use penalty-based compliant constraints, e.g. to allow for diagonal lumped mass solvers
                             ) = 0;
 
     /// Increment state array: y_new = y + Dy.
@@ -302,7 +302,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                              const double dt,           ///< time step (if needed)
                              bool force_state_scatter,  ///< if true, scatter x and v to the system
                              UpdateFlags update_flags,   ///< flags used in case of an update
-                             ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
+                             ChConstrParms* c_penalty = nullptr  ///< use penalty-based compliant constraints, e.g. to allow for diagonal lumped mass solvers
     );
 
     /// Increment state array:  x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -498,7 +498,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                             const double dt,                   ///< time step (if needed, e.g. in NSC)
                             bool force_state_scatter,          ///< if true, scatter x and v to the system
                             UpdateFlags update_flags,           ///< flags used in case of an update
-                            ChLumpingParms* lumping = nullptr  ///< use lumped masses to avoid inverting a mass matrix
+                            ChConstrParms* c_penalty = nullptr  ///< use penalty-based compliant constraints, e.g. to allow for diagonal lumped mass solvers
                             ) override;
 
     /// Override of method for Ist order implicit integrators.

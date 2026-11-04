@@ -1070,18 +1070,19 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // R and Qc vectors  --> solver sparse solver structures  (also sets Dl and Dv to warmstart)
     IntToDescriptor(0, Dv, R, 0, Dl, Qc);
 
-    auto lumpedsolver = std::dynamic_pointer_cast<ChSolverLumpedBase>(solver);
+    auto lumped_mass_solver = std::dynamic_pointer_cast<ChSolverLumpedBase>(solver);
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
-    if ((call_setup || solver->SolveRequiresMatrix()) && !lumpedsolver) {
+    if (call_setup || solver->SolveRequiresMatrix()) {
         timer_jacobian.start();
 
-        // Cq  matrix
-        LoadConstraintJacobians();
+        // Cq  matrix  (skip if the solver uses ChConstrParms for constraints via penalty)
+        if (Qc.size())
+            LoadConstraintJacobians();
 
-        // G matrix: M, K, R components
-        if (c_a || c_v || c_x)
+        // G matrix: M, K, R components  (skip if the solver is a lumped mass solver, diag.M filled below)
+        if ((c_a || c_v || c_x) && !lumped_mass_solver) 
             LoadKRMMatrices(-c_x, -c_v, c_a);
 
         // For ChVariable objects without a ChKRMBlock, just use the 'a' coefficient
@@ -1092,10 +1093,10 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // For "lumped mass" solvers, typically for explicit timestepping,
     // a diagonal vector of lumped masses must be filled and provided to solver
-    if (lumpedsolver) { 
+    if (lumped_mass_solver) { 
         double lumped_err = 0;
-        lumpedsolver->diagonal_M.setZero(GetNumCoordsVelLevel());
-        LoadLumpedMass_Md(lumpedsolver->diagonal_M, lumped_err, c_a);
+        lumped_mass_solver->diagonal_M.setZero(GetNumCoordsVelLevel());
+        LoadLumpedMass_Md(lumped_mass_solver->diagonal_M, lumped_err, c_a);
     }
 
     // Diagnostics:
