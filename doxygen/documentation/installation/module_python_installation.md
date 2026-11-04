@@ -62,7 +62,7 @@ Building PyChrono requires SWIG version **4.0.0** or newer.
 3. Set `CH_ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
 
 4. The Python package should be detected by CMake automatically.
-If prompted, set the `CH_PYTHONDIR` variable to the directory where you have your copy of Python. 
+If it is not found, set the `Python3_ROOT_DIR` variable to the directory where you have your copy of Python. 
    For example, it could be <tt>C:/Python33</tt>
 
 5. If prompted, set the CMake <tt>SWIG_EXECUTABLE</tt> variable to specify the SWIG executable. 
@@ -73,12 +73,12 @@ If prompted, set the `CH_PYTHONDIR` variable to the directory where you have you
 If you have multiple Python installations on the same machine, you may need to explicitly specify which one to use in the call to CMake.  For example, under Linux (Mac is similar to Linux):
 
 <pre>
-% ccmake -DPYTHON_EXECUTABLE:FILEPATH=/usr/local/python/3.6.0/bin/python3
-  -DPYTHON_LIBRARY=/usr/local/python/3.6.0/lib/libpython3.so
-  -DPYTHON_INCLUDE_DIR=/usr/local/python/3.6.0/include
+% ccmake -DPython3_EXECUTABLE:FILEPATH=/usr/local/python/3.6.0/bin/python3
+  -DPython3_LIBRARY=/usr/local/python/3.6.0/lib/libpython3.so
+  -DPython3_INCLUDE_DIR=/usr/local/python/3.6.0/include
   ../../chrono
 On the Mac:
-% ccmake -DPYTHON_EXECUTABLE:FILEPATH=$(which python3) ../../chrono
+% ccmake -DPython3_EXECUTABLE:FILEPATH=$(which python3) ../../chrono
 </pre>
 
 After successful compilation, the [PyChrono](@ref pychrono_introduction) modules can be used either from the *BUILD* tree or, after installation, from the *INSTALL* tree.  In order for the generated Python modules to be accessible, you must set/append to the <tt>PYTHONPATH</tt> environment variable.  During configuration, the Chrono CMake script will output the proper paths to be used in setting the PYTHONPATH environment variables; for example:
