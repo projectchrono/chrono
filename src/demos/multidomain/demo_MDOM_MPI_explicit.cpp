@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     // 4- Set solver, timestepper, etc. that can work in multidomain mode. Do this after SetDomain(). 
     //    Set the time stepper: as we demonstrate smooth contacts via ChSystemSMC, we can use an explicit time stepper. 
     auto explicit_timestepper0 = chrono_types::make_shared<chrono::ChTimestepperEulerExplicitIIorder>(&sys);
-    explicit_timestepper0->SetDiagonalLumpingON(2e6);  // use penalty for constraints, skip linear systems completely
+    explicit_timestepper0->SetConstraintsAsPenaltyON(2e6);  // use penalty for constraints, skip linear systems completely
     sys.SetTimestepper(explicit_timestepper0);
     //    Set the solver: efficient ChSolverLumpedMultidomain (needs explicit timestepper with constraint penalty)
     auto lumped_solver0 = chrono_types::make_shared<ChSolverLumpedMultidomain>();
