@@ -20,10 +20,12 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContactContainerNSC)
 
-ChContactContainerNSC::ChContactContainerNSC() : n_added(0), n_added_rolling(0) {}
+ChContactContainerNSC::ChContactContainerNSC() : n_added(0), n_added_rolling(0), min_bounce_speed(0.15) {}
 
 ChContactContainerNSC::ChContactContainerNSC(const ChContactContainerNSC& other)
-    : ChContactContainer(other), n_added(0), n_added_rolling(0) {}
+    : ChContactContainer(other), n_added(0), n_added_rolling(0) {
+    min_bounce_speed = other.min_bounce_speed;
+}
 
 ChContactContainerNSC::~ChContactContainerNSC() {
     RemoveAllContacts();
