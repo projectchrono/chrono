@@ -44,6 +44,7 @@ if(CH_ENABLE_MODULE_IRRLICHT OR CH_ENABLE_MODULE_VSG)
         demo_FEA_thermal
         demo_FEA_electrostatics
         demo_FEA_contacts_SMC
+        demo_FEA_explicit_projected
         demo_FEA_cables
         demo_FEA_shellsANCF_3423_3443
         demo_FEA_shellsANCF_3833
