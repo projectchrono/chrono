@@ -64,6 +64,15 @@ precice_adapter_config:
     #  - [  0,    -143.14,   0,     286.27,   0,    0       ]
     #  - [143.14,    0,      0,       0,    286.27, 0       ]
     #  - [  0,       0,      0,       0,      0,    6.82e-8 ]
+    # Axes in which explicitly given blocks are expressed: INERTIAL (default) or BODY. Coefficients
+    # read from a hydro file are always in inertial axes, so 'frame' is used only with 'blocks'.
+    #frame: INERTIAL
+    # Point about which the coefficients were computed, for each body, in the body reference frame
+    # (default: origin of the body reference frame). A hydro file does not record this point, so it
+    # must be given here if the coefficients do not refer to the origin of the body reference frame.
+    #reference_points:
+    #- name: ball
+    #  location: [0, 0, 0]
 
   interfaces:
   - mesh_name: SolidMesh

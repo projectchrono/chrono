@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
   - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
   - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
   - [\[Changed\] Initialization of physics items](#changed-initialization-of-physics-items)
@@ -150,6 +151,36 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Changed] Frame convention and reference point for hydrodynamic added mass
+
+`ChLoadHydrodynamics` now applies added mass coefficients according to an explicit frame convention and
+reference point. Previously, the coefficients were applied unchanged to Chrono's velocity coordinates (the
+COM velocity in absolute axes and the angular velocity in body axes), which is consistent with
+coefficients from a BEM code (given in inertial axes) only while a body stays close to its reference
+orientation.
+
+- `ChLoadHydrodynamics::SetAddedMassFrame` selects the axes in which the coefficients are expressed:
+  `INERTIAL` (default, the convention of BEM data) or `BODY`. The coefficients are transformed to Chrono's
+  velocity coordinates using the current body orientations, so the added mass is constant in the selected
+  axes.
+- The coefficients refer to the velocity of the origin of the body reference frame: the COM for a `ChBody`,
+  the auxiliary reference frame for a `ChBodyAuxRef`. Coefficients about another point must be shifted to
+  that origin; `ChLoadHydrodynamics::ComputeShiftTransformation` and `ChLoadHydrodynamics::ShiftBlocks`
+  perform this shift.
+- Hydrodynamic data files do not record the point about which their coefficients were computed (the BEM
+  rotation center, which need not be the center of gravity stored in the file). If it is not the origin of
+  the body reference frame, provide it, in the body reference frame, with the `h5_reference_points` list of
+  a TDPF model specification (or `ChFsiSystemTDPF::SetHydroReferencePoints`) for Chrono::FSI-TDPF, or with
+  the `reference_points` list of the `added_mass` entry of a preCICE MBS participant specification. The
+  coefficients are then shifted at initialization.
+- Explicit added mass blocks in a preCICE MBS participant specification may be declared in body axes with
+  `frame: BODY`.
+- With the APGD and Barzilai-Borwein solvers, the inverse of the total mass matrix is now recomputed
+  whenever a hydrodynamic body rotates.
+
+Results of simulations in which hydrodynamic bodies rotate change accordingly; for the small rotations
+typical of linear potential-flow models, the differences are small.
 
 ## [Added] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies
 

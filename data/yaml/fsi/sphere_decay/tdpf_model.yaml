@@ -9,6 +9,10 @@ model:
     root: "../../.."
 
   h5_file: fsi-tdpf/sphere_0.12/sphere.h5
+  # Points about which the hydrodynamic coefficients are given, one per body in HDF5 body order,
+  # in the body reference frame (default: origins of the body reference frames)
+  #h5_reference_points:
+  #  - [0, 0, 0]
 
   waves:
     type: none
