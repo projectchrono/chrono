@@ -182,14 +182,24 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                const double c           // a scaling factor
 ) {
+    // Applied force and torque (as evaluated at the last force update), plus forces and torques from body accumulators
+    // (if any). Accumulators are read here, not cached at update time, so that loads accumulated since the last system
+    // update are included.
+    ChVector3d force = Xforce;
+    ChVector3d torque = Xtorque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
     // add applied forces to 'fb' vector
-    R.segment(off, 3) += c * Xforce.eigen();
+    R.segment(off, 3) += c * force.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (!IsUsingGyroTorque())
-        R.segment(off + 3, 3) += c * Xtorque.eigen();
+        R.segment(off + 3, 3) += c * torque.eigen();
     else
-        R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
+        R.segment(off + 3, 3) += c * (torque - gyro).eigen();
 }
 
 void ChBody::IntLoadResidual_F_applied(const unsigned int off,  // offset in R residual
@@ -270,14 +280,22 @@ void ChBody::VariablesFbReset() {
 }
 
 void ChBody::VariablesFbLoadForces(double factor) {
+    // Applied force and torque (as evaluated at the last force update), plus forces and torques from body accumulators
+    ChVector3d force = Xforce;
+    ChVector3d torque = Xtorque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
     // add applied forces to 'fb' vector
-    variables.Force().segment(0, 3) += factor * Xforce.eigen();
+    variables.Force().segment(0, 3) += factor * force.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (!IsUsingGyroTorque())
-        variables.Force().segment(3, 3) += factor * Xtorque.eigen();
+        variables.Force().segment(3, 3) += factor * torque.eigen();
     else
-        variables.Force().segment(3, 3) += factor * (Xtorque - gyro).eigen();
+        variables.Force().segment(3, 3) += factor * (torque - gyro).eigen();
 }
 
 void ChBody::VariablesFbIncrementMq() {
@@ -532,11 +550,7 @@ void ChBody::UpdateForces(double time, UpdateFlags update_flags) {
     Xforce = system ? system->GetGravitationalAcceleration() * GetMass() : VNULL;
     Xtorque = VNULL;
 
-    // Add forces and torques from body accumulators (if any)
-    for (const auto& a : accumulators) {
-        Xforce += a.force;
-        Xtorque += a.torque;
-    }
+    // Note: forces and torques from body accumulators are not included here; they are added when loading the residual.
 
     // Accumulate applied generalized forces (if any)
     for (auto& f : forcelist) {
