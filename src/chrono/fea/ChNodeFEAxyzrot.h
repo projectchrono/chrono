@@ -107,6 +107,9 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
     /// Load the rotation velocity and acceleration (quaternion derivatives).
     virtual void LoadInternalState(ChCheckpointReader& reader) override;
 
+    /// Return true: the internal state of this node is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

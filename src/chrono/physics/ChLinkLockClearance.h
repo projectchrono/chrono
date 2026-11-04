@@ -68,6 +68,9 @@ class ChApi ChLinkLockClearance : public ChLinkLockLock {
     double GetContactForceTangential() const;  // tangent part of force
     double GetContactSpeedTangential() const;  // tangent part of speed
 
+    /// Return false: the marker frame, updated incrementally, is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

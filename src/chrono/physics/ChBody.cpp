@@ -961,6 +961,11 @@ void ChBody::ComputeNF(
 // ---------------------------------------------------------------------------
 // FILE I/O
 
+bool ChBody::SupportsCheckpoint() const {
+    // A fixed body never sleeps
+    return IsFixed() || !(IsSleepingAllowed() && GetSystem() && GetSystem()->IsSleepingAllowed());
+}
+
 void ChBody::SaveInternalState(ChCheckpointWriter& writer) const {
     ChPhysicsItem::SaveInternalState(writer);
 

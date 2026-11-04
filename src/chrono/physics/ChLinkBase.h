@@ -77,6 +77,9 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// For a ChLink, the default implementation returns the link coordinate frame 1.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) const override { return GetFrame1Abs(); }
 
+    /// Return true: the internal state of this link is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

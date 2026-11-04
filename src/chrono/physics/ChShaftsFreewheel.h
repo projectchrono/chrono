@@ -110,6 +110,9 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
                     std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
                     ) override;
 
+    /// Return false: the ratchet state of the freewheel is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

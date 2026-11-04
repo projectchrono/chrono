@@ -89,6 +89,14 @@ void ChLoadContainer::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfa
     }
 }
 
+bool ChLoadContainer::SupportsCheckpoint() const {
+    for (const auto& load : loadlist) {
+        if (!load->SupportsCheckpoint())
+            return false;
+    }
+    return true;
+}
+
 void ChLoadContainer::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }

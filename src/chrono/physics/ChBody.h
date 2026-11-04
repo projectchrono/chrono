@@ -334,6 +334,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Load the rotation velocity and acceleration (quaternion derivatives).
     virtual void LoadInternalState(ChCheckpointReader& reader) override;
 
+    /// Return true, unless this body can be put to sleep.
+    /// The sleeping state is not saved in checkpoints, and sleeping bodies are excluded from the state vectors.
+    virtual bool SupportsCheckpoint() const override;
+
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.

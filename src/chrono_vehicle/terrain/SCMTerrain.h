@@ -492,6 +492,9 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     SCMLoader(ChSystem* system, bool visualization_mesh);
     ~SCMLoader() {}
 
+    /// Return false: the soil deformation grid is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
+
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
     void Initialize(double hsizeX,  ///< [in] terrain dimension in the X direction

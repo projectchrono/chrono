@@ -20,12 +20,18 @@
 #include <iostream>
 #include <limits>
 #include <set>
+#include <typeinfo>
+#if defined(__GNUG__)
+    #include <cxxabi.h>
+    #include <cstdlib>
+#endif
 
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorLinearDriveline.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationDriveline.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
+#include "chrono/core/ChClassFactory.h"
 
 #include "chrono/input_output/ChCheckpointASCII.h"
 
@@ -34,6 +40,49 @@ using std::cerr;
 using std::endl;
 
 namespace chrono {
+
+// Name and class of an object, for error messages
+static std::string Describe(const ChObj& obj) {
+    const std::type_index type(typeid(obj));
+    std::string name = type.name();
+    if (ChClassFactory::IsClassRegistered(type)) {
+        name = ChClassFactory::GetClassTagName(type);
+    } else {
+#if defined(__GNUG__)
+        int status = 0;
+        char* demangled = abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status);
+        if (status == 0 && demangled)
+            name = demangled;
+        std::free(demangled);
+#endif
+    }
+    return "'" + obj.GetName() + "' (" + name + ")";
+}
+
+// List the top-level physics items of a system that do not support checkpoints
+static std::string UnsupportedItems(ChSystem& sys) {
+    std::vector<const ChPhysicsItem*> items;
+    const auto& assembly = sys.GetAssembly();
+    for (const auto& item : assembly.GetBodies())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetShafts())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetLinks())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetMeshes())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetOtherPhysicsItems())
+        items.push_back(item.get());
+    if (sys.GetContactContainer())
+        items.push_back(sys.GetContactContainer().get());
+
+    std::string list;
+    for (const auto item : items) {
+        if (!item->SupportsCheckpoint())
+            list += "\n  " + Describe(*item);
+    }
+    return list;
+}
 
 // A speed motor (ChLinkMotorRotationSpeed, ChLinkMotorLinearSpeed, ChShaftsMotorSpeed) integrates the imposed speed into
 // an internal state (an angle or a position), which it stores in the velocity-level state vector. Access it through
@@ -200,7 +249,7 @@ void ChCheckpointASCII::SaveState(ChSystem* sys) {
     // Accelerations (used by some items, e.g., for inertial forces) and internal state of all physics items (data not
     // in the state vectors), in one block
     if (!sys->SupportsCheckpoint()) {
-        cerr << "Error: the system contains physics items whose internal state cannot be checkpointed" << endl;
+        cerr << "Error: the system contains physics items whose internal state cannot be checkpointed:" << UnsupportedItems(*sys) << endl;
         throw std::runtime_error("System internal state cannot be checkpointed");
     }
     ChStateDelta a(m_nv, sys);
@@ -453,7 +502,7 @@ void ChCheckpointASCII::SaveItems(const std::vector<std::shared_ptr<ChPhysicsIte
 
     for (const auto& item : items) {
         if (!item->SupportsCheckpoint()) {
-            cerr << "Error: the internal state of physics item '" << item->GetName() << "' cannot be checkpointed" << endl;
+            cerr << "Error: the internal state of physics item " << Describe(*item) << " cannot be checkpointed" << endl;
             throw std::runtime_error("Physics item internal state cannot be checkpointed");
         }
 

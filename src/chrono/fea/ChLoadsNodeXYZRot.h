@@ -38,6 +38,9 @@ class ChApi ChLoadNodeXYZRot : public ChLoadCustom {
     ChLoadNodeXYZRot(std::shared_ptr<ChNodeFEAxyzrot> node  ///< node to apply load to
     );
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Compute the force and torque on the node, in absolute coordsystem,
     /// given absolute position and speed of node passed via node_frame_abs_pos_vel.
     virtual void ComputeForceTorque(const ChFrameMoving<>& node_frame_abs_pos_vel,
@@ -130,6 +133,9 @@ class ChApi ChLoadNodeXYZRotNodeXYZRot : public ChLoadCustomMultiple {
                                std::shared_ptr<ChNodeFEAxyzrot> nodeB,  ///< node B to apply load to, as reaction
                                const ChFrame<>& abs_application  ///< location of load element in abs. coordinates
     );
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
     /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
@@ -242,6 +248,9 @@ class ChApi ChLoadNodeXYZRotNodeXYZRotBushingPlastic : public ChLoadNodeXYZRotNo
         const ChVector3d& damping_coefs,         ///< damping, along the x y z axes of the abs_application
         const ChVector3d& yield_coefs            ///< plastic yield, along the x y z axes of the abs_application
     );
+
+    /// Return false: the plastic deformation is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
 
     /// Set plastic yield, forces beyond this limit will be capped.
     /// Expressed along the x y z axes of loc_application_B.
@@ -389,6 +398,9 @@ class ChApi ChLoadNodeXYZRotBody : public ChLoadCustomMultiple {
                          const ChFrame<>& abs_application        ///< location of load element (in abs. coordinates)
     );
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
     /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
     /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
@@ -496,6 +508,9 @@ class ChApi ChLoadNodeXYZRotBodyBushingPlastic : public ChLoadNodeXYZRotBodyBush
         const ChVector3d& damping_coefs,        ///< damping, along the x y z axes of the abs_application
         const ChVector3d& myield                ///< plastic yield, along the x y z axes of the abs_application
     );
+
+    /// Return false: the plastic deformation is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
 
     /// Set plastic yield, forces beyond this limit will be capped.
     /// Expressed along the x y z axes of loc_application_B.

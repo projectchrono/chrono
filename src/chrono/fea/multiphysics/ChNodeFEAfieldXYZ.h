@@ -53,6 +53,9 @@ public:
     virtual bool IsFixed() const override { return false; }
     virtual unsigned int GetNumCoordsPosLevel() const override { return 0; }
 
+    /// Return true: the internal state of this node is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.

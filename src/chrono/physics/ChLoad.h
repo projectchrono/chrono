@@ -55,6 +55,10 @@ class ChApi ChLoadBase : public ChObj {
     ChLoadBase();
     virtual ~ChLoadBase();
 
+    /// Return true if this load carries no state from step to step that a checkpoint would miss (see ChPhysicsItem).
+    /// The default is false. A ChLoadContainer supports checkpoints only if all its loads do.
+    virtual bool SupportsCheckpoint() const { return false; }
+
     /// Gets the number of DOFs affected by this load (position part).
     virtual int LoadGetNumCoordsPosLevel() = 0;
 
@@ -154,6 +158,9 @@ class ChApi ChLoad : public ChLoadBase {
     ChLoad() {}
     ChLoad(std::shared_ptr<ChLoader> loader_object) : loader(loader_object) {}
     virtual ~ChLoad() {}
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoad* Clone() const override { return new ChLoad(*this); }

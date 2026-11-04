@@ -25,6 +25,7 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 namespace fea {
@@ -89,6 +90,29 @@ void ChElementShellANCF_3423::AddLayer(double thickness, double theta, std::shar
 // -----------------------------------------------------------------------------
 
 // Initial element setup.
+void ChElementShellANCF_3423::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChElementGeneric::SaveInternalState(writer);
+
+    writer.Write(m_numLayers);
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
+        writer.Write(m_alphaEAS[kl]);
+        writer.Write(m_KalphaEAS[kl]);
+    }
+}
+
+void ChElementShellANCF_3423::LoadInternalState(ChCheckpointReader& reader) {
+    ChElementGeneric::LoadInternalState(reader);
+
+    size_t num_layers;
+    reader.Read(num_layers);
+    if (num_layers != m_numLayers)
+        throw std::runtime_error("ChElementShellANCF_3423: inconsistent number of layers in checkpoint");
+    for (size_t kl = 0; kl < m_numLayers; kl++) {
+        reader.Read(m_alphaEAS[kl]);
+        reader.Read(m_KalphaEAS[kl]);
+    }
+}
+
 void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
     for (int i = 0; i < 4; i++) {

@@ -210,13 +210,23 @@ Because phase 2 runs before the state is loaded, an item must not assume that th
 ## Internal state hooks
 
 - ChPhysicsItem has virtual `SaveInternalState(ChCheckpointWriter&) const` and `LoadInternalState(ChCheckpointReader&)`, empty by default. Overrides call the parent first.
-- `virtual bool SupportsCheckpoint() const` returns true by default. An item whose internal state cannot be saved returns false, and saving a checkpoint that includes it fails with an error instead of silently producing a checkpoint that restarts from the wrong state. Containers return false if any child does; a reduced ChModalAssembly returns false (its floating frame and modal data are not saved).
 - ChCheckpointWriter accepts numbers (integral values are stored exactly), ChVector3d, ChQuaterniond, `std::vector<double>`, Eigen matrices and vectors (with their dimensions), opaque byte sequences, and nested blocks. ChCheckpointReader reads them back in the same order; every read checks the type of the next entry and throws on a mismatch or on missing data, and the caller checks that a block was read completely. The ASCII format writes a block as one line of space-separated entries, with byte sequences as hexadecimal tokens.
 - Containers write their children's blocks with `ChCheckpointWriter::WriteIndexedBlocks()`: each non-empty child block is tagged with the child's index, and loading checks the index range and that each child consumes its whole block.
 - ChAssembly forwards the calls to all its items (ChModalAssembly also to its internal items). ChMesh writes its numbers of nodes, elements and fixed nodes (checked when loading), then the blocks of its nodes and elements; ChNodeFEAbase and ChElementBase have the same optional virtuals.
 - ChTimestepper has the same pair of virtual functions for the integrator's own state; ChTimestepperImplicit saves its step size control state.
 - Items and nodes with internal state: ChBody and ChNodeFEAxyzrot (quaternion derivatives), ChLinkRSDA and ChLinkMotorRotation (rotation angle including full turns), ChLinkLockGear and ChLinkLockPulley (total rotations of both wheels, the gear phase, and the marker positions and other data set at updates of visual assets; for a gear, also the reaction force that determines its marker orientation).
-- Elements with internal state: ChElementBeamIGA (plasticity data at the integration points, through `ChBeamMaterialInternalData::SaveCheckpoint()`/`LoadCheckpoint()`), ChElementHexaANCF_3813_9 (plastic strains and hardening parameters), ChElementHexaANCF_3813 (enhanced assumed strain parameters).
+- Elements with internal state: ChElementBeamIGA (plasticity data at the integration points, through `ChBeamMaterialInternalData::SaveCheckpoint()`/`LoadCheckpoint()`), ChElementHexaANCF_3813_9 (plastic strains and hardening parameters), ChElementHexaANCF_3813 and ChElementShellANCF_3423 (enhanced assumed strain parameters, the starting guess of the next evaluation).
+
+## Checkpoint support
+
+`virtual bool SupportsCheckpoint() const` tells whether everything an object carries from step to step is either in the state vectors or saved by its internal state hooks. Saving a checkpoint that includes an object returning false fails with an error that lists the offending items, instead of producing a checkpoint that would restart from a wrong state.
+
+- The default is false, on ChPhysicsItem, ChElementBase, ChNodeFEAbase and ChLoadBase. A class opts in by returning true once it saves all of its internal state; a class derived from one that returns true and adds state of its own must save it or return false.
+- Containers return true only if all their children do: ChAssembly (items), ChMesh (nodes and elements), ChLoadContainer (loads). `ChSystem::SupportsCheckpoint()` also checks the contact container.
+- Classes that return true: ChBody (and derived bodies), ChShaft, the shaft couples and shaft-body constraints, gearboxes, planetary gears and torque converters, all links (ChLinkBase and derived), ChFeeder, ChLoadHydrodynamics, the NSC and SMC contact containers, ChElementGeneric (all elements), the nodes ChNodeFEAxyz (and derived), ChNodeFEAxyzrot, ChNodeFEAcurv and ChNodeFEAfieldXYZ, and the loads ChLoad, the body, node and shaft loads, ChLoadBodyMesh and ChLoadContactSurfaceMesh.
+- Conditional: a ChBody returns false if it can be put to sleep (it is not fixed, and sleeping is allowed both for the body and for the system), since sleeping bodies are excluded from the state vectors and the sleeping state is not saved. A ChLinkLock returns false while one of its limits is active, since the multipliers of the limit constraints are not part of the state vectors. A reduced ChModalAssembly returns false (its floating frame and modal data are not saved).
+- Classes that return false because of internal state that is not saved: ChShaftsFreewheel (ratchet state), ChLinkLockLinActuator, ChLinkLockClearance and ChLinkMateRackPinion (marker or contact frames that depend on previous updates), the plastic bushing loads (plastic deformation), ChNodeFEAxyzP (accelerations not gathered), ChExternalFmu (state of the FMU itself), ChHydraulicActuator2 and ChHydraulicActuator3, ChConveyor, ChParticleCloud, ChPeridynamics, the multiphysics fields and models (`fea/multiphysics`), the Chrono::Multicore particle and contact containers, and the Chrono::Vehicle SCM terrain.
+- Base classes meant for user derivation keep the default false, so that a derived class decides for itself: ChExternalDynamicsODE, ChExternalDynamicsDAE, ChLoadCustom, ChLoadCustomMultiple and ChTrackCustomContact.
 
 ## COMPONENT checkpoints
 
@@ -230,10 +240,9 @@ A restart reproduces a continuous run exactly when everything the integrator car
 
 ## Known limits
 
-- ChExternalFmu saves its continuous states (they are part of the system state vectors), but not the internal state of the FMU itself (discrete states, event indicators, and outputs cached from the last evaluation, which may have been a perturbed state used for a finite-difference Jacobian). Restarts with FMUs are therefore close to, but not exactly, a continuous run.
 - The state of the collision system is not saved. With contact, a restart in a freshly built system can process contacts in a different order than the continuous run (a reload into the running system does not), which gives roundoff-level differences that grow over time.
 - The matrices and factorizations kept by the solver are not saved. With a Jacobian update strategy that reuses a Jacobian across steps (`JacobianUpdate::NEVER` or `AUTOMATIC`), a restart evaluates a new Jacobian and is close to, but not exactly, a continuous run.
-- Items with hidden state that is not saved: ChPeridynamics (bonds and their broken status), ChFunctionSetpoint and other stateful functions, contact history (for example tangential displacement in SMC contact), the SCM terrain grid, Chrono::Vehicle drivers and powertrain internals outside the physics items, and the shared web mesh of ANCF band tracks (which is not in any component list).
+- State outside the physics items is not covered by `SupportsCheckpoint()`: ChFunctionSetpoint and other stateful functions, Chrono::Vehicle drivers and powertrain internals outside the physics items, and the shared web mesh of ANCF band tracks (which is not in any component list).
 
 # Design decisions {#lifecycle_decisions}
 

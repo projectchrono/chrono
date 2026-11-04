@@ -105,6 +105,9 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
     /// Get the number of degrees of freedom
     virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
+    /// Return true: the internal state of this node is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override;
 

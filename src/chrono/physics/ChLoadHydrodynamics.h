@@ -73,6 +73,9 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     ChLoadHydrodynamics(const ChLoadHydrodynamics& other);
     ~ChLoadHydrodynamics();
 
+    /// Return true: the internal state of this item is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadHydrodynamics* Clone() const override { return new ChLoadHydrodynamics(*this); }
 

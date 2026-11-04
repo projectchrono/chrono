@@ -231,6 +231,13 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     /// Update the state of this element.
     virtual void Update() override;
 
+    /// Save the enhanced assumed strain (EAS) parameters and their Jacobians from the last internal force evaluation.
+    /// The EAS parameters are the starting guess of the next evaluation.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the enhanced assumed strain (EAS) parameters and their Jacobians.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     // Interface to ChElementShell base class
     // --------------------------------------
 

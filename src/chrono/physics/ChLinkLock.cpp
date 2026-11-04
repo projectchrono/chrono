@@ -1834,6 +1834,14 @@ class ChLinkLock_Type_enum_mapper : public ChLinkLock {
     CH_ENUM_MAPPER_END(Type);
 };
 
+bool ChLinkLock::SupportsCheckpoint() const {
+    for (const auto* limit : {limit_X.get(), limit_Y.get(), limit_Z.get(), limit_Rx.get(), limit_Ry.get(), limit_Rz.get(), limit_Rp.get(), limit_D.get()}) {
+        if (limit && limit->IsActive())
+            return false;
+    }
+    return ChLinkMarkers::SupportsCheckpoint();
+}
+
 void ChLinkLock::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChLinkLock>();

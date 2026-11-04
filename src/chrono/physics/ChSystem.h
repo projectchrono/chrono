@@ -318,7 +318,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     const ChAssembly& GetAssembly() const { return assembly; }
 
     /// Return true if the internal state of all physics items in this system can be saved in a checkpoint.
-    bool SupportsCheckpoint() const { return assembly.SupportsCheckpoint(); }
+    /// This includes the contact container.
+    bool SupportsCheckpoint() const { return assembly.SupportsCheckpoint() && (!contact_container || contact_container->SupportsCheckpoint()); }
 
     /// Save the internal state of all physics items (data not stored in the system state vectors).
     void SaveInternalState(ChCheckpointWriter& writer) const { assembly.SaveInternalState(writer); }

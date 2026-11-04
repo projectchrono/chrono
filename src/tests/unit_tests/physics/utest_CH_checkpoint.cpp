@@ -200,6 +200,9 @@ class Tensioner : public ChPhysicsItem {
   public:
     Tensioner(std::shared_ptr<ChNodeFEAxyzD> node) : m_node(node) {}
 
+    // No state carried between steps
+    virtual bool SupportsCheckpoint() const override { return true; }
+
   private:
     virtual void SetupInitialState() override { m_node->SetPos(m_node->GetPos() + ChVector3d(0.01, 0.02, 0)); }
 
@@ -267,6 +270,9 @@ class PendulumDAE : public ChExternalDynamicsDAE {
     PendulumDAE() : g(9.8), L(0.5), m(2.0), I(m * L * L / 3) {}
 
     virtual PendulumDAE* Clone() const override { return new PendulumDAE(*this); }
+
+    // All states are in the system state vectors
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     virtual unsigned int GetNumStates() const override { return 3; }
     virtual unsigned int GetNumStateDerivatives() const override { return 3; }

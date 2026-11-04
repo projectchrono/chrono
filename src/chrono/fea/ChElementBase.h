@@ -101,7 +101,8 @@ class ChApi ChElementBase {
     // Checkpointing
 
     /// Return true if the internal state of this element can be saved in a checkpoint (see ChPhysicsItem).
-    virtual bool SupportsCheckpoint() const { return true; }
+    /// The default is false; a derived class returns true once it saves all of its internal state.
+    virtual bool SupportsCheckpoint() const { return false; }
 
     /// Save the internal state of this element: data not stored in the system state vectors that it carries from step to
     /// step (for example, plastic strains). Derived classes must first call the base class implementation.

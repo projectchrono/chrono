@@ -90,6 +90,9 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
 
     virtual void ConstraintsFbLoadForces(double factor) override;
 
+    /// Return true: the internal state of this contact container is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.

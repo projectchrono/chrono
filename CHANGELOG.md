@@ -243,6 +243,14 @@ described in the developer manual "Physics Item Lifecycle".
 - The HHT integrator now evaluates the constraint Jacobians at the beginning of each step for the term
   that involves the previous Lagrange multipliers, instead of reusing the Jacobians cached by the last
   linear solve. Results of HHT simulations of constrained systems change slightly.
+- `SupportsCheckpoint` now returns false by default for physics items, FEA elements, FEA nodes and
+  loads. Classes opt in once everything they carry from step to step is in the state vectors or saved
+  as internal state; the built-in classes that do so return true. Saving a checkpoint of a system that
+  contains a class that does not support checkpoints (for example a user-defined physics item, or a
+  `ChExternalDynamicsODE` subclass) now fails with an error that lists the offending items. A
+  user-defined class must override `SupportsCheckpoint` to return true (after saving any internal
+  state) to be checkpointed. The list of classes that return false is in the developer manual.
+- The enhanced assumed strain parameters of `ChElementShellANCF_3423` are saved as internal state.
 
 ## [Changed] Initialization of physics items
 

@@ -112,9 +112,10 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Return true if the internal state of this item can be saved in a checkpoint.
     /// The internal state is any data, not stored in the system state vectors, that the item carries from step to step.
-    /// An item that cannot save all of its internal state returns false, so that saving a checkpoint fails instead of
-    /// producing a checkpoint that would restart from a wrong state. Containers return false if any child does.
-    virtual bool SupportsCheckpoint() const { return true; }
+    /// The default is false, so that saving a checkpoint fails instead of producing a checkpoint that would restart from
+    /// a wrong state. A derived class returns true once everything it carries from step to step is either in the state
+    /// vectors or saved by SaveInternalState(). Containers return false if any child does.
+    virtual bool SupportsCheckpoint() const { return false; }
 
     /// Save the internal state of this item.
     /// Derived classes that override this function must first call the base class implementation.
