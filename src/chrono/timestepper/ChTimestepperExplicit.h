@@ -210,6 +210,56 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder, public ChTimest
     ChStateDelta Aold;
 };
 
+
+/// Explicit timestep followed by constraint projection. The constraint correction may be done with a 
+/// very cheap solver: typically you want to use this timestepper with a solver of type ChSolverLumpedPSOR,
+/// that uses a diagonal lumped mass to compute acceleration = M^{-1} Forces, then it is run on the 
+/// stabilization that tries to correct velocities and positions to satisfy constraints (the benefit of 
+/// using ChTimestepperExplicitProjected + ChSolverLumpedPSOR is that it supports also non-smooth frictional 
+/// contacts).
+
+class ChApi ChTimestepperExplicitProjected : public ChTimestepperIIorder, public ChTimestepperExplicit {
+  public:
+    ChTimestepperExplicitProjected(ChIntegrableIIorder* intgr, std::shared_ptr<ChTimestepperExplicit> mexplicit) : 
+        ChTimestepperIIorder(intgr), 
+        explicit_stepper(mexplicit) {};
+
+    /// Set the speed limit of exiting from constraint interpenetration situations.
+    /// Usually set a positive value, (about 0.1...2 m/s, as exiting speed).
+    void SetMaxPenetrationRecoverySpeed(double value) { Qc_clamping = value; }
+
+    /// Set the stabilization factor for the velocity correction.
+    /// Usually set a value between 0 and 1 (e.g., 0.8). If zero: off stabilization.
+    /// Close to 0: stabilization grows too slow in time.
+    /// Close to 1: stabilization grows too fast in time, may cause oscillations.
+    void SetStabilizationFactor(double value) { stab_factor = value; }
+
+    virtual Type GetType() const override { return Type::CUSTOM; }
+
+    /// Return the associated integrable object.
+    virtual ChIntegrable* GetIntegrable() const override { return integrable; }
+
+    /// Performs an integration timestep.
+    virtual void Advance(double dt) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  protected:
+    std::shared_ptr<ChTimestepperExplicit> explicit_stepper;
+    ChStateDelta Vend;
+    ChVectorDynamic<> L;
+    ChVectorDynamic<> L_expl;
+    ChVectorDynamic<> R;
+    ChVectorDynamic<> Qc;
+    double stab_factor = 0.8;
+};
+
+
+
 /// @} chrono_timestepper
 
 }  // end namespace chrono

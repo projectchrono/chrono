@@ -396,4 +396,110 @@ void ChTimestepperLeapfrog::ArchiveIn(ChArchiveIn& archive) {
     ChTimestepperExplicit::ArchiveIn(archive);
 }
 
+
+// -----------------------------------------------------------------------------
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+CH_FACTORY_REGISTER(ChTimestepperExplicitProjected)
+CH_UPCASTING(ChTimestepperExplicitProjected, ChTimestepperIIorder)
+CH_UPCASTING(ChTimestepperExplicitProjected, ChTimestepperExplicit)
+
+
+/// Performs an integration timestep.
+void ChTimestepperExplicitProjected::Advance(double dt) {
+    integrable->StateSetup(X, V, A);
+
+    // L may be needed for warm starting StateSolveCorrection.
+    // Call it here before explicit_stepper->Advance(dt) may change L
+    L.setZero(integrable->GetNumConstraints());
+    integrable->StateGatherReactions(L);
+
+    // A) advance time step with explicit integrator,
+    //    constraints not necessarily satisfied at acc. level,
+    //    and not satisfied at all on position or velocity level
+    this->explicit_stepper->Advance(dt);
+
+    L_expl.setZero(integrable->GetNumConstraints());  // reactions, if any, computed by the explicit stepper
+    integrable->StateGatherReactions(L_expl);
+
+    // B)  do a projection to satisfy constraints at the end of time step (as in Rattle/Shake, but
+    //     simplified as a correction only on velocity with stabilization, to save cpu time.)
+
+    // [ M      Cq' ] [ Vend-V ] = [ 0         ]
+    // [ Cq     0   ] [ -dt*l  ] = [ -C/dt - Ct]
+
+    Qc.setZero(integrable->GetNumConstraints());
+    R.setZero(integrable->GetNumCoordsVelLevel());
+    Vend.setZero(integrable->GetNumCoordsVelLevel(), integrable);
+    /*
+    if (auto stepper_II = std::dynamic_pointer_cast<ChTimestepperIIorder>(explicit_stepper)) {
+        X = stepper_II->GetStatePos();  // to speedup recycle last X of the explicit stepper
+        V = stepper_II->GetStateVel();
+        A = stepper_II->GetStateAcc();
+        T = integrable->GetTime();  // not yet implemented! we need T.. for the moment use the StateGather, and no speedup
+    } else {
+    */
+    // RK and similar 1st order steppers do not have X and V, so do this:
+    integrable->StateGather(X, V, T);  // state <- system>
+    integrable->StateGatherAcceleration(A);
+    //}
+
+    L = L_expl;  // warm start (partial): contribution if any of reactions from explicit stepper
+
+    L *= dt;  // because L reactions = forces, but here we use L = impulses
+
+    this->Qc_do_clamp = true;
+    // integrable->LoadResidual_F(R, dt);                        // R  = dt*f  NO! effect of forces F already taken into account by the explicit stepper
+    integrable->LoadResidual_Mv(R, V, 1.0);  // R += M*(v_old)
+    integrable->LoadConstraint_C(Qc, stab_factor * 1.0 / dt, stab_factor * 1.0, true,
+                                 Qc_clamping);   // Qc = C/dt   (true = clamping enabled, super handy for very small dt as often in explicit stepping)
+    integrable->LoadConstraint_Ct(Qc, 1.0, dt);  // Qc += Ct    (sign will be flipped later by StateSolveCorrection)
+
+    integrable->StateSolveCorrection(       //
+        Vend, L, R, Qc,                     // note, L as impulses, for warm starting
+        1.0,                                // factor for M
+        0,                                  // factor for dF/dv
+        0,                                  // factor for dF/dx
+        X, V, T,                            // not needed
+        false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
+        UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
+        true,                               // always call the solver's Setup
+        true                                // always call the solver's Setup analyze phase
+    );
+
+    L *= (1.0 / dt);  // Back from impulses to forces. Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
+
+    X += (Vend - V) * dt;        // correct position after projection
+    A += (Vend - V) * (1 / dt);  // correct acceleration after projection
+    V = Vend;                    // correct velocity after projection
+    L += L_expl;                 // correct reaction forces after projection
+
+    // -------
+
+    // Scatter states to the system
+    integrable->StateScatter(X, V, T, UpdateFlags::UPDATE_ALL);  // state -> system
+    integrable->StateScatterAcceleration(A);                     // state -> system auxiliary data
+    integrable->StateScatterReactions(L);
+}
+
+
+/// Method to allow serialization of transient data to archives.
+void ChTimestepperExplicitProjected::ArchiveOut(ChArchiveOut& archive) {
+    // version number
+    archive.VersionWrite<ChTimestepperExplicitProjected>();
+
+    ChTimestepperExplicit::ArchiveOut(archive);
+}
+
+/// Method to allow de-serialization of transient data from archives.
+inline void ChTimestepperExplicitProjected::ArchiveIn(ChArchiveIn& archive) {
+    // version number
+    /*int version =*/archive.VersionRead<ChTimestepperExplicitProjected>();
+
+    ChTimestepperExplicit::ArchiveIn(archive);
+}
+
+
+
+
 }  // end namespace chrono
