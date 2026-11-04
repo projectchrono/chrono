@@ -45,11 +45,32 @@
 
   <m2n:sockets acceptor="Fluid" connector="Solid" exchange-directory=".." />
 
-  <coupling-scheme:serial-explicit>
-    <time-window-size value="2.5e-2" />
+  <coupling-scheme:serial-implicit>
+    <!-- Relative to the fluid it displaces, the 3D plate is light enough for an explicit coupling to be unstable
+         (added-mass effect). Each time window is therefore iterated to convergence: the fluid participant runs
+         first, then the solid participant advances with the fluid forces of the same iteration
+         ('read_data_time: WINDOW_END'). The displacements written by the solid participant are accelerated
+         with IQN-ILS. A heavier plate (larger mass and inertia) would also make an explicit coupling stable, but it
+         would model a different system. -->
+    <!-- The time window is much smaller than in the 2D case. With 2.5e-2, the fluid Courant number exceeds 4 and the
+         fluid solution eventually breaks down. With 1e-2, the roll oscillation of the flap grows after the springs
+         are stiffened, an artifact of the time discretization (about 8 steps per roll period). The fluid and solid
+         time steps match the time window. -->
+    <time-window-size value="5e-3" />
     <max-time value="2.5" />
-    <participants first="Solid" second="Fluid" />
+    <participants first="Fluid" second="Solid" />
     <exchange data="Force" mesh="SolidMesh" from="Fluid" to="Solid" />
     <exchange data="Displacement" mesh="SolidMesh" from="Solid" to="Fluid" />
-  </coupling-scheme:serial-explicit>
+    <max-iterations value="50" />
+    <relative-convergence-measure limit="5e-3" data="Displacement" mesh="SolidMesh" />
+    <relative-convergence-measure limit="5e-3" data="Force" mesh="SolidMesh" />
+    <acceleration:IQN-ILS>
+      <data name="Displacement" mesh="SolidMesh" />
+      <preconditioner type="residual-sum" />
+      <filter type="QR2" limit="1e-2" />
+      <initial-relaxation value="0.5" />
+      <max-used-iterations value="100" />
+      <time-windows-reused value="15" />
+    </acceleration:IQN-ILS>
+  </coupling-scheme:serial-implicit>
 </precice-configuration>

@@ -37,7 +37,11 @@ visualization:
 
 precice_adapter_config:
   participant_name: Solid
-      
+
+  # The solid participant runs second in each coupling iteration (see precice_config.xml), so it reads
+  # the forces produced by the fluid participant in the same iteration.
+  read_data_time: WINDOW_END
+
   data_path:
     type: RELATIVE
     root: "."
