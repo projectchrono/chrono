@@ -50,7 +50,7 @@ git clone https://github.com/projectchrono/chrono.git && cd chrono
 cmake -S . -B build -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCH_ENABLE_MODULE_PYTHON=ON \
-  -DPYTHON_EXECUTABLE="$(which python3)" \
+  -DPython3_EXECUTABLE="$(which python3)" \
   -DCH_ENABLE_MODULE_CORE=ON \
   -DCH_ENABLE_MODULE_ROBOT=ON
 ninja -C build
@@ -164,7 +164,7 @@ Use the diff as a **checklist**; this repository may compile existing **`.cu`** 
 |---------|------|
 | Guides imply **CUDA** is required for PyChrono on an AMD-only machine | Use **workflow A**; CPU bindings do not require `nvcc`. |
 | HIP build errors mentioning **warp** or **mask** | Prefer **`warpSize`**-driven reductions and HIP-friendly shuffles; search issues and HIP port notes for FSI. |
-| **`pychrono`** missing after configure | Enable **`CH_ENABLE_MODULE_PYTHON=ON`**, install **SWIG**, set **`PYTHON_EXECUTABLE`**. |
+| **`pychrono`** missing after configure | Enable **`CH_ENABLE_MODULE_PYTHON=ON`**, install **SWIG**, set **`Python3_EXECUTABLE`**. |
 
 ---
 

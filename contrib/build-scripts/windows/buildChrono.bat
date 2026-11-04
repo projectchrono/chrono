@@ -37,7 +37,7 @@ set URDF_INSTALL_DIR="C:/Packages/urdf"
 set CASCADE_INSTALL_DIR="C:/OpenCASCADE-7.9.3/opencascade-7.9.3-vc14-64"
 set OPTIX_INSTALL_DIR="C:/Program Files/NVIDIA Corporation/OptiX SDK 7.5.0"
 set FASTDDS_INSTALL_DIR="C:/Program Files/eProsima/fastrtps 2.4.0"
-set PYTHON_EXECUTABLE_DIR="C:/Python39/python.exe"
+set PYTHON_EXE="C:/Program Files/Python312/python.exe"
 
 @rem -------------------------------------------
 
@@ -90,7 +90,7 @@ cmake -G %BUILDSYSTEM% -B %BUILD_DIR% -S %SOURCE_DIR% ^
       -Dconsole_bridge_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -Dtinyxml2_DIR:PATH=%URDF_INSTALL_DIR%/CMake ^
       -DSWIG_EXECUTABLE:FILEPATH=%SWIG_INSTALL_DIR%/swig.exe ^
-      -DPYTHON_EXECUTABLE:PATH=%PYTHON_EXECUTABLE_DIR%
+      -DPython3_EXECUTABLE:FILEPATH=%PYTHON_EXE%
 
 rem ------------------------------------------------------------------------
 
