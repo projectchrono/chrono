@@ -151,9 +151,9 @@ void ChLinkMotorLinearDriveline::IntStateGatherAcceleration(const unsigned int o
     // First, inherit to parent class
     ChLinkMotorLinear::IntStateGatherAcceleration(off_a, a);
 
-    innershaft1lin->IntStateScatterAcceleration(off_a + 0, a);
-    innershaft2lin->IntStateScatterAcceleration(off_a + 1, a);
-    innershaft2rot->IntStateScatterAcceleration(off_a + 2, a);
+    innershaft1lin->IntStateGatherAcceleration(off_a + 0, a);
+    innershaft2lin->IntStateGatherAcceleration(off_a + 1, a);
+    innershaft2rot->IntStateGatherAcceleration(off_a + 2, a);
 }
 
 void ChLinkMotorLinearDriveline::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
