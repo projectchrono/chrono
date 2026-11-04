@@ -30,15 +30,16 @@ The two simulations (MBS and CFD) must be run from two different terminal window
 - Chrono MBS<br>
   To run the Chrono participant, execute the `run.sh` script from its location in the Chrono data directory (here, `<chrono_data_dir>`):
   ```
-  cd <chrono_data_dir>/precice/flap_openfoam/solid_chrono
+  cd <chrono_data_dir>/precice/flap_openfoam_2D/solid_chrono
   ./run.sh
   ```
 
   **NOTE:** do _not_ run directly the `demo_PRECICE_flap_openfoam` executable from its location in the build or install tree.
+  The same executable runs the 2D and 3D versions of this demo; the `run.sh` script selects the 2D version with the `-2D` argument.
 
 - OpenFOAM<br>
   To run the CFD participant, execute the `run.sh` script from its location in the Chrono data directory (here, `<chrono_data_dir>`):
   ```
-  cd <chrono_data_dir>/precice/flap_openfoam/fluid_openfoam
+  cd <chrono_data_dir>/precice/flap_openfoam_2D/fluid_openfoam
   ./run.sh
   ```

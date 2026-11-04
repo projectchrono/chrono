@@ -1,0 +1,54 @@
+chrono-version: 10.0
+
+model:
+  name: Flap
+  angle_degrees: true
+  
+  bodies:
+    - name: ground
+      location: [0.0, 0.0, 0.0]
+      fixed: true
+
+    - name: flap
+      location: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0]
+      # small initial kick (roll and pitch, in the body frame) to start the oscillations
+      initial_angular_velocity: [0.5, 0.0, 0.5]
+      # plate 0.2 x 0.02 x 0.2 with density 10000 (central moments of inertia)
+      mass: 8.0
+      com:
+        location: [0.1, 0.0, 0.0]
+        orientation: [0.0, 0.0, 0.0]
+      inertia:
+        moments: [0.026933, 0.053333, 0.026933]
+        products: [0.0, 0.0, 0.0]
+      visualization:
+        shapes:
+          - type: BOX
+            dimensions: [0.2, 0.02, 0.2]
+            location: [0.1, 0.0, 0.0]
+            orientation: [0.0, 0.0, 0.0]
+            color: [0.6, 0.2, 0.2]
+
+  joints:
+    - name: spherical
+      type: SPHERICAL
+      body1: ground
+      body2: flap
+      location: [0.0, 0.0, 0.0]
+    
+  rsdas:
+    - name: rsda_x
+      body1: ground
+      body2: flap
+      location: [0.0, 0.0, 0.0]
+      axis: [1, 0, 0]
+      spring_coefficient: 25
+      free_angle: 0
+    - name: rsda_z
+      body1: ground
+      body2: flap
+      location: [0.0, 0.0, 0.0]
+      axis: [0, 0, 1]
+      spring_coefficient: 25
+      free_angle: 0

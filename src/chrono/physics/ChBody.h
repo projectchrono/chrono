@@ -385,8 +385,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVector3d gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector3d Xforce;   ///< force  acting on body, applied to COM (in absolute coords)
-    ChVector3d Xtorque;  ///< torque acting on body  (in body local coords)
+    ChVector3d Xforce;   ///< gravity and body force list, applied to COM (in absolute coords), excluding accumulators
+    ChVector3d Xtorque;  ///< torque from body force list (in body local coords), excluding accumulators
 
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 

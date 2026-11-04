@@ -12,12 +12,13 @@ model:
     - name: flap
       location: [0.0, 0.0, 0.0]
       orientation: [0.0, 0.0, 0.0]
+      # plate 0.2 x 0.02 (per unit depth) with density 10000 (central moment of inertia about z)
       mass: 40.0
-      com: 
+      com:
         location: [0.1, 0.0, 0.0]
         orientation: [0.0, 0.0, 0.0]
       inertia:
-        moments: [0.2, 0.2, 0.534]
+        moments: [0.2, 0.2, 0.134667]
         products: [0.0, 0.0, 0.0]
       visualization:
         shapes:

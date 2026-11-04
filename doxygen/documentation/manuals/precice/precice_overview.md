@@ -135,4 +135,5 @@ The module ships four examples under `data/precice`, with drivers in `src/demos/
   considerations discussed in [added mass](@ref manual_fsi_tdpf_added_mass).
 - **`flap_openfoam`** — a flap in channel flow, coupling a Chrono multibody participant to OpenFOAM. This is
   the example to read for coupling to a non-Chrono solver and for a distributed surface load exchanged on a
-  `RIGID_BODY_POINTS` mesh.
+  `RIGID_BODY_POINTS` mesh. It comes in two versions, selected with the `-2D` or `-3D` argument: a 2D flap with
+  a revolute joint (data in `flap_openfoam_2D`) and a 3D flap with a spherical joint (data in `flap_openfoam_3D`).
