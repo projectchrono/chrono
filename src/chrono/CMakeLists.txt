@@ -1131,6 +1131,7 @@ set(Chrono_solver_SOURCES
     solver/ChSolverAPGD.cpp
     solver/ChSolverADMM.cpp
     solver/ChSolverLumped.cpp
+    solver/ChSolverLumpedPSOR.cpp
     solver/ChKRMBlock.cpp
     solver/ChNlsolver.cpp
     )
@@ -1150,6 +1151,7 @@ set(Chrono_solver_HEADERS
     solver/ChSolverADMM.h
     solver/ChSolverPSOR.h
     solver/ChSolverLumped.h
+    solver/ChSolverLumpedPSOR.h
     solver/ChKRMBlock.h
     solver/ChNlsolver.h
     )
