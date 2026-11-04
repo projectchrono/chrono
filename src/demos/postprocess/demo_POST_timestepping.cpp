@@ -555,6 +555,9 @@ void example5(const std::string& out_dir) {
         double m_reaction;
 
       public:
+        bool use_lumped_mass_solver = false;
+
+      public:
         MyIntegrable() {
             m_length = 5;
             m_M = 2;
@@ -632,7 +635,7 @@ void example5(const std::string& out_dir) {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, update_flags);
 
-            if (!Qc.size()) {
+            if (use_lumped_mass_solver) {
                 // User has enabled SetConstraintsAsPenaltyON(), do not use constraint jacobians
                 // Moreover use lumped mass matrix to solve via quick diagonal inversion.
                 ChVectorDynamic<> b_(2);
@@ -759,7 +762,8 @@ void example5(const std::string& out_dir) {
 
     // ChTimestepperEulerExplicitIIorder mystepper7(&mintegrable7);
     ChTimestepperRungeKutta mystepper7(&mintegrable7);
-    mystepper7.SetConstraintsAsPenaltyON(20000);  // this avoids calling the linear solver completely, even with constraints.
+    mintegrable7.use_lumped_mass_solver = true;   // this avoids calling the linear solver completely, even with constraints.
+    mystepper7.SetConstraintsAsPenaltyON(20000);  // this is needed with the  pure lumped mass solver
 
     // B) - same pendulum, but multibody:
     //

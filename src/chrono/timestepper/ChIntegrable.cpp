@@ -65,6 +65,8 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
 
     ChVectorDynamic<> R(GetNumCoordsVelLevel());
     ChVectorDynamic<> Qc;
+    Qc.setZero(GetNumConstraints());
+
     bool success = false;
 
     if (!c_penalty) {
@@ -72,7 +74,6 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
         const double Delta = 1e-6;
 
         R.setZero();
-        Qc.setZero(GetNumConstraints());
 
         LoadResidual_F(R, 1.0);
         LoadConstraint_C(Qc, -2.0 / (Delta * Delta), -1.0 / Delta);
