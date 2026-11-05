@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/fea/ChNodeFEAxyzrot.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 namespace fea {
@@ -328,6 +329,23 @@ void ChNodeFEAxyzrot::ComputeNF(
 }
 
 // -----------------------------------------------------------------------------
+
+void ChNodeFEAxyzrot::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChNodeFEAbase::SaveInternalState(writer);
+
+    writer.Write(GetRotDt());
+    writer.Write(GetRotDt2());
+}
+
+void ChNodeFEAxyzrot::LoadInternalState(ChCheckpointReader& reader) {
+    ChNodeFEAbase::LoadInternalState(reader);
+
+    ChQuaterniond rot_dt, rot_dtdt;
+    reader.Read(rot_dt);
+    reader.Read(rot_dtdt);
+    SetRotDt(rot_dt);
+    SetRotDt2(rot_dtdt);
+}
 
 void ChNodeFEAxyzrot::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

@@ -317,6 +317,16 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Get the underlying assembly containing all physics items.
     const ChAssembly& GetAssembly() const { return assembly; }
 
+    /// Return true if the internal state of all physics items in this system can be saved in a checkpoint.
+    /// This includes the contact container.
+    bool SupportsCheckpoint() const { return assembly.SupportsCheckpoint() && (!contact_container || contact_container->SupportsCheckpoint()); }
+
+    /// Save the internal state of all physics items (data not stored in the system state vectors).
+    void SaveInternalState(ChCheckpointWriter& writer) const { assembly.SaveInternalState(writer); }
+
+    /// Load the internal state of all physics items, as saved by SaveInternalState.
+    void LoadInternalState(ChCheckpointReader& reader) { assembly.LoadInternalState(reader); }
+
     /// Attach a body to the underlying assembly.
     virtual void AddBody(std::shared_ptr<ChBody> body);
 
@@ -675,7 +685,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void InjectConstraints(ChSystemDescriptor& sys_descriptor);
 
     /// Compute and load current Jacobians in encapsulated ChConstraint objects.
-    void LoadConstraintJacobians();
+    virtual void LoadConstraintJacobians() override;
 
     /// Register with the given system descriptor any ChKRMBlock objects associated with items in the system.
     void InjectKRMMatrices(ChSystemDescriptor& sys_descriptor);
@@ -835,10 +845,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor);
 
     /// Initial system setup before analysis.
-    /// This function performs an initial system setup, once system construction is completed and before an analysis.
-    /// This function also initializes the collision system (if any), as well as any visualization system to which this
-    /// Chrono system was attached. The initialization function is called automatically before starting any type of
-    /// analysis.
+    /// This function initializes all physics items that are not yet initialized (see ChPhysicsItem::InitializePhase).
+    /// The first call also initializes the collision system (if any), as well as any visualization system to which
+    /// this Chrono system was attached. The initialization function is called automatically before starting any type
+    /// of analysis and can be safely called at any time.
     void Initialize();
 
     /// Return the resultant applied force on the specified body.
@@ -863,6 +873,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Optionally, the collision detection phase can be skipped for this step (if do_collision=false).
     virtual bool AdvanceDynamics(bool do_collision = true);
 
+    /// Run both initialization phases on all physics items that are not yet initialized.
+    void InitializeItems();
+
     std::string m_name;                                     ///< system name
     ChAssembly assembly;                                    ///< underlying mechanical assembly
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
@@ -871,6 +884,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
+    bool m_items_pending;  ///< if true, some physics items may need initialization
 
     unsigned int m_num_coords_pos;  ///< num of scalar coordinates at position level for all active bodies
     unsigned int m_num_coords_vel;  ///< num of scalar coordinates at velocity level for all active bodies
@@ -929,6 +943,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // Friend class declarations
 
+    friend class ChPhysicsItem;
     friend class ChAssembly;
     friend class ChBody;
 #ifdef CHRONO_FEA

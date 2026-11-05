@@ -61,5 +61,6 @@
         @defgroup multicore_collision Collision objects
         @defgroup multicore_solver Solvers
         @defgroup multicore_math Math utilities
+        @defgroup multicore_visualization Run-time visualization
     @}
 */

@@ -193,6 +193,9 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
         ) override;
 
   protected:
+    /// Update the number of active degrees of freedom from the current fixed state of the node and its slopes.
+    virtual void UpdateActiveCoords() override;
+
     /// Get mass of the node (corresponding to the 3rd slope derivative).
     ChVectorDynamic<>& GetMassDiagonalSlope3() { return variables_DDD->GetMassDiagonal(); }
 

@@ -22,6 +22,7 @@ ChNodeFEAxyzDD::ChNodeFEAxyzDD(ChVector3d initial_pos, ChVector3d initial_dir, C
     variables_DD = new ChVariablesGenericDiagonalMass(3);
     // default: no atomic mass associated to fea node, the fea element will add mass matrix
     variables_DD->GetMassDiagonal().setZero();
+    UpdateActiveCoords();
 }
 
 ChNodeFEAxyzDD::ChNodeFEAxyzDD(const ChNodeFEAxyzDD& other) : ChNodeFEAxyzD(other) {
@@ -30,6 +31,7 @@ ChNodeFEAxyzDD::ChNodeFEAxyzDD(const ChNodeFEAxyzDD& other) : ChNodeFEAxyzD(othe
     DD = other.DD;
     DD_dt = other.DD_dt;
     DD_dtdt = other.DD_dtdt;
+    UpdateActiveCoords();
 }
 
 ChNodeFEAxyzDD::~ChNodeFEAxyzDD() {
@@ -48,6 +50,7 @@ ChNodeFEAxyzDD& ChNodeFEAxyzDD::operator=(const ChNodeFEAxyzDD& other) {
     DD_dt = other.DD_dt;
     DD_dtdt = other.DD_dtdt;
     (*variables_DD) = (*other.variables_DD);
+    UpdateActiveCoords();
     return *this;
 }
 
@@ -63,6 +66,7 @@ void ChNodeFEAxyzDD::ForceToRest() {
 void ChNodeFEAxyzDD::SetFixed(bool fixed) {
     ChNodeFEAxyzD::SetFixed(fixed);
     variables_DD->SetDisabled(fixed);
+    UpdateActiveCoords();
 }
 
 bool ChNodeFEAxyzDD::IsFixed() const {
@@ -71,6 +75,7 @@ bool ChNodeFEAxyzDD::IsFixed() const {
 
 void ChNodeFEAxyzDD::SetSlope2Fixed(bool fixed) {
     variables_DD->SetDisabled(fixed);
+    UpdateActiveCoords();
 }
 
 bool ChNodeFEAxyzDD::IsSlope2Fixed() const {
@@ -83,7 +88,9 @@ void ChNodeFEAxyzDD::SetupInitial(ChSystem* system) {
         SetSlope1Fixed(false);
 
     ChNodeFEAxyzD::SetupInitial(system);
+}
 
+void ChNodeFEAxyzDD::UpdateActiveCoords() {
     if (IsFixed())
         m_dof_actual = 0;
     else if (IsSlope1Fixed())

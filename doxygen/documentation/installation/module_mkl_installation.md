@@ -38,9 +38,11 @@ Intel MKL 2023 is known to work fine with Eigen (and therefore Chrono) on both L
     - `C:/Program Files (x86)/Intel/oneAPI/mkl/2023.0.0/lib/cmake/mkl` (Windows)
 	- `/opt/intel/oneapi/mkl/latest/lib/cmake/mkl` (Linux)
 
-3. Press 'Configure' again and then 'Generate'
+3. The advanced CMake variable `MKL_THREADING` selects the MKL threading layer. It defaults to `gnu_thread` (GNU OpenMP) with GCC and to `intel_thread` (Intel OpenMP) with other compilers. With GCC, do not switch to `intel_thread`: loading both OpenMP runtimes makes Pardiso fail with invalid input errors or run out of memory. An existing build directory keeps its cached value; reset it with `-DMKL_THREADING=gnu_thread`.
 
-4. Building this module will produce an additional shared library, called **Chrono_pardisomkl**, which can be linked to your application.
+4. Press 'Configure' again and then 'Generate'
+
+5. Building this module will produce an additional shared library, called **Chrono_pardisomkl**, which can be linked to your application.
 
 ## How to use it
 

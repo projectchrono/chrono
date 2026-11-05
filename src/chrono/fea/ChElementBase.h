@@ -22,6 +22,10 @@
 #include "chrono/fea/ChNodeFEAbase.h"
 
 namespace chrono {
+
+class ChCheckpointWriter;
+class ChCheckpointReader;
+
 namespace fea {
 
 /// @addtogroup fea_elements
@@ -94,6 +98,19 @@ class ChApi ChElementBase {
     /// this should be implemented in this function.
     virtual void Update() {}
 
+    // Checkpointing
+
+    /// Return true if the internal state of this element can be saved in a checkpoint (see ChPhysicsItem).
+    /// The default is false; a derived class returns true once it saves all of its internal state.
+    virtual bool SupportsCheckpoint() const { return false; }
+
+    /// Save the internal state of this element: data not stored in the system state vectors that it carries from step to
+    /// step (for example, plastic strains). Derived classes must first call the base class implementation.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const {}
+
+    /// Load the internal state of this element, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) {}
+
     // Functions for interfacing to the state bookkeeping
 
     /// This is optionally implemented if there is some internal state that requires integration.
@@ -156,6 +173,8 @@ class ChApi ChElementBase {
     /// This is used mostly to precompute matrices that do not change during the simulation, i.e. the local stiffness of
     /// each element, if any, the mass, etc.
     virtual void SetupInitial(ChSystem* system) {}
+
+    bool m_initialized = false;  ///< true once SetupInitial was called by the containing mesh
 
     friend class ChMesh;
 };

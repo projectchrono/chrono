@@ -894,7 +894,7 @@ bool MarkerPlanesVisibilityCallback::get(unsigned int n) const {
 ParticleHeightColorCallback::ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up) : m_hmin(hmin), m_hmax(hmax), m_up(ToReal3(up)) {}
 
 std::string ParticleHeightColorCallback::GetTile() const {
-    return "Height (m)";
+    return "Height";
 }
 
 ChVector2d ParticleHeightColorCallback::GetDataRange() const {
@@ -909,7 +909,7 @@ ChColor ParticleHeightColorCallback::GetColor(unsigned int n) const {
 ParticleVelocityColorCallback::ParticleVelocityColorCallback(double vmin, double vmax, Component component) : m_vmin(vmin), m_vmax(vmax), m_component(component) {}
 
 std::string ParticleVelocityColorCallback::GetTile() const {
-    return "Velocity (m/s)";
+    return "Velocity";
 }
 
 ChVector2d ParticleVelocityColorCallback::GetDataRange() const {
@@ -939,7 +939,7 @@ ChColor ParticleVelocityColorCallback::GetColor(unsigned int n) const {
 ParticleDensityColorCallback::ParticleDensityColorCallback(double dmin, double dmax) : m_dmin(dmin), m_dmax(dmax) {}
 
 std::string ParticleDensityColorCallback::GetTile() const {
-    return "Density (kg/m3)";
+    return "Density";
 }
 
 ChVector2d ParticleDensityColorCallback::GetDataRange() const {
@@ -956,7 +956,7 @@ ParticlePressureColorCallback::ParticlePressureColorCallback(double pmin, double
 }
 
 std::string ParticlePressureColorCallback::GetTile() const {
-    return "Pressure (N/m2)";
+    return "Pressure";
 }
 
 ChVector2d ParticlePressureColorCallback::GetDataRange() const {

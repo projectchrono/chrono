@@ -20,28 +20,50 @@
 namespace chrono {
 namespace utils {
 
+const int HOST_NAME_LENGTH = 64;
 const int MSG_HEADER_LEN = sizeof(uint64_t);
+const int MAX_RECV_LEN = 8096;
 
-ChSocket::ChSocket(int pNumber) {
-    portNumber = pNumber;
+// =============================================================================
+// ChSocketFramework
+// =============================================================================
+ChSocketFramework::ChSocketFramework() {
+#ifdef _WIN32
+
+    // Initialize the winsock library
+    WSADATA wsaData;
+
+    if (WSAStartup(0x101, &wsaData)) {
+        throw std::runtime_error("Error: calling WSAStartup()");
+    }
+
+#endif
+}
+
+ChSocketFramework::~ChSocketFramework() {
+#ifdef _WIN32
+    WSACleanup();
+#endif
+}
+
+// =============================================================================
+// ChSocket
+// =============================================================================
+ChSocket::ChSocket(int port_number) {
+    portNumber = port_number;
     blocking = 1;
 
-    try {
-        if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "";
-            detectErrorOpenWinSocket(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "";
+        detectErrorOpenWinSocket(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 
     /*
@@ -64,67 +86,52 @@ ChSocket::~ChSocket() {
 #endif
 }
 
-void ChSocket::setDebug(int debugToggle) {
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&debugToggle, sizeof(debugToggle)) == -1) {
+void ChSocket::SetDebug(int debugToggle) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&debugToggle, sizeof(debugToggle)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "DEBUG option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "DEBUG option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setReuseAddr(int reuseToggle) {
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseToggle, sizeof(reuseToggle)) == -1) {
+void ChSocket::SetReuseAddr(int reuseToggle) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&reuseToggle, sizeof(reuseToggle)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "REUSEADDR option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "REUSEADDR option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setKeepAlive(int aliveToggle) {
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&aliveToggle, sizeof(aliveToggle)) == -1) {
+void ChSocket::SetKeepAlive(int aliveToggle) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&aliveToggle, sizeof(aliveToggle)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "ALIVE option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "ALIVE option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setLingerSeconds(int seconds) {
+void ChSocket::SetLingerSeconds(int seconds) {
     struct linger lingerOption;
 
     if (seconds > 0) {
@@ -133,26 +140,21 @@ void ChSocket::setLingerSeconds(int seconds) {
     } else
         lingerOption.l_onoff = 0;
 
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "LINGER option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "LINGER option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setLingerOnOff(bool lingerOn) {
+void ChSocket::SetLingerOnOff(bool lingerOn) {
     struct linger lingerOption;
 
     if (lingerOn)
@@ -160,100 +162,80 @@ void ChSocket::setLingerOnOff(bool lingerOn) {
     else
         lingerOption.l_onoff = 0;
 
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, sizeof(struct linger)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "LINGER option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "LINGER option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setSendBufSize(int sendBufSize) {
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize)) == -1) {
+void ChSocket::SetSendBufSize(int sendBufSize) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, sizeof(sendBufSize)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "SENDBUFSIZE option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "SENDBUFSIZE option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setReceiveBufSize(int receiveBufSize) {
-    try {
-        if (setsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&receiveBufSize, sizeof(receiveBufSize)) == -1) {
+void ChSocket::SetReceiveBufSize(int receiveBufSize) {
+    if (setsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&receiveBufSize, sizeof(receiveBufSize)) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "RCVBUF option:";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "RCVBUF option:";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 }
 
-void ChSocket::setSocketBlocking(int blockingToggle) {
+void ChSocket::SetSocketBlocking(int blockingToggle) {
     if (blockingToggle) {
-        if (getSocketBlocking())
+        if (GetSocketBlocking())
             return;
         else
             blocking = 1;
     } else {
-        if (!getSocketBlocking())
+        if (!GetSocketBlocking())
             return;
         else
             blocking = 0;
     }
 
-    try {
 #ifdef _WIN32
-        if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
-            int errorCode;
-            std::string errorMsg = "Blocking option: ";
-            detectErrorSetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
-        }
+    if (ioctlsocket(socketId, FIONBIO, (unsigned long*)&blocking) == -1) {
+        int errorCode;
+        std::string errorMsg = "Blocking option: ";
+        detectErrorSetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
+    }
 #endif
 
 #ifdef UNIX
-        if (ioctl(socketId, FIONBIO, (char*)&blocking) == -1) {
-            throw std::runtime_error("unix: error getting host by name");
-        }
-#endif
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
+    if (ioctl(socketId, FIONBIO, (char*)&blocking) == -1) {
+        throw std::runtime_error("unix: error getting host by name");
     }
+#endif
 }
 
-int ChSocket::getDebug() {
+int ChSocket::GetDebug() {
     int myOption;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
     socklen_t myOptionLen = sizeof(myOption);
@@ -261,28 +243,23 @@ int ChSocket::getDebug() {
     int myOptionLen = sizeof(myOption);
 #endif
 
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_DEBUG, (char*)&myOption, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get DEBUG option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get DEBUG option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 
     return myOption;
 }
 
-int ChSocket::getReuseAddr() {
+int ChSocket::GetReuseAddr() {
     int myOption;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
     socklen_t myOptionLen = sizeof(myOption);
@@ -290,28 +267,23 @@ int ChSocket::getReuseAddr() {
     int myOptionLen = sizeof(myOption);
 #endif
 
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_REUSEADDR, (char*)&myOption, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get REUSEADDR option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get REUSEADDR option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 
     return myOption;
 }
 
-int ChSocket::getKeepAlive() {
+int ChSocket::GetKeepAlive() {
     int myOption;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
     socklen_t myOptionLen = sizeof(myOption);
@@ -319,27 +291,23 @@ int ChSocket::getKeepAlive() {
     int myOptionLen = sizeof(myOption);
 #endif
 
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_KEEPALIVE, (char*)&myOption, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get KEEPALIVE option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get KEEPALIVE option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
+
     return myOption;
 }
 
-int ChSocket::getLingerSeconds() {
+int ChSocket::GetLingerSeconds() {
     struct linger lingerOption;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
     socklen_t myOptionLen = sizeof(struct linger);
@@ -347,28 +315,27 @@ int ChSocket::getLingerSeconds() {
     int myOptionLen = sizeof(struct linger);
 #endif
 
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get LINER option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get LINER option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 
     return lingerOption.l_linger;
 }
 
-bool ChSocket::getLingerOnOff() {
+int ChSocket::GetSocketBlocking() {
+    return blocking;
+}
+
+bool ChSocket::GetLingerOnOff() {
     struct linger lingerOption;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
     socklen_t myOptionLen = sizeof(struct linger);
@@ -376,22 +343,17 @@ bool ChSocket::getLingerOnOff() {
     int myOptionLen = sizeof(struct linger);
 #endif
 
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_LINGER, (char*)&lingerOption, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get LINER option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get LINER option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
 
     if (lingerOption.l_onoff == 1)
@@ -400,59 +362,51 @@ bool ChSocket::getLingerOnOff() {
         return false;
 }
 
-int ChSocket::getSendBufSize() {
-    int sendBuf;
+int ChSocket::GetSendBufSize() {
+    int sendBufSize;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
-    socklen_t myOptionLen = sizeof(sendBuf);
+    socklen_t myOptionLen = sizeof(sendBufSize);
 #else
-    int myOptionLen = sizeof(sendBuf);
+    int myOptionLen = sizeof(sendBufSize);
 #endif
 
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBuf, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_SNDBUF, (char*)&sendBufSize, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get SNDBUF option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get SNDBUF option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
-    return sendBuf;
+
+    return sendBufSize;
 }
 
-int ChSocket::getReceiveBufSize() {
-    int rcvBuf;
+int ChSocket::GetReceiveBufSize() {
+    int rcvBufSize;
 #if defined(TARGET_OS_MAC) || defined(UNIX)
-    socklen_t myOptionLen = sizeof(rcvBuf);
+    socklen_t myOptionLen = sizeof(rcvBufSize);
 #else
-    int myOptionLen = sizeof(rcvBuf);
+    int myOptionLen = sizeof(rcvBufSize);
 #endif
-    try {
-        if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBuf, &myOptionLen) == -1) {
+    if (getsockopt(socketId, SOL_SOCKET, SO_RCVBUF, (char*)&rcvBufSize, &myOptionLen) == -1) {
 #ifdef _WIN32
-            int errorCode;
-            std::string errorMsg = "get RCVBUF option: ";
-            detectErrorGetSocketOption(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
+        int errorCode;
+        std::string errorMsg = "get RCVBUF option: ";
+        detectErrorGetSocketOption(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-            throw std::runtime_error("unix: error getting host by name");
+        throw std::runtime_error("unix: error getting host by name");
 #endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
     }
-    return rcvBuf;
+
+    return rcvBufSize;
 }
 
 #ifdef _WIN32
@@ -546,25 +500,29 @@ void ChSocket::detectErrorGetSocketOption(int* errCode, std::string& errMsg) {
 
 #endif
 
-std::ostream& operator<<(std::ostream& io, ChSocket& s) {
+std::ostream& operator<<(std::ostream& os, ChSocket& socket) {
     std::string flagStr = "";
-
-    io << "--------------- Summary of socket settings -------------------" << std::endl;
-    io << "   Socket Id:     " << s.getSocketId() << std::endl;
-    io << "   port #:        " << s.getPortNumber() << std::endl;
-    io << "   debug:         " << (flagStr = s.getDebug() ? "true" : "false") << std::endl;
-    io << "   reuse addr:    " << (flagStr = s.getReuseAddr() ? "true" : "false") << std::endl;
-    io << "   keep alive:    " << (flagStr = s.getKeepAlive() ? "true" : "false") << std::endl;
-    io << "   send buf size: " << s.getSendBufSize() << std::endl;
-    io << "   recv bug size: " << s.getReceiveBufSize() << std::endl;
-    io << "   blocking:      " << (flagStr = s.getSocketBlocking() ? "true" : "false") << std::endl;
-    io << "   linger on:     " << (flagStr = s.getLingerOnOff() ? "true" : "false") << std::endl;
-    io << "   linger seconds: " << s.getLingerSeconds() << std::endl;
-    io << "----------- End of Summary of socket settings ----------------" << std::endl;
-    return io;
+    os << "--------------- Summary of socket settings -------------------" << std::endl;
+    os << "   Socket Id:     " << socket.GetSocketId() << std::endl;
+    os << "   port #:        " << socket.GetPortNumber() << std::endl;
+    os << "   debug:         " << (flagStr = socket.GetDebug() ? "true" : "false") << std::endl;
+    os << "   reuse addr:    " << (flagStr = socket.GetReuseAddr() ? "true" : "false") << std::endl;
+    os << "   keep alive:    " << (flagStr = socket.GetKeepAlive() ? "true" : "false") << std::endl;
+    os << "   send buf size: " << socket.GetSendBufSize() << std::endl;
+    os << "   recv bug size: " << socket.GetReceiveBufSize() << std::endl;
+    os << "   blocking:      " << (flagStr = socket.GetSocketBlocking() ? "true" : "false") << std::endl;
+    os << "   linger on:     " << (flagStr = socket.GetLingerOnOff() ? "true" : "false") << std::endl;
+    os << "   linger seconds: " << socket.GetLingerSeconds() << std::endl;
+    os << "----------- End of Summary of socket settings ----------------" << std::endl;
+    return os;
 }
 
-void ChSocketTCP::bindSocket() {
+// =============================================================================
+// ChSocketTCP
+// =============================================================================
+ChSocketTCP::ChSocketTCP(int port_number) : ChSocket(port_number) {}
+
+bool ChSocketTCP::BindSocket() {
     try {
         if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
 #ifdef _WIN32
@@ -579,8 +537,9 @@ void ChSocketTCP::bindSocket() {
         }
     } catch (const std::exception& excp) {
         std::cerr << excp.what() << std::endl;
-        exit(1);
+        return false;
     }
+    return true;
 }
 
 #ifdef _WIN32
@@ -860,7 +819,7 @@ void ChSocketTCP::detectErrorSend(int* errCode, std::string& errMsg) {
 
 #endif
 
-void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType) {
+bool ChSocketTCP::ConnectToServer(std::string& serverNameOrAddr, HostType hType) {
     /*
        when this method is called, a client socket has been built already,
        so we have the socketId and portNumber ready.
@@ -876,7 +835,7 @@ void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType)
     // Store the IP address and socket port number
     struct sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = inet_addr(serverInfo.getHostIPAddress());
+    serverAddress.sin_addr.s_addr = inet_addr(serverInfo.GetHostIPAddress());
     serverAddress.sin_port = htons(portNumber);
 
     // Connect to the given address
@@ -895,11 +854,33 @@ void ChSocketTCP::connectToServer(std::string& serverNameOrAddr, hostType hType)
         }
     } catch (const std::exception& excp) {
         std::cerr << excp.what() << std::endl;
-        exit(1);
+        return false;
     }
+    return true;
 }
 
-ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
+bool ChSocketTCP::ListenToClient(int max_pending_connections) {
+    try {
+        if (listen(socketId, max_pending_connections) == -1) {
+#ifdef _WIN32
+            int errorCode = 0;
+            std::string errorMsg = "error calling listen():\n";
+            detectErrorListen(&errorCode, errorMsg);
+            throw std::runtime_error(errorMsg);
+#endif
+
+#ifdef UNIX
+            throw std::runtime_error("unix: error calling listen()");
+#endif
+        }
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
+        return false;
+    }
+    return true;
+}
+
+ChSocketTCP* ChSocketTCP::AcceptClient(std::string& client_host_name) {
     int newSocket;  // the new socket file descriptor returned by the accept system call
 
     // the length of the client's address
@@ -931,75 +912,17 @@ ChSocketTCP* ChSocketTCP::acceptClient(std::string& clientHost) {
 
     // Get the host name given the address
     char* sAddress = inet_ntoa((struct in_addr)clientAddress.sin_addr);
-    ChSocketHostInfo clientInfo(std::string(sAddress), ADDRESS);
-    char* hostName = clientInfo.getHostName();
-    clientHost += std::string(hostName);
+    ChSocketHostInfo clientInfo(std::string(sAddress), HostType::ADDRESS);
+    char* hostName = clientInfo.GetHostName();
+    client_host_name = std::string(hostName);
 
     // Create and return the new ChSocketTCP object
     ChSocketTCP* retSocket = new ChSocketTCP();
-    retSocket->setSocketId(newSocket);
+    retSocket->SetSocketId(newSocket);
     return retSocket;
 }
 
-void ChSocketTCP::listenToClient(int totalNumPorts) {
-    try {
-        if (listen(socketId, totalNumPorts) == -1) {
-#ifdef _WIN32
-            int errorCode = 0;
-            std::string errorMsg = "error calling listen():\n";
-            detectErrorListen(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
-#endif
-
-#ifdef UNIX
-            throw std::runtime_error("unix: error calling listen()");
-#endif
-        }
-    } catch (const std::exception& excp) {
-        std::cerr << excp.what() << std::endl;
-        exit(1);
-    }
-}
-
-/*
-int ChSocketTCP::sendMessage(std::string& message)
-{
-    int numBytes;  // the number of bytes sent
-
-
-    char msgLength[MSG_HEADER_LEN+1];
-    snprintf(msgLength,sizeof(msgLength),"%6d",message.size());
-    std::string sendMsg = std::string(msgLength);
-    sendMsg += message;
-
-    // Sends the message to the connected host
-    try
-    {
-        if (numBytes = send(socketId,sendMsg.c_str(),sendMsg.size(),0) == -1)
-        {
-            #ifdef _WIN32
-                int errorCode = 0;
-                std::string errorMsg = "error calling send():\n";
-                detectErrorSend(&errorCode,errorMsg);
-                throw std::runtime_error(errorMsg);
-            #endif
-
-            #ifdef UNIX
-                throw std::runtime_error("unix: error calling send()");
-            #endif
-        }
-    }
-    catch(std::exception* excp)
-    {
-        std::cerr << excp->what() << std::endl;
-        delete excp;
-        exit(1);
-    }
-
-    return numBytes;
-}
-*/
-int ChSocketTCP::sendMessage(std::string& message) {
+int ChSocketTCP::SendString(const std::string& message) {
     int numBytes;  // the number of bytes sent
 
     /*
@@ -1031,14 +954,13 @@ int ChSocketTCP::sendMessage(std::string& message) {
         }
     } catch (const std::exception& excp) {
         std::cerr << excp.what() << std::endl;
-        exit(1);
+        return -1;
     }
 
     return numBytes;
 }
 
 #ifdef _WIN32
-
 int ChSocketTCP::XPReceiveMessage(std::string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
@@ -1074,16 +996,15 @@ int ChSocketTCP::XPReceiveMessage(std::string& message) {
         }
     } catch (const std::exception& excp) {
         std::cerr << excp.what() << std::endl;
-        exit(1);
+        return -1;
     }
 
     message.append(std::string(charMsg));
     return msgSize;
 }
-
 #endif
 
-int ChSocketTCP::receiveMessage(std::string& message) {
+int ChSocketTCP::ReceiveString(std::string& message) {
 #ifdef _WIN32
 
     return XPReceiveMessage(message);
@@ -1114,18 +1035,18 @@ int ChSocketTCP::receiveMessage(std::string& message) {
         }
     } catch (const std::exception& excp) {
         std::cerr << excp.what() << std::endl;
-        exit(1);
+        return -1;
     }
 
     return numBytes;
 #endif
 }
 
-int ChSocketTCP::SendBuffer(std::vector<char>& source_buf) {
+int ChSocketTCP::SendBuffer(const std::vector<char>& source_buf) {
     int nbytes = (int)source_buf.size();
     const char* data;
     if (nbytes)
-        data = (char*)&(source_buf[0]);  // stl vectors are assured to be sequential
+        data = (const char*)source_buf.data();  // stl vectors are assured to be sequential
     else
         data = "";  // stub, in case null length messages, stl vector has no [0] element address
 
@@ -1154,8 +1075,8 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
 
     void* data;
     if (nbytes)
-        data = (char*)&(dest_buf[0]);  // stl vectors are assured to be sequential. // should not access directly
-                                       // std::vector data, but this is efficient!
+        data = (char*)dest_buf.data();  // stl vectors are assured to be sequential. // should not access directly
+                                        // std::vector data, but this is efficient!
     else
         data = (char*)"";  // stub, in case null length messages, stl vector has no [0] element address
 
@@ -1176,51 +1097,31 @@ int ChSocketTCP::ReceiveBuffer(std::vector<char>& dest_buf, int bsize) {
     return receivedBytes;
 }
 
-int ChSocketTCP::SendBuffer() {
+int ChSocketTCP::SendDataBuffer() {
     int send_size = (int)m_internal_buffer_send.size();
     SendBuffer(m_internal_buffer_send);
     m_internal_buffer_send.clear();
     return send_size;
 }
 
-int ChSocketTCP::ReceiveBuffer(int data_in_size) {
+int ChSocketTCP::ReceiveDataBuffer(int data_in_size) {
     m_internal_buffer_receive.clear();
     return ReceiveBuffer(m_internal_buffer_receive, data_in_size);
 }
 
+int ChSocketTCP::SendData() {
+    return SendDataBuffer();
+}
+
 int ChSocketTCP::ReceiveData() {
-    m_internal_buffer_receive.resize(receive_id);
+    m_internal_buffer_receive.resize(receive_offset);
     int received_bytes = ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
     return received_bytes;
 }
 
-// -----------------
+// =============================================================================
 // ChSocketFramework
-// -----------------
-
-ChSocketFramework::ChSocketFramework() {
-#ifdef _WIN32
-
-    // Initialize the winsock library
-    WSADATA wsaData;
-
-    if (WSAStartup(0x101, &wsaData)) {
-        throw std::runtime_error("Error: calling WSAStartup()");
-    }
-
-#endif
-}
-
-ChSocketFramework::~ChSocketFramework() {
-#ifdef _WIN32
-    WSACleanup();
-#endif
-}
-
-// ----------------
-// ChSocketHostInfo
-// ----------------
-
+// =============================================================================
 ChSocketHostInfo::ChSocketHostInfo() {
 #ifdef UNIX
     openHostDb();
@@ -1233,74 +1134,70 @@ ChSocketHostInfo::ChSocketHostInfo() {
     memset(sName, 0, sizeof(sName));
     gethostname(sName, HOST_NAME_LENGTH);
 
-    try {
-        hostPtr = gethostbyname(sName);
-        if (hostPtr == NULL) {
-            int errorCode;
-            std::string errorMsg = "";
-            detectErrorGethostbyname(&errorCode, errorMsg);
-            throw std::runtime_error(errorMsg);
-        }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        exit(1);
+    hostPtr = gethostbyname(sName);
+    if (hostPtr == NULL) {
+        int errorCode;
+        std::string errorMsg = "";
+        detectErrorGethostbyname(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
     }
 
 #endif
 }
 
-ChSocketHostInfo::ChSocketHostInfo(const std::string& hostName, hostType type) {
+ChSocketHostInfo::ChSocketHostInfo(const std::string& hostName, HostType type) {
 #ifdef UNIX
     searchHostDB = 0;
 #endif
 
-    try {
-        if (type == NAME) {
-            // Retrieve host by name
-            hostPtr = gethostbyname(hostName.c_str());
+    if (type == HostType::NAME) {
+        // Retrieve host by name
+        hostPtr = gethostbyname(hostName.c_str());
 
-            if (hostPtr == NULL) {
+        if (hostPtr == NULL) {
 #ifdef _WIN32
-                int errorCode;
-                std::string errorMsg = "";
-                detectErrorGethostbyname(&errorCode, errorMsg);
-                throw std::runtime_error(errorMsg);
+            int errorCode;
+            std::string errorMsg = "";
+            detectErrorGethostbyname(&errorCode, errorMsg);
+            throw std::runtime_error(errorMsg);
 #endif
 
 #ifdef UNIX
-                throw std::runtime_error("unix: error getting host by name");
+            throw std::runtime_error("unix: error getting host by name");
 #endif
-            }
-        } else if (type == ADDRESS) {
-            // Retrieve host by address
-            unsigned long netAddr = inet_addr(hostName.c_str());
-            if (netAddr == -1) {
-                throw std::runtime_error("Error calling inet_addr()");
-            }
-
-            hostPtr = gethostbyaddr((char*)&netAddr, sizeof(netAddr), AF_INET);
-            if (hostPtr == NULL) {
-#ifdef _WIN32
-                int errorCode;
-                std::string errorMsg = "";
-                detectErrorGethostbyaddr(&errorCode, errorMsg);
-                throw std::runtime_error(errorMsg);
-#endif
-
-#ifdef UNIX
-                throw std::runtime_error("unix: error getting host by name");
-#endif
-            }
-        } else {
-            throw std::runtime_error("unknown host type: host name/address has to be given");
         }
-    } catch (std::exception* excp) {
-        std::cerr << excp->what() << std::endl;
-        exit(1);
+    } else if (type == HostType::ADDRESS) {
+        // Retrieve host by address
+        unsigned long netAddr = inet_addr(hostName.c_str());
+        if (netAddr == -1) {
+            throw std::runtime_error("Error calling inet_addr()");
+        }
+
+        hostPtr = gethostbyaddr((char*)&netAddr, sizeof(netAddr), AF_INET);
+        if (hostPtr == NULL) {
+#ifdef _WIN32
+            int errorCode;
+            std::string errorMsg = "";
+            detectErrorGethostbyaddr(&errorCode, errorMsg);
+            throw std::runtime_error(errorMsg);
+#endif
+
+#ifdef UNIX
+            throw std::runtime_error("unix: error getting host by name");
+#endif
+        }
+    } else {
+        throw std::runtime_error("unknown host type: host name/address has to be given");
     }
 }
 
-char* ChSocketHostInfo::getHostIPAddress() {
+ChSocketHostInfo::~ChSocketHostInfo() {
+#ifdef UNIX
+    endhostent();
+#endif
+}
+
+char* ChSocketHostInfo::GetHostIPAddress() {
     struct in_addr* addr_ptr;
     // the first address in the list of host addresses
     addr_ptr = (struct in_addr*)*hostPtr->h_addr_list;
@@ -1358,8 +1255,7 @@ void ChSocketHostInfo::detectErrorGethostbyaddr(int* errCode, std::string& error
     if (*errCode == WSAEAFNOSUPPORT)
         errorMsg.append("The type specified is not supported by the Windows Sockets implementation.");
     if (*errCode == WSAEFAULT)
-        errorMsg.append(
-            "The addr parameter is not a valid part of the user address space, or the len parameter is too small.");
+        errorMsg.append("The addr parameter is not a valid part of the user address space, or the len parameter is too small.");
     if (*errCode == WSAEINTR)
         errorMsg.append("A blocking Windows Socket 1.1 call was canceled through WSACancelBlockingCall.");
 }

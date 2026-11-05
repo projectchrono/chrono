@@ -90,12 +90,15 @@ void ChTimestepperHHT::FinalizeStep() {
 // - Obtain a prediction at T+h for Newton using extrapolation from solution at current time.
 // - If no step size control, start with zero acceleration guess (previous step not guaranteed to have converged)
 // - Set the error weight vectors (using solution at current time)
+// - Set the factor converting the constraint residual Qc = C/(beta*h^2) to the constraint violation C
 void ChTimestepperHHT::PrepareStep() {
+    Qc_scale = beta * h * h;
     if (step_control)
         Anew = A;
     Vnew = V + Anew * h;
     Xnew = X + Vnew * h + Anew * (h * h);
     integrable->LoadResidual_F(Rold, -alpha / (1.0 + alpha));       // -alpha/(1.0+alpha) * f_old
+    integrable->LoadConstraintJacobians();                          // Cq at the state at time T
     integrable->LoadResidual_CqL(Rold, L, -alpha / (1.0 + alpha));  // -alpha/(1.0+alpha) * Cq'*l_old
     CalcErrorWeights(A, reltol, abstolS, ewtS);
 

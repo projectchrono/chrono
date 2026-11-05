@@ -131,6 +131,15 @@ set(Chrono_Multicore_COLLISION
 
 source_group(collision FILES ${Chrono_Multicore_COLLISION})
 
+if(CH_ENABLE_MODULE_VSG)
+    set(Chrono_Multicore_VSG
+        visualization/ChMulticoreVisualizationVSG.h
+        visualization/ChMulticoreVisualizationVSG.cpp
+        )
+
+    source_group(visualization FILES ${Chrono_Multicore_VSG})
+endif()
+
 # ------------------------------------------------------------------------------
 # Add the Chrono_multicore library
 # ------------------------------------------------------------------------------
@@ -183,6 +192,43 @@ install(TARGETS Chrono_multicore
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         INCLUDES DESTINATION include/chrono_multicore)
+
+#-------------------------------------------------------------------------------
+# Add the Chrono_multicore_vsg library
+#-------------------------------------------------------------------------------
+
+if(CH_ENABLE_MODULE_VSG)
+    message(STATUS "  Add Chrono_multicore_vsg library")
+
+    add_library(Chrono_multicore_vsg
+        ${Chrono_Multicore_VSG}
+    )
+    add_library(Chrono::multicore_vsg ALIAS Chrono_multicore_vsg)
+
+    set_target_properties(Chrono_multicore_vsg PROPERTIES DEBUG_POSTFIX ${CH_DEBUG_POSTFIX})
+
+    if (CH_STATIC)
+      set_target_properties(Chrono_multicore_vsg PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    endif()
+
+    if(MSVC)
+      # disable warnings related to missing DLL interface
+      target_compile_options(Chrono_multicore_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/wd4251>)
+      set_target_properties(Chrono_multicore_vsg PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    target_compile_definitions(Chrono_multicore_vsg PRIVATE $<$<COMPILE_LANGUAGE:CXX>:CH_API_COMPILE_MULTICORE>)
+
+    target_link_libraries(Chrono_multicore_vsg PRIVATE Chrono_core Chrono_multicore)
+    target_link_libraries(Chrono_multicore_vsg PUBLIC Chrono_vsg)
+
+    install(TARGETS Chrono_multicore_vsg
+            EXPORT ChronoTargets
+            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            INCLUDES DESTINATION include/chrono_multicore)
+endif()
 
 #-------------------------------------------------------------------------------
 # Install files

@@ -62,6 +62,7 @@ void ChFEATire::Initialize(std::shared_ptr<ChWheel> wheel) {
     m_mesh = chrono_types::make_shared<ChMesh>();
     m_mesh->SetTag(m_obj_tag);
     system->Add(m_mesh);
+    m_components.meshes.push_back(m_mesh);
 
     // Create the FEA nodes and elements
     CreateMesh(*(wheel->GetSpindle().get()), wheel->GetSide());

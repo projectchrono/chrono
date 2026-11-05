@@ -361,6 +361,11 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     /// User-provided callback for overriding composite material properties.
     std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;
 
+    /// Number of contacts with no free contact history slot in the last step (SMC, MultiStep).
+    uint num_shear_overflows;
+    /// Cumulative number of contacts with no free contact history slot, over all steps (SMC, MultiStep).
+    unsigned long long total_shear_overflows;
+
     /// Output a vector (one dimensional matrix) from eigen to a file.
     int OutputEigenVector(VectorType src, std::string filename);
     /// Output a sparse eigen matrix to a file.

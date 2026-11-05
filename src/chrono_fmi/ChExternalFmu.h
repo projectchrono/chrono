@@ -200,14 +200,13 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     /// Set the value of a ChFrameMoving variable.
     void SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& val);
 
-    /// Initialize this physics item.
-    /// This function initializes the underlying FMU as well as this physics item.
-    virtual void Initialize() override;
-
     /// Print the list of FMU variables.
     void PrintFmuVariables() const;
 
   protected:
+    /// Initialization phase 1: initialize the underlying FMU, then size this physics item.
+    virtual void SetupInitial() override;
+
     /// Set initial conditions.
     /// Must load y0 = y(0).
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
@@ -222,7 +221,6 @@ class ChApiFMI ChExternalFmu : public ChExternalDynamicsODE {
     virtual void Update(double time, UpdateFlags update_flags) override;
 
     bool m_verbose;
-    bool m_initialized;
     unsigned int m_num_states;
 
     std::unique_ptr<ChFmuWrapper> m_wrapper;

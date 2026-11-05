@@ -484,6 +484,9 @@ std::vector<ChVector3<T>> ChPDLayerSamplerBox(ChVector3<T> center,      ///< Cen
 
 /// Sampler for 3D volumes using a regular (equidistant) grid.
 /// The grid spacing can be different in the 3 global X, Y, and Z directions.
+/// In each direction, the spacing is adjusted (to the nearest number of divisions) so that grid points lie on both
+/// faces of the sampling domain. A domain thinner than half the spacing in some direction (for example, a flat domain)
+/// is sampled with a single layer of points through its center.
 template <typename T = double>
 class ChGridSampler : public ChSampler<T> {
   public:
@@ -503,13 +506,20 @@ class ChGridSampler : public ChSampler<T> {
 
         ChVector3<int> n;    // number of divisions in each direction
         ChVector3<T> sep3D;  // adjusted separation in each direction
+        ChVector3<T> bl;     // first grid point
         for (int i = 0; i < 3; i++) {
             auto d = 2 * this->m_size[i];
             n[i] = std::round(d / this->m_sep3D[i]);
-            sep3D[i] = d / n[i];
+            if (n[i] > 0) {
+                sep3D[i] = d / n[i];
+                bl[i] = this->m_center[i] - this->m_size[i];
+            } else {
+                // domain thinner than half the spacing (possibly flat): single layer at the domain center
+                sep3D[i] = 0;
+                bl[i] = this->m_center[i];
+            }
         }
 
-        ChVector3<T> bl = this->m_center - this->m_size;
         for (int ix = 0; ix <= n[0]; ix++) {
             for (int iy = 0; iy <= n[1]; iy++) {
                 for (int iz = 0; iz <= n[2]; iz++) {

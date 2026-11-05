@@ -156,6 +156,9 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
   public:
     virtual ~ChTrackCustomContact() {}
 
+    /// Return false. A derived class that carries no state between steps, or saves it, can return true.
+    virtual bool SupportsCheckpoint() const override { return false; }
+
     /// Indicate if overriding contact forces with idlers.
     /// If returning true, the derived class must provide an override of ComputeIdlerContactForce.
     virtual bool OverridesIdlerContact() const { return false; }

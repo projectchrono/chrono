@@ -153,6 +153,19 @@ The following example illustrates it.
 ~~~
 
 
+# Choosing the integrator and solver
+
+FEA models are stiff, so they need an implicit time stepper and a direct sparse linear solver (for example Chrono::PardisoMKL, Chrono::MUMPS or ChSolverSparseLU).
+The default time stepper, `EULER_IMPLICIT_LINEARIZED`, performs a single Newton iteration per step. That is enough for many models, but with stiff, strongly nonlinear ones (for example pretensioned cables or beams under large deformation) it can add spurious energy and make the simulation unstable. Use `EULER_IMPLICIT` (or `HHT`) instead, which iterate to convergence:
+
+~~~{.cpp}
+    sys.SetSolver(chrono_types::make_shared<ChSolverPardisoMKL>());
+    sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
+~~~
+
+The Newton iterations converge quickly only if all stiff forces in the model provide their Jacobians. Mesh elements always do; for springs and dampers between bodies, call `IsStiff(true)` on ChLinkTSDA and ChLinkRSDA. See [Time steppers](@ref time_steppers) for the available integrators.
+
+
 # See also
 
 

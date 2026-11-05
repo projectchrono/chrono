@@ -49,6 +49,14 @@ class CH_FSI_API ChFsiSystemTDPF : public ChFsiSystem {
     /// Set input file name with hydro data (HDF5 format).
     void SetHydroFilename(const std::string& filename);
 
+    /// Set the points about which the hydro data coefficients are given (default: body reference frame origins).
+    /// One point must be provided for each body in the hydro data file, in the order of the bodies in that file (the order in which the FSI bodies are added), expressed
+    /// in the body reference frame. Hydro data files do not record the point about which their coefficients were computed,
+    /// so these points must be provided if they are not the origins of the body reference frames. The infinite-frequency
+    /// added mass is shifted from these points to the body reference frame origins at initialization (see
+    /// ChLoadHydrodynamics). This function must be called before Initialize().
+    void SetHydroReferencePoints(const std::vector<ChVector3d>& points);
+
     /// Modify the added mass blocks.
     /// This function can only be called after Initialize().
     void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);

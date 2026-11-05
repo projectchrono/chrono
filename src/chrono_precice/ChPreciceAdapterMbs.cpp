@@ -28,12 +28,21 @@ namespace chrono {
 namespace ch_precice {
 
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, std::shared_ptr<ChSystem> sys, double time_step, bool verbose)
-    : ChPreciceAdapter(precice_config_filename, "model_MBS", verbose), m_sys(sys), m_time_step(time_step), m_enforce_realtime(false), m_has_added_mass(false) {}
+    : ChPreciceAdapter(precice_config_filename, "model_MBS", verbose),
+      m_sys(sys),
+      m_time_step(time_step),
+      m_enforce_realtime(false),
+      m_has_added_mass(false),
+      m_added_mass_from_file(false),
+      m_added_mass_frame(ChLoadHydrodynamics::AddedMassFrame::INERTIAL) {}
 
 #if defined(CHRONO_PARSERS) && defined(CHRONO_HAS_YAML)
 
 ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filename, const std::string& input_filename, bool verbose)
-    : ChPreciceAdapter(precice_config_filename, "", verbose), m_has_added_mass(false) {
+    : ChPreciceAdapter(precice_config_filename, "", verbose),
+      m_has_added_mass(false),
+      m_added_mass_from_file(false),
+      m_added_mass_frame(ChLoadHydrodynamics::AddedMassFrame::INERTIAL) {
     // Create the MBS from the YAML specification file
     parsers::ChParserMbsYAML parser(input_filename, m_verbose);
     m_model_name = parser.GetName();
@@ -134,13 +143,45 @@ void ChPreciceAdapterMbs::LoadMeshesYAML(const YAML::Node& meshes, const parsers
 }
 
 void ChPreciceAdapterMbs::LoadAddedMassYAML(const YAML::Node& added_mass, const parsers::ChParserMbsYAML& parser) {
+    // Optional points about which the added mass coefficients are given (one per coupling body, in the body reference frame)
+    if (added_mass["reference_points"]) {
+        auto points = added_mass["reference_points"];
+        ChAssertAlways(points.IsSequence());
+        ChAssertAlways(points.size() == m_coupling_bodies.size());
+        std::vector<ChVector3d> ref_points;
+        for (size_t ib = 0; ib < points.size(); ib++) {
+            ChAssertAlways(points[ib]["name"]);
+            ChAssertAlways(points[ib]["name"].as<std::string>() == m_coupling_bodies[ib]->body->GetName());
+            ChAssertAlways(points[ib]["location"]);
+            ref_points.push_back(ReadVector(points[ib]["location"]));
+        }
+        SetAddedMassReferencePoints(ref_points);
+    }
+
     if (added_mass["h5_filename"]) {
+        if (added_mass["frame"]) {
+            cerr << "Added mass read from an HDF5 file is always expressed in inertial axes; 'frame' cannot be specified." << endl;
+            throw std::runtime_error("Invalid added mass YAML specification");
+        }
         auto h5_filename = added_mass["h5_filename"].as<std::string>();
         SetAddedMassBlocks(h5_filename);
         return;
     }
 
     if (added_mass["blocks"]) {
+        // Optional axes in which the added mass blocks are expressed
+        if (added_mass["frame"]) {
+            auto frame = ChToUpper(added_mass["frame"].as<std::string>());
+            if (frame == "INERTIAL")
+                SetAddedMassFrame(ChLoadHydrodynamics::AddedMassFrame::INERTIAL);
+            else if (frame == "BODY")
+                SetAddedMassFrame(ChLoadHydrodynamics::AddedMassFrame::BODY);
+            else {
+                cerr << "Unknown added mass frame '" << added_mass["frame"].as<std::string>() << "'. Use INERTIAL or BODY." << endl;
+                throw std::runtime_error("Invalid added mass YAML specification");
+            }
+        }
+
         ChAssertAlways(added_mass["density"]);
         auto rho = added_mass["density"].as<double>();
         auto blocks = added_mass["blocks"];
@@ -253,6 +294,7 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::string& h5_filename) {
         throw std::runtime_error("Unable to open/read HDF5 file");
     }
     m_has_added_mass = true;
+    m_added_mass_from_file = true;
 #else
     cerr << "No HDF5 support enabled. Cannot read added mass information from HDF5 file." << endl;
     throw std::runtime_error("No HDF5 support enabled. Cannot read added mass information from HDF5 file");
@@ -267,6 +309,15 @@ void ChPreciceAdapterMbs::SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>
     }
     m_added_mass_blocks = blocks;
     m_has_added_mass = true;
+    m_added_mass_from_file = false;
+}
+
+void ChPreciceAdapterMbs::SetAddedMassFrame(ChLoadHydrodynamics::AddedMassFrame frame) {
+    m_added_mass_frame = frame;
+}
+
+void ChPreciceAdapterMbs::SetAddedMassReferencePoints(const std::vector<ChVector3d>& points) {
+    m_added_mass_ref_points = points;
 }
 
 // -----------------------------------------------------------------------------
@@ -430,14 +481,33 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
         m_has_added_mass = true;
     }
 
-    // 2. if we have added mass blocks, create the ChHydrodynamicsLoad object
+    // 2. if we have added mass blocks, create the ChHydrodynamicsLoad object.
+    //    ChLoadHydrodynamics expects coefficients about the origins of the body reference frames. Coefficients given
+    //    about other points are shifted, at the initial body orientations; the same shifts are applied to the added
+    //    mass increments. Coefficients from a hydrodynamics file are always expressed in inertial axes.
     if (m_has_added_mass) {
         ChAssertAlways(m_added_mass_blocks.size() == num_bodies);
-        ChBodyAddedMassBlocks body_blocks;
-        for (size_t i = 0; i < num_bodies; i++) {
-            body_blocks.push_back({m_coupling_bodies[i]->body, m_added_mass_blocks[i]});
+        if (!m_added_mass_ref_points.empty() && m_added_mass_ref_points.size() != num_bodies) {
+            cerr << "\nERROR: " << m_added_mass_ref_points.size() << " added mass reference points specified for " << num_bodies << " coupling bodies." << endl;
+            throw std::runtime_error("Incorrect number of added mass reference points");
         }
+        if (m_added_mass_from_file && m_added_mass_frame != ChLoadHydrodynamics::AddedMassFrame::INERTIAL) {
+            cerr << "\nERROR: Added mass read from a hydrodynamics file is expressed in inertial axes." << endl;
+            throw std::runtime_error("Invalid added mass frame");
+        }
+        m_added_mass_shifts.assign(num_bodies, ChMatrix66d::Identity());
+        if (!m_added_mass_ref_points.empty()) {
+            for (size_t i = 0; i < num_bodies; i++)
+                m_added_mass_shifts[i] = ChLoadHydrodynamics::ComputeShiftTransformation(*m_coupling_bodies[i]->body, m_added_mass_ref_points[i], m_added_mass_frame);
+        }
+        auto blocks = m_added_mass_blocks;
+        ChLoadHydrodynamics::ShiftBlocks(blocks, m_added_mass_shifts);
+
+        ChBodyAddedMassBlocks body_blocks;
+        for (size_t i = 0; i < num_bodies; i++)
+            body_blocks.push_back({m_coupling_bodies[i]->body, blocks[i]});
         m_hydro_load = chrono_types::make_shared<ChLoadHydrodynamics>(body_blocks);
+        m_hydro_load->SetAddedMassFrame(m_added_mass_frame);
         m_hydro_load->SetVerbose(m_verbose);
         m_sys->Add(m_hydro_load);
     }
@@ -1037,9 +1107,12 @@ void ChPreciceAdapterMbs::OnReadDataAM(const std::vector<ChMatrix66d>& blocks) {
     // send added mass. Add them to the baseline self blocks, which are never modified, so that the result does
     // not depend on previous updates (e.g., when a time window is repeated in an implicit coupling scheme).
     // The body-to-body coupling (off-diagonal) blocks are not updated and keep their baseline values.
+    // The increments are given about the same points as the baseline, so the sum is shifted with the same transformation.
     std::vector<ChMatrix66d> self_blocks(num_bodies);
-    for (size_t i = 0; i < num_bodies; i++)
-        self_blocks[i] = m_added_mass_blocks[i].block(0, 6 * i, 6, 6) + blocks[i];
+    for (size_t i = 0; i < num_bodies; i++) {
+        ChMatrix66d A_ii = m_added_mass_blocks[i].block(0, 6 * i, 6, 6) + blocks[i];
+        self_blocks[i] = m_added_mass_shifts[i].transpose() * A_ii * m_added_mass_shifts[i];
+    }
 
     m_hydro_load->UpdateBodyAddedMassBlocks(self_blocks);
 }

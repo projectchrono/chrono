@@ -290,6 +290,12 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
 
     /// Initial element setup.
     virtual void SetupInitial(ChSystem* system) override;
+
+    /// Save the plasticity data (hardening parameters and plastic strains at the integration points).
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the plasticity data.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
     /// Set M as the global mass matrix.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override;
     /// Set H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also

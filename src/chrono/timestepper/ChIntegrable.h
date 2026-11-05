@@ -410,6 +410,11 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
         throw std::runtime_error("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
     }
 
+    /// Evaluate the constraint Jacobians Cq at the current state.
+    /// LoadResidual_CqL uses the Jacobians from the last evaluation; an integrator calls this function when it needs
+    /// Cq at the current state (and not at the last iterate of the linear solver).
+    virtual void LoadConstraintJacobians() {}
+
     /// Assuming   M*a = F(x,v,t) + Cq'*L
     ///         C(x,t) = 0
     /// Increment a vector Qc (usually the residual in a Newton Raphson iteration

@@ -74,6 +74,9 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
     /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
+    /// Return true if all loads in this container support checkpoints.
+    virtual bool SupportsCheckpoint() const override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

@@ -46,14 +46,14 @@ bool ChSocketCommunication::WaitConnection(int port) {
     myServer = new ChSocketTCP(port);
 
     // bind socket to server
-    myServer->bindSocket();
+    myServer->BindSocket();
 
     // wait for a client to connect (this might put the program in
     // a long waiting state... a timeout can be useful then)
-    myServer->listenToClient(1);
+    myServer->ListenToClient(1);
 
     std::string clientHostName;
-    myClient = myServer->acceptClient(clientHostName);  // pick up the call!
+    myClient = myServer->AcceptClient(clientHostName);  // pick up the call!
 
     if (!myClient)
         throw std::runtime_error("Server failed in getting the client socket");

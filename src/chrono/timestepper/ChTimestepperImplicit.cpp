@@ -13,8 +13,10 @@
 // =============================================================================
 
 #include <cmath>
+#include <sstream>
 
 #include "chrono/timestepper/ChTimestepperImplicit.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 using std::cout;
 using std::cerr;
@@ -36,6 +38,11 @@ ChTimestepperImplicit::ChTimestepperImplicit()
       abstolS(1e-10),
       abstolL(1e-10),
       convergence_rate(0),
+      Qc_scale(1),
+      R_nrm(0),
+      C_nrm(0),
+      Ds_nrm(0),
+      Dl_nrm(0),
       accept_terminated(true),
       step_control(true),
       maxiters_success(3),
@@ -64,11 +71,35 @@ void ChTimestepperImplicit::SetJacobianUpdateMethod(JacobianUpdate method) {
     jacobian_update_method = method;
 }
 
+void ChTimestepperImplicit::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChTimestepper::SaveInternalState(writer);
+
+    writer.Write(h);
+    writer.Write(num_successful_steps);
+}
+
+void ChTimestepperImplicit::LoadInternalState(ChCheckpointReader& reader) {
+    ChTimestepper::LoadInternalState(reader);
+
+    reader.Read(h);
+    reader.Read(num_successful_steps);
+}
+
 void ChTimestepperImplicit::Advance(double dt) {
     // Initialize step counters
     num_step_iters = 0;
     num_step_setups = 0;
     num_step_solves = 0;
+
+    // If the integrable object was modified, force a call to the solver's Setup, including the analyze phase.
+    // Otherwise, keep any pending request for an analyze phase (e.g., at the first step). Integrators clear the request
+    // after their first call to the solver's Setup.
+    if (GetIntegrable()->StateModified()) {
+        call_setup = true;
+        call_analyze = true;
+        if (verbose)
+            cout << "  Force full Setup" << endl;
+    }
 
     // Call the integrator-specific advance method
     try {
@@ -100,17 +131,7 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
     // On entry, call_setup is true only:
     // - at the first iteration on the first step
     // - after a call to SetJacobianUpdateMethod(JacobianUpdate::NEVER)
-
-    // If the integrable object was modified, force a call to setup (including the analyze phase).
-    // Otherwise, a potential call to setup need not include the analyze phase.
-    if (GetIntegrable()->StateModified()) {
-        call_setup = true;
-        call_analyze = true;
-        if (verbose)
-            cout << "  Force full Setup" << endl;
-    } else {
-        call_analyze = false;
-    }
+    // - if the integrable object was modified (see Advance)
 
     // Let the concrete integrator initialize step
     InitializeStep();
@@ -161,9 +182,12 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             // Solve linear system and increment state
             Increment();
 
-            // If the Jacobian was updated at this iteration, mark it as up-to-date
-            if (call_setup)
+            // If the Jacobian was updated at this iteration, mark it as up-to-date.
+            // The sparsity pattern does not change during a step, so further Setup calls need no analyze phase.
+            if (call_setup) {
                 jacobian_is_current = true;
+                call_analyze = false;
+            }
 
             // Increment counters
             num_step_iters++;
@@ -232,13 +256,17 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             h *= step_decrease_factor;
 
             // re-attempt step with smaller step-size
-            if (verbose)
+            if (verbose) {
+                cout << "  Last Newton iteration: " << GetConvergenceReport() << endl;
                 cout << "  Reduce stepsize to " << h << endl;
+            }
 
             // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
+                std::string report = GetConvergenceReport();
                 cerr << "  [ERROR] Integrator at minimum stepsize. Exiting." << endl;
-                throw std::runtime_error("Reached minimum allowable step size.");
+                cerr << "  Last Newton iteration: " << report << endl;
+                throw std::runtime_error("Reached minimum allowable step size (" + report + ").");
             }
 
             call_setup = true;
@@ -248,17 +276,21 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             //        Jacobian is current or we are not allowed to update it, and we do not control stepsize
 
             if (!accept_terminated) {
+                std::string report = GetConvergenceReport();
                 cerr << "  [ERROR] Newton did not converge with up-to-date or non-modifiable Jacobian. Exiting."
                      << endl;
-                throw std::runtime_error("Newton did not converge with up-to-date Jacobian.");
+                cerr << "  Last Newton iteration: " << report << endl;
+                throw std::runtime_error("Newton did not converge with up-to-date Jacobian (" + report + ").");
             }
 
             // reset the count of successive successful steps
             num_successful_steps = 0;
 
             // accept solution as-is and complete step
-            if (verbose)
+            if (verbose) {
                 cout << "  Newton terminated; advance T = " << T + h << endl;
+                cout << "  Last Newton iteration: " << GetConvergenceReport() << endl;
+            }
 
             num_terminated++;
 
@@ -291,15 +323,15 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
 bool ChTimestepperImplicit::CheckConvergence(int it) {
     bool pass = false;
 
-    // Declare convergence when either the residual is below the absolute tolerance or
-    // the WRMS update norm is less than 1 (relative + absolute tolerance test)
-    //    |R|_2 < atol
-    // or |D|_WRMS < 1
-    // Both states and Lagrange multipliers must converge.
-    double R_nrm = R.norm();
-    double Qc_nrm = Qc.norm();
-    double Ds_nrm = Ds.wrmsNorm(ewtS);
-    double Dl_nrm = Dl.wrmsNorm(ewtL);
+    // Declare convergence when either
+    // - the dynamics residual and the position-level constraint violation are below the state absolute tolerance:
+    //      |R|_2 < abstolS  and  |C|_2 < abstolS
+    // - or the WRMS norms of the state and multiplier updates are less than 1 (relative + absolute tolerance test):
+    //      |Ds|_WRMS < 1  and  |Dl|_WRMS < 1
+    R_nrm = R.norm();
+    C_nrm = Qc_scale * Qc.norm();
+    Ds_nrm = Ds.wrmsNorm(ewtS);
+    Dl_nrm = Dl.wrmsNorm(ewtL);
 
     // Estimate convergence rate
     Ds_nrm_hist[it % 3] = Ds.norm();
@@ -314,16 +346,44 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
 
     if (verbose) {
         cout << "  Newton iteration: " << it;
-        cout << "  |R| = " << R_nrm << "  |Qc| = " << Qc_nrm << "  |Ds| = " << Ds_nrm << "  |Dl| = " << Dl_nrm;
+        cout << "  |R| = " << R_nrm << "  |C| = " << C_nrm << "  |Ds| = " << Ds_nrm << "  |Dl| = " << Dl_nrm;
         if (it >= 2)
             cout << "  Conv. rate = " << convergence_rate;
         cout << endl;
     }
 
-    if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Ds_nrm < 1 && Dl_nrm < 1))
+    if ((R_nrm < abstolS && C_nrm < abstolS) || (Ds_nrm < 1 && Dl_nrm < 1))
         pass = true;
 
     return pass;
+}
+
+std::string ChTimestepperImplicit::GetResidualTestReport() const {
+    std::ostringstream report;
+    report << "residual test: |R| = " << R_nrm << (R_nrm < abstolS ? " < " : " >= ") << abstolS;
+    report << ", |C| = " << C_nrm << (C_nrm < abstolS ? " < " : " >= ") << abstolS;
+    return report.str();
+}
+
+std::string ChTimestepperImplicit::GetConvergenceReport() const {
+    std::ostringstream report;
+    report << GetResidualTestReport();
+    report << "; update test: |Ds|_WRMS = " << Ds_nrm << (Ds_nrm < 1 ? " < 1" : " >= 1");
+    report << ", |Dl|_WRMS = " << Dl_nrm << (Dl_nrm < 1 ? " < 1" : " >= 1");
+    return report.str();
+}
+
+void ChTimestepperImplicit::ProcessTerminatedSolve(const std::string& report) {
+    if (!accept_terminated) {
+        cerr << "  [ERROR] Newton did not converge. Exiting." << endl;
+        cerr << "  Last Newton iteration: " << report << endl;
+        throw std::runtime_error("Newton did not converge (" + report + ").");
+    }
+
+    num_terminated++;
+
+    if (verbose)
+        cout << "  Newton terminated; last Newton iteration: " << report << endl;
 }
 
 // Calculate the error weight vector corresponding to the specified solution vector x,
@@ -384,6 +444,7 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Ds     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
     // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt  ]
     //
+    bool converged = false;
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; iteration++) {
         integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
@@ -393,14 +454,19 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
         integrable->LoadResidual_Mv(R, (V - Vnew), 1.0);  // R += M*(v_old - v_new)
         integrable->LoadResidual_CqL(R, L, dt);           // R += dt*Cq'*l
         integrable->LoadConstraint_C(Qc, 1.0 / dt, 1.0, Qc_do_clamp,
-                                     Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection), for vel constraints Qc= C 
+                                     Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection), for vel constraints Qc= C
+
+        // Convergence test on the dynamics residual and the position-level constraint violation C = dt*Qc
+        R_nrm = R.lpNorm<Eigen::Infinity>();
+        C_nrm = dt * Qc.lpNorm<Eigen::Infinity>();
 
         if (verbose)
-            cout << " Euler iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                 << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
+            cout << " Euler iteration=" << iteration << "  |R|=" << R_nrm << "  |C|=" << C_nrm << endl;
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
+        if (R_nrm < abstolS && C_nrm < abstolS) {
+            converged = true;
             break;
+        }
 
         integrable->StateSolveCorrection(       //
             Ds, Dl, R, Qc,                      //
@@ -411,8 +477,9 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
             false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
             UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
             true,                               // always call the solver's Setup
-            true                                // always call the solver's Setup analyze phase
+            call_analyze                        // if true, call the solver's Setup analyze phase
         );
+        call_analyze = false;
 
         num_step_iters++;
         num_step_setups++;
@@ -425,6 +492,9 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
 
         Xnew = X + Vnew * dt;
     }
+
+    if (!converged)
+        ProcessTerminatedSolve(GetResidualTestReport());
 
     integrable->StateScatterAcceleration(
         (Vnew - V) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
@@ -507,8 +577,13 @@ void ChTimestepperEulerImplicitLinearized::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+    call_analyze = false;
+
+    num_step_iters++;
+    num_step_setups++;
+    num_step_solves++;
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -583,8 +658,13 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+    call_analyze = false;
+
+    num_step_iters++;
+    num_step_setups++;
+    num_step_solves++;
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -620,8 +700,11 @@ void ChTimestepperEulerImplicitProjected::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+
+    num_step_setups++;
+    num_step_solves++;
 
     X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
 
@@ -692,6 +775,7 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
     integrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
     // integrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old   assume L_old = 0
 
+    bool converged = false;
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; iteration++) {
         integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
@@ -702,12 +786,18 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
         integrable->LoadResidual_CqL(R, L, dt * 0.5);  // + dt/2*Cq*l_new
         integrable->LoadConstraint_C(Qc, 1.0 / dt, 1.0, Qc_do_clamp,
                                      Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
-        if (verbose)
-            cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                 << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
+        // Convergence test on the dynamics residual and the position-level constraint violation C = dt*Qc
+        R_nrm = R.lpNorm<Eigen::Infinity>();
+        C_nrm = dt * Qc.lpNorm<Eigen::Infinity>();
+
+        if (verbose)
+            cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R_nrm << "  |C|=" << C_nrm << endl;
+
+        if (R_nrm < abstolS && C_nrm < abstolS) {
+            converged = true;
             break;
+        }
 
         integrable->StateSolveCorrection(       //
             Ds, Dl, R, Qc,                      //
@@ -718,8 +808,9 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
             false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
             UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
             true,                               // always call the solver's Setup
-            true                                // always call the solver's Setup analyze phase
+            call_analyze                        // if true, call the solver's Setup analyze phase
         );
+        call_analyze = false;
 
         num_step_iters++;
         num_step_setups++;
@@ -732,6 +823,9 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
 
         Xnew = X + ((Vnew + V) * (dt * 0.5));  // Xnew = Xold + h/2(Vnew+Vold)
     }
+
+    if (!converged)
+        ProcessTerminatedSolve(GetResidualTestReport());
 
     integrable->StateScatterAcceleration(
         (Vnew - V) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
@@ -819,8 +913,9 @@ void ChTimestepperTrapezoidalLinearized::OnAdvance(double dt) {
         false,                              // do not scatter update to Xnew Vnew T+dt before computing correction
         UpdateFlags::UPDATE_ALL_NO_VISUAL,  // no need for full update, since no scatter
         true,                               // always call the solver's Setup
-        true                                // always call the solver's Setup analyze phase
+        call_analyze                        // if true, call the solver's Setup analyze phase
     );
+    call_analyze = false;
 
     num_step_iters = 1;
     num_step_setups = 1;
@@ -915,8 +1010,8 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
     // [ Cq                                      0   ] [ -Dl  ] = [ -1/(beta*dt^2)*C              ]
     //
     call_setup = true;
-    call_analyze = true;
 
+    bool converged = false;
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; ++iteration) {
         integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
@@ -933,15 +1028,19 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
             Qc_do_clamp,
             Qc_clamping);  //  Qc = 1/(beta*dt^2)*C  (sign will be flipped later in StateSolveCorrection)
 
-        if (verbose)
-            cout << " Newmark iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                 << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
+        // Convergence test on the dynamics residual and the position-level constraint violation C = beta*dt^2*Qc
+        R_nrm = R.lpNorm<Eigen::Infinity>();
+        C_nrm = beta * dt * dt * Qc.lpNorm<Eigen::Infinity>();
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL)) {
+        if (verbose)
+            cout << " Newmark iteration=" << iteration << "  |R|=" << R_nrm << "  |C|=" << C_nrm << endl;
+
+        if (R_nrm < abstolS && C_nrm < abstolS) {
             if (verbose) {
                 cout << " Newmark NR converged (" << iteration << ")."
                      << "  T = " << T + dt << "  h = " << dt << endl;
             }
+            converged = true;
             break;
         }
 
@@ -962,8 +1061,10 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
 
         num_step_iters++;
         num_step_solves++;
-        if (call_setup)
+        if (call_setup) {
             num_step_setups++;
+            call_analyze = false;
+        }
 
         // If using modified Newton, do not call Setup again
         call_setup = (jacobian_update_method == JacobianUpdate::EVERY_ITERATION);
@@ -975,6 +1076,9 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
 
         Vnew = V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
     }
+
+    if (!converged)
+        ProcessTerminatedSolve(GetResidualTestReport());
 
     X = Xnew;
     V = Vnew;

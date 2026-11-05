@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChLinkLockGear.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 
@@ -351,6 +352,53 @@ void ChLinkLockGear::Update(double time, UpdateFlags update_flags) {
 
     // Inherit to parent class
     ChLinkLock::Update(time, update_flags);
+}
+
+// The total rotations are accumulated from their values at the previous update, so they cannot be recovered from the
+// body states alone. The phase is computed from them at the first update if it is set automatically. The markers are
+// moved at updates of visual assets, which happen at the end of a step before the reactions of that step are known, so
+// their orientation depends on the reaction force of the previous step.
+void ChLinkLockGear::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChLinkLock::SaveInternalState(writer);
+
+    writer.Write(a1);
+    writer.Write(a2);
+    writer.Write(phase);
+    writer.Write(phase_setup_needed);
+    writer.Write(r1);
+    writer.Write(r2);
+    writer.Write(contact_pt);
+    writer.Write(local_shaft1.GetPos());
+    writer.Write(local_shaft1.GetRot());
+    writer.Write(react_force);
+    writer.Write(marker1->GetPos());
+    writer.Write(marker1->GetRot());
+    writer.Write(marker2->GetPos());
+    writer.Write(marker2->GetRot());
+}
+
+void ChLinkLockGear::LoadInternalState(ChCheckpointReader& reader) {
+    ChLinkLock::LoadInternalState(reader);
+
+    ChVector3d pos1, pos2, shaft_pos;
+    ChQuaterniond rot1, rot2, shaft_rot;
+    reader.Read(a1);
+    reader.Read(a2);
+    reader.Read(phase);
+    reader.Read(phase_setup_needed);
+    reader.Read(r1);
+    reader.Read(r2);
+    reader.Read(contact_pt);
+    reader.Read(shaft_pos);
+    reader.Read(shaft_rot);
+    reader.Read(react_force);
+    reader.Read(pos1);
+    reader.Read(rot1);
+    reader.Read(pos2);
+    reader.Read(rot2);
+    local_shaft1 = ChFrame<>(shaft_pos, shaft_rot);
+    marker1->ImposeRelativeTransform(ChFramed(pos1, rot1));
+    marker2->ImposeRelativeTransform(ChFramed(pos2, rot2));
 }
 
 void ChLinkLockGear::ArchiveOut(ChArchiveOut& archive_out) {

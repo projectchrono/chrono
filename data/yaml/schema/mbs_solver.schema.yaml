@@ -51,7 +51,7 @@ integrator:
           minimum: 0
       rel_tolerance:
           type: number
-          description: Relative tolerance (HHT and implicit Euler)
+          description: Relative tolerance (HHT)
           minimum: 0
           default: 1e-4
       abs_tolerance_states:
@@ -61,7 +61,7 @@ integrator:
           default: 1e-4
       abs_tolerance_multipliers:
           type: number
-          description: Absolute tolerance for Lagrange multipliers (HHT and implicit Euler)
+          description: Absolute tolerance for Lagrange multipliers (HHT)
           minimum: 0
           default: 1e2
       max_iterations:

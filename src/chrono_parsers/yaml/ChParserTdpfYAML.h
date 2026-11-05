@@ -158,6 +158,7 @@ class ChApiParsers ChParserTdpfYAML : public ChParserCfdYAML {
 
     OutputData m_output_data;  ///< output data
     std::string m_h5_file;     ///< hydrodynamics input file (HDF5 format)
+    std::vector<ChVector3d> m_h5_ref_points;  ///< points of the hydrodynamic coefficients (body reference frames)
     ChVector3d m_gravity;      ///< gravitational acceleration
     WaveType m_wave_type;      ///< wave type
 #ifdef CHRONO_VSG

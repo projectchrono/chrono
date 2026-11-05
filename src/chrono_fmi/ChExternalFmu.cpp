@@ -138,7 +138,7 @@ class ChFmu3Wrapper : public ChFmuWrapper {
 // =============================================================================
 // Implementation of a ChExternalDynamicsODE component that wraps an FMU
 
-ChExternalFmu::ChExternalFmu() : m_verbose(false), m_initialized(false), m_num_states(0) {}
+ChExternalFmu::ChExternalFmu() : m_verbose(false), m_num_states(0) {}
 
 void ChExternalFmu::Load(const std::string& instance_name,  // name of the FMU instance
                          const std::string& fmu_filename,   // name of the FMU file
@@ -249,7 +249,7 @@ void ChExternalFmu::SetFrameMovingVariable(const std::string& name, const ChFram
 }
 
 void ChExternalFmu::SetInitialCondition(const std::string& name, double value) {
-    if (m_initialized) {
+    if (IsInitialized()) {
         std::cerr << "SetInitialCondition cannot be called after Initialize()";
         throw std::runtime_error("SetInitialCondition cannot be called after Initialize()");
     }
@@ -266,7 +266,7 @@ void ChExternalFmu::SetInitialCondition(const std::string& name, double value) {
 }
 
 void ChExternalFmu::SetRealParameterValue(const std::string& name, double value) {
-    if (m_initialized) {
+    if (IsInitialized()) {
         std::cerr << "SetRealParameterValue cannot be called after Initialize()";
         throw std::runtime_error("SetRealParameterValue cannot be called after Initialize()");
     }
@@ -283,7 +283,7 @@ void ChExternalFmu::SetRealParameterValue(const std::string& name, double value)
 }
 
 void ChExternalFmu::SetIntParameterValue(const std::string& name, int value) {
-    if (m_initialized) {
+    if (IsInitialized()) {
         std::cerr << "SetIntParameterValue cannot be called after Initialize()";
         throw std::runtime_error("SetIntParameterValue cannot be called after Initialize()");
     }
@@ -300,7 +300,7 @@ void ChExternalFmu::SetIntParameterValue(const std::string& name, int value) {
 }
 
 void ChExternalFmu::SetStringParameterValue(const std::string& name, const std::string& value) {
-    if (m_initialized) {
+    if (IsInitialized()) {
         std::cerr << "SetStringParameterValue cannot be called after Initialize()";
         throw std::runtime_error("SetStringParameterValue cannot be called after Initialize()");
     }
@@ -317,7 +317,7 @@ void ChExternalFmu::SetStringParameterValue(const std::string& name, const std::
 }
 
 void ChExternalFmu::SetRealInputFunction(const std::string& name, std::function<double(double)> function) {
-    if (m_initialized) {
+    if (IsInitialized()) {
         std::cerr << "SetRealInputFunction cannot be called after Initialize()";
         throw std::runtime_error("SetRealInputFunction cannot be called after Initialize()");
     }
@@ -334,7 +334,7 @@ void ChExternalFmu::SetRealInputFunction(const std::string& name, std::function<
 }
 
 void ChExternalFmu::SetRealInputChFunction(const std::string& name, std::shared_ptr<ChFunction> function) {
-    if (m_initialized) {
+    if (IsInitialized()) {
         std::cerr << "SetRealInputChFunction cannot be called after Initialize()";
         throw std::runtime_error("SetRealInputChFunction cannot be called after Initialize()");
     }
@@ -350,14 +350,12 @@ void ChExternalFmu::SetRealInputChFunction(const std::string& name, std::shared_
     m_input_chfunctions.insert({name, function});
 }
 
-void ChExternalFmu::Initialize() {
+void ChExternalFmu::SetupInitial() {
     // Let the wrapper initialize its underlying FMU
     m_wrapper->Initialize(m_initial_conditions, m_parameters_real, m_parameters_int, m_parameters_string);
 
     // Initialize the base class
-    ChExternalDynamicsODE::Initialize();
-
-    m_initialized = true;
+    ChExternalDynamicsODE::SetupInitial();
 }
 
 // -----------------

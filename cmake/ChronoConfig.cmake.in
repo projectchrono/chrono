@@ -124,6 +124,19 @@ function(_chrono_default_path VAR VALUE TYPE DOC)
   set(${VAR} "${paths}" CACHE ${TYPE} "${DOC}")
 endfunction()
 
+# Call find_package with all the imported targets it creates promoted to GLOBAL scope.
+# A package found here, in one directory of the caller's project, is then complete in all its other directories as well.
+# Otherwise, a target that the package itself makes GLOBAL (e.g., MKL::MKL) is visible in a sibling directory while the
+# targets it links to are not, and generation fails there.
+# CMAKE_FIND_PACKAGE_TARGETS_GLOBAL requires CMake 3.24 or newer; older versions ignore it.
+macro(_chrono_find_package_global)
+  set(_chrono_targets_global ${CMAKE_FIND_PACKAGE_TARGETS_GLOBAL})
+  set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL ON)
+  find_package(${ARGN})
+  set(CMAKE_FIND_PACKAGE_TARGETS_GLOBAL ${_chrono_targets_global})
+  unset(_chrono_targets_global)
+endmacro()
+
 # Handle MSVC Runtime Library
 set(CHRONO_MSVC_RUNTIME_LIBRARY @CH_MSVC_RUNTIME_LIBRARY@)
 
@@ -516,7 +529,53 @@ endif()
 # Check MPI if Chrono was built with MPI support
 #-------------------------------------------------------------------------------
 
+# Default the MPI settings to those found when Chrono was built.
+# FindMPI then uses them as given, instead of searching for an MPI installation, which it does not always find on its
+# own (e.g., Intel MPI on Windows, unless I_MPI_ROOT is set). This also links the caller to the MPI used by Chrono.
+# As with _chrono_default_path, nothing is set if the caller already selected an MPI (through MPI_CXX_LIB_NAMES or
+# MPI_CXX_COMPILER) or if any of the MPI headers or libraries used to build Chrono does not exist on this machine.
+# The settings are applied all together or not at all, so that FindMPI never mixes them with the results of a search.
+# Settings the caller made for individual entries take precedence (existing cache entries are not overwritten).
+function(_chrono_default_mpi_cxx)
+  if(DEFINED MPI_CXX_LIB_NAMES OR DEFINED MPI_CXX_COMPILER)
+    return()
+  endif()
+
+  set(lib_names "@MPI_CXX_LIB_NAMES@")
+  set(libraries "@MPI_CXX_LIBRARIES@")   # FindMPI lists the libraries in the order of their names
+  set(header_dir "@MPI_CXX_HEADER_DIR@")
+  set(compiler_include_dirs "@MPI_CXX_COMPILER_INCLUDE_DIRS@")
+  set(additional_include_dirs "@MPI_CXX_ADDITIONAL_INCLUDE_DIRS@")
+
+  # Without library names and compiler include directories, FindMPI would search regardless
+  list(LENGTH lib_names num_lib_names)
+  list(LENGTH libraries num_libraries)
+  if(num_lib_names EQUAL 0 OR NOT num_lib_names EQUAL num_libraries OR "${compiler_include_dirs}" STREQUAL "")
+    return()
+  endif()
+
+  foreach(path "${header_dir}" ${compiler_include_dirs} ${additional_include_dirs} ${libraries})
+    if(NOT EXISTS "${path}")
+      return()
+    endif()
+  endforeach()
+
+  set(MPI_CXX_LIB_NAMES "${lib_names}" CACHE STRING "MPI CXX libraries to link against")
+  foreach(name library IN ZIP_LISTS lib_names libraries)
+    set(MPI_${name}_LIBRARY "${library}" CACHE FILEPATH "Location of the ${name} library for MPI")
+  endforeach()
+  set(MPI_CXX_HEADER_DIR "${header_dir}" CACHE PATH "MPI CXX header directory")
+  set(MPI_CXX_COMPILER_INCLUDE_DIRS "${compiler_include_dirs}" CACHE STRING "MPI CXX compiler wrapper include directories")
+  set(MPI_CXX_ADDITIONAL_INCLUDE_DIRS "${additional_include_dirs}" CACHE STRING "MPI CXX additional include directories")
+
+  # FindMPI obtains these from the MPI compiler wrapper, which it does not query when given the settings above
+  set(MPI_CXX_COMPILE_OPTIONS "@MPI_CXX_COMPILE_OPTIONS@" CACHE STRING "MPI CXX compilation options")
+  set(MPI_CXX_COMPILE_DEFINITIONS "@MPI_CXX_COMPILE_DEFINITIONS@" CACHE STRING "MPI CXX compilation definitions")
+  set(MPI_CXX_LINK_FLAGS "@MPI_CXX_LINK_FLAGS@" CACHE STRING "MPI CXX linker flags")
+endfunction()
+
 if(CHRONO_MPI_CXX_AVAILABLE AND CHRONO_CXX_FOUND)
+  _chrono_default_mpi_cxx()
   find_package(MPI COMPONENTS CXX QUIET)
   if(MPI_CXX_FOUND)
     if(NOT Chrono_FIND_QUIETLY)
@@ -671,6 +730,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "Chrono_multicore")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "Chrono_multicore.dll")
+      endif()
+
+      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_multicore_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_multicore_vsg.dll")
+        endif()
       endif()
     endif()
 
@@ -870,6 +936,13 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "Chrono_fsitdpf")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "Chrono_fsitdpf.dll")
+      endif()
+
+      if(Chrono_VSG_REQUESTED AND Chrono_VSG_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "Chrono_fsitdpf_vsg")
+        if (NOT CHRONO_STATIC)
+          list(APPEND CHRONO_DLL_NAMES "Chrono_fsitdpf_vsg.dll")
+        endif()
       endif()
 
     endif()
@@ -1081,8 +1154,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
       set(MKL_MPI "@MKL_MPI@")
     endif()
 
+    # MKLConfig.cmake makes MKL::MKL GLOBAL, but not the MKL library targets it links to
     if(NOT TARGET MKL::MKL)
-      find_package(MKL CONFIG QUIET HINTS "${MKL_ROOT}")
+      _chrono_find_package_global(MKL CONFIG QUIET HINTS "${MKL_ROOT}")
     elseif(NOT Chrono_FIND_QUIETLY)
       message(STATUS "MKL::MKL already available.")
     endif()
@@ -1098,8 +1172,9 @@ foreach(COMPONENT_UPPER ${Chrono_COMPONENTS})
 
   elseif(${COMPONENT_UPPER} STREQUAL "MUMPS")
 
+    # MUMPS may find MKL itself, as its LAPACK; see PARDISOMKL above
     _chrono_default_path(MUMPS_DIR "@MUMPS_DIR@" PATH "Path to MUMPS installation.")
-    find_package(MUMPS QUIET)
+    _chrono_find_package_global(MUMPS QUIET)
 
     if(NOT MUMPS_FOUND)
       message("WARNING Could not find MUMPS")

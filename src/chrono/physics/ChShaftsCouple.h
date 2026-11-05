@@ -69,6 +69,9 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Get the actual relative acceleration (angle or displacement) of shaft 1 with respect to 2.
     double GetRelativePosDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
 
+    /// Return true: the internal state of this shaft couple is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         // version number

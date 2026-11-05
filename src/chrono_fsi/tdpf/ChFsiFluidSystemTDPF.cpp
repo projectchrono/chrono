@@ -59,6 +59,10 @@ void ChFsiFluidSystemTDPF::SetHydroFilename(const std::string& filename) {
     m_hydro_filename = filename;
 }
 
+void ChFsiFluidSystemTDPF::SetHydroReferencePoints(const std::vector<ChVector3d>& points) {
+    m_hydro_ref_points = points;
+}
+
 void ChFsiFluidSystemTDPF::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_impl->m_g = gravity.eigen();
 }

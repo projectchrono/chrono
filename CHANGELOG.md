@@ -5,6 +5,11 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Newton convergence test of implicit integrators](#changed-newton-convergence-test-of-implicit-integrators)
+  - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
+  - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
+  - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
+  - [\[Changed\] Initialization of physics items](#changed-initialization-of-physics-items)
   - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
   - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
@@ -147,6 +152,150 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Changed] Newton convergence test of implicit integrators
+
+The residual part of the Newton convergence test in the HHT, Newmark, Euler implicit, and trapezoidal integrators now checks the constraint violation at the position level, against the state absolute tolerance. Previously, it compared the scaled constraint residual (C/(beta*h^2) for HHT and Newmark, C/h for Euler implicit and trapezoidal) against the multiplier absolute tolerance, so the effective limit on the constraint violation depended on the step size and became unreachable (below round-off) for small steps or for models far from the origin.
+
+- The residual test is now `|R| < abstolS` and `|C| < abstolS`, with `R` the dynamics residual and `C` the position-level constraint violation. The HHT update test (`|Ds|_WRMS < 1` and `|Dl|_WRMS < 1`) is unchanged.
+- The multiplier absolute tolerance (second argument of `SetAbsTolerances`) now applies only to the Lagrange multiplier update in HHT. The Newmark, Euler implicit, and trapezoidal integrators, which use only the residual test, no longer use it.
+- The Newmark, Euler implicit, and trapezoidal integrators now count Newton solves that do not converge (`GetNumTerminated`) and honor `AcceptTerminatedStep(false)`, by throwing an exception.
+- When Newton fails to converge, the exception message (or the verbose output, if the terminated step is accepted) reports the norms and tolerances at the last iteration.
+- The quantities and tolerances used in the convergence tests are documented in each integrator class.
+
+For HHT and Newmark at typical step sizes, the residual test is now less strict on the constraint violation than before (for example, with `abstolS = 1e-6` and `h = 2e-4`, it previously required a violation below about 1e-14). Simulations that relied on the residual test to keep constraint drift very small may need a smaller `abstolS`. For Euler implicit and trapezoidal, the limit on the constraint violation changes from `abstolL*h` to `abstolS`.
+
+## [Changed] Frame convention and reference point for hydrodynamic added mass
+
+`ChLoadHydrodynamics` now applies added mass coefficients according to an explicit frame convention and
+reference point. Previously, the coefficients were applied unchanged to Chrono's velocity coordinates (the
+COM velocity in absolute axes and the angular velocity in body axes), which is consistent with
+coefficients from a BEM code (given in inertial axes) only while a body stays close to its reference
+orientation.
+
+- `ChLoadHydrodynamics::SetAddedMassFrame` selects the axes in which the coefficients are expressed:
+  `INERTIAL` (default, the convention of BEM data) or `BODY`. The coefficients are transformed to Chrono's
+  velocity coordinates using the current body orientations, so the added mass is constant in the selected
+  axes.
+- The coefficients refer to the velocity of the origin of the body reference frame: the COM for a `ChBody`,
+  the auxiliary reference frame for a `ChBodyAuxRef`. Coefficients about another point must be shifted to
+  that origin; `ChLoadHydrodynamics::ComputeShiftTransformation` and `ChLoadHydrodynamics::ShiftBlocks`
+  perform this shift.
+- Hydrodynamic data files do not record the point about which their coefficients were computed (the BEM
+  rotation center, which need not be the center of gravity stored in the file). If it is not the origin of
+  the body reference frame, provide it, in the body reference frame, with the `h5_reference_points` list of
+  a TDPF model specification (or `ChFsiSystemTDPF::SetHydroReferencePoints`) for Chrono::FSI-TDPF, or with
+  the `reference_points` list of the `added_mass` entry of a preCICE MBS participant specification. The
+  coefficients are then shifted at initialization.
+- Explicit added mass blocks in a preCICE MBS participant specification may be declared in body axes with
+  `frame: BODY`.
+- With the APGD and Barzilai-Borwein solvers, the inverse of the total mass matrix is now recomputed
+  whenever a hydrodynamic body rotates.
+
+Results of simulations in which hydrodynamic bodies rotate change accordingly; for the small rotations
+typical of linear potential-flow models, the differences are small.
+
+## [Added] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies
+
+Chrono::VSG has two new components for plugins that visualize granular systems, and Chrono::Multicore
+has a VSG plugin that uses them.
+
+- `ChInstancedShapesVSG` draws granular bodies as GPU instances of shape templates: one unit template
+  per primitive type (sphere and ellipsoid, box, cylinder, cone), scaled per instance, and one template
+  per distinct geometry for capsules, rounded boxes and cylinders, triangle meshes, and convex hulls.
+  Bodies are decomposed into their collision shapes (or, optionally, their visual shapes). The bodies
+  drawn as instances are selected automatically by size (at most 10 times the median body size, among
+  the bodies active at initialization) or explicitly; larger bodies, such as walls, keep the default
+  binding. Per-body color and visibility callbacks are supported; inactive bodies are hidden by default.
+- `ChForceNetworkVSG` draws a force network as segments between arbitrary points, either as lines or
+  as lit cylinders, colored from a per-segment value (through a colormap or a two-color ramp) or with
+  explicit colors, with a constant, value-mapped, or explicit radius in world units. Its capacity is
+  fixed at construction; segments beyond it are dropped and counted.
+- `ChVisualSystemVSG::ExcludeFromBinding` excludes a body from the default binding of visual assets,
+  so that a plugin can draw it by other means.
+- `ChMulticoreVisualizationVSG`, in the new library `Chrono_multicore_vsg` (built when Chrono::VSG is
+  enabled, and linked by `find_package(Chrono)` when both the MULTICORE and VSG components are
+  requested), draws the granular bodies of a Chrono::Multicore system as instances and the contact
+  force network, walls included. The network is colored by the normal force, the Coulomb ratio, or the
+  magnitude of the stored tangential displacement (SMC, MultiStep model), with a force threshold and
+  slab and box region filters for section cuts. The plugin shows a panel with the Multicore timers,
+  contact counts, NSC iterations and residual, number of threads, and contact history overflows, and
+  can write an image of every n-th rendered frame (`SetImageOutput`, off by default). See the new demo
+  `demo_MCORE_force_network`.
+- `ChDemVisualizationVSG`, the VSG plugin for Chrono::DEM, draws the contact force network too, with the
+  same coloring, threshold, and region options, from the new bulk accessor `ChSystemDem::GetContacts`
+  (frictional simulations with contact recording; contacts with boundary conditions require the
+  material-based contact model). See the new demo `demo_DEM_force_network`.
+
+## [Added] Checkpointing of FEA meshes and internal state
+
+Checkpoints now save, besides coordinates and velocities, the data that physics items carry from step
+to step outside the system state vectors, so that a restart reproduces a continuous run. The design is
+described in the developer manual "Physics Item Lifecycle".
+
+- Physics items, FEA elements and FEA nodes can save and restore their internal state through the new
+  virtual functions `SaveInternalState` and `LoadInternalState`, using the format-independent
+  `ChCheckpointWriter` and `ChCheckpointReader` classes. An item that cannot save its internal state
+  reports it through `SupportsCheckpoint`, and saving a checkpoint that includes it fails with an error.
+- The internal state of the following elements is saved: plasticity data of `ChElementBeamIGA`, plastic
+  strains of `ChElementHexaANCF_3813_9`, and the enhanced assumed strain parameters of
+  `ChElementHexaANCF_3813`.
+- SYSTEM checkpoints also save the accelerations (used, for example, by the inertial terms of IGA beams)
+  and the internal state of all items. Checkpoint files written before this change can still be loaded.
+- COMPONENT checkpoints support whole FEA meshes (`ChAssembly::Components::meshes`) and any other
+  physics item (`ChAssembly::Components::items`), including their accelerations, reactions (for
+  example, the multipliers of a `ChExternalDynamicsDAE`) and internal state.
+- Chrono::Vehicle deformable tires (ANCF, Reissner and solid FEA tires) implement `WriteCheckpoint` and
+  `ReadCheckpoint`.
+- The checkpoint time and states are now written with full precision. Previously, the time was written
+  with 6 significant digits, so time-dependent inputs did not match after a restart.
+- SYSTEM checkpoints also save the Lagrange multipliers of the assembly constraints and the timestepper
+  state (the step size control state of the implicit integrators), and bodies and rotational FEA nodes
+  save the derivatives of their rotation quaternion, so that restarts with HHT and the other implicit
+  integrators reproduce a continuous run exactly.
+- The HHT integrator now evaluates the constraint Jacobians at the beginning of each step for the term
+  that involves the previous Lagrange multipliers, instead of reusing the Jacobians cached by the last
+  linear solve. Results of HHT simulations of constrained systems change slightly.
+- `SupportsCheckpoint` now returns false by default for physics items, FEA elements, FEA nodes and
+  loads. Classes opt in once everything they carry from step to step is in the state vectors or saved
+  as internal state; the built-in classes that do so return true. Saving a checkpoint of a system that
+  contains a class that does not support checkpoints (for example a user-defined physics item, or a
+  `ChExternalDynamicsODE` subclass) now fails with an error that lists the offending items. A
+  user-defined class must override `SupportsCheckpoint` to return true (after saving any internal
+  state) to be checkpointed. The list of classes that return false is in the developer manual.
+- The enhanced assumed strain parameters of `ChElementShellANCF_3423` are saved as internal state.
+
+## [Changed] Initialization of physics items
+
+The one-time initialization of physics items was redesigned. The design is described in a new
+developer manual, "Physics Item Lifecycle", in the new "Developer Manuals" section of the
+documentation.
+
+- Each physics item is initialized once, on its own. Items added to a system (and nodes or elements
+  added to an FEA mesh) after the simulation started are initialized alone; the items already in the
+  system are left untouched. Previously, adding a mesh, a node, an element, or a batch of items
+  re-ran the initialization of *every* item in the system, so FEA meshes that were already deformed
+  recorded their deformed shape as their new stress-free reference configuration.
+- `ChMesh::ComputeMassProperties` no longer re-records the reference configuration of the mesh
+  elements. Previously, every call (including calls made during a simulation, for example to
+  report the inertia properties of a Chrono::Vehicle FEA tire or ANCF track shoe) made the elements
+  treat their current shape as stress free.
+- Initialization runs in two phases, each across all items before the next one starts:
+  `SetupInitial` (data allocation and reference configuration) and the new `SetupInitialState`
+  (initial conditions). A physics item can override `SetupInitialState` to set initial conditions
+  that require all other items to have recorded their reference configuration (for example, to
+  pretension an FEA mesh).
+- `ChPhysicsItem::ResetInitialization` marks an item (and, for an assembly or mesh, all its
+  contents) as not initialized, so that it records a new reference configuration from its current
+  state at the next step. `ChPhysicsItem::IsInitialized` reports whether an item was initialized.
+- `ChExternalDynamicsODE`, `ChExternalDynamicsDAE`, the hydraulic actuators, and `ChExternalFmu`
+  are initialized automatically by the containing system. Their `Initialize()` function is
+  deprecated and no longer needs to be called; existing calls keep working.
+- The number of active coordinates of FEA nodes is recomputed every time the mesh is set up, so it
+  stays correct for nodes fixed or released at any time.
+- Loading a SYSTEM checkpoint into a system that was not yet initialized now initializes the system
+  first, so that reference configurations are recorded from the system as built, not from the
+  loaded state.
 
 ## [Added] Force accumulators for FEA nodes
 
@@ -656,6 +805,18 @@ Notable fixes since the 10.0.0 release:
   `DoAssembly()` no longer leaves its internal 1e-6 step in the system, so `DoFrameKinematics()`
   advances by the requested step. Unit tests check a pendulum against its closed form at two lengths
   (#846).
+- In the Bullet collision system, cone shapes collided as if larger than the cone by the collision
+  margin (radially by the envelope plus the safe margin, at the base and apex by half the envelope
+  plus the safe margin), capsule ends extended one envelope too far, and capsule-box contacts used
+  the wrong capsule axis, so that, for example, a capsule standing on or lying across a box generated
+  no contacts.
+- All implicit integrators now skip the analyze phase of a sparse direct solver when the system
+  structure did not change (previously only HHT did), which reduces the cost of each step with, for
+  example, the linearized Euler integrator and Pardiso MKL. The ADMM solver also skips it when it
+  refactorizes after updating its penalty parameter. In addition, the direct solvers now perform
+  the analyze phase whenever the problem size or the number of matrix nonzeros changed: some changes
+  made during a simulation (such as fixing a body or disabling a link) are not flagged as structural
+  changes, and skipping the analysis in those cases could produce wrong results or a crash.
 
 # Release 10.0.0 (2026-03-27)
 

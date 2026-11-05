@@ -19,6 +19,7 @@ from an HDF5 file.
 | `angle_degrees` | Whether angles are specified in degrees (true) or radians (false) | boolean | -- | No | `true` |
 | `data_path` | Location of the data files referenced below | object | -- | No | absolute paths |
 | `h5_file` | Input file with hydrodynamic data (HDF5 format) | string | -- | Yes | -- |
+| `h5_reference_points` | Points about which the coefficients in `h5_file` are given, one per body in HDF5 body order, in the body reference frame | array of 3D vectors | -- | No | body reference frame origins |
 | `waves` | Specification of wave conditions | object | -- | No | no waves |
 
 The `data_path` key, if present, specifies the following properties:

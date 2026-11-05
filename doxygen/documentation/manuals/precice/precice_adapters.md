@@ -77,8 +77,18 @@ the added mass meshes, the adapter builds a [ChLoadHydrodynamics](@ref chrono::C
 the coefficients enter the system mass matrix rather than being applied as a force. The blocks come either
 from an HDF5 hydrodynamic file or from values given inline in the YAML, and may additionally be updated over
 the coupling interface every window. Those blocks are then the baseline to which the increments received from
-fluid participants are added (see [Added mass over the interface](@ref precice_coupling)). The ordering
-requirement added mass imposes on the coupling bodies, and why it cannot be treated as a force, are covered in
+fluid participants are added (see [Added mass over the interface](@ref precice_coupling)). Besides the
+coefficients (`h5_filename`, or `density` and `blocks`), the `added_mass` entry accepts:
+
+- `reference_points`: one entry per coupling body (`name`, `location`), giving the point about which the
+  coefficients were computed, in the body reference frame. It defaults to the origin of the body reference
+  frame, and must be given when the coefficients refer to another point, since a hydrodynamic file does not
+  record it. The coefficients are shifted to the origin of the body reference frame at initialization.
+- `frame`: `INERTIAL` (default) or `BODY`, the axes in which explicitly given `blocks` are expressed.
+  Coefficients read from a hydrodynamic file are always in inertial axes.
+
+The frame convention and reference point, the ordering requirement added mass imposes on the coupling bodies,
+and why added mass cannot be treated as a force are covered in
 [Added mass in Chrono::FSI-TDPF](@ref manual_fsi_tdpf_added_mass).
 
 **Checkpointing.** The adapter implements it, gathering and scattering the full system state. It is the only

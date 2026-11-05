@@ -1325,7 +1325,7 @@ TEST_P(Collision, cylinder_sphere) {
     ConvexShapeCustom* shapeC = new ConvexShapeCustom();
     shapeC->type = ChCollisionShape::Type::CYLINDER;
     shapeC->position = c_pos;
-    shapeC->dimensions = real3(c_rad, c_hlen, c_rad);
+    shapeC->dimensions = real3(c_rad, c_rad, c_hlen);
     shapeC->radius = 0;
     shapeC->rotation = c_rot;
 

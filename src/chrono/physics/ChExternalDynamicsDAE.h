@@ -40,6 +40,8 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     virtual ~ChExternalDynamicsDAE();
 
     /// Initialize the physics item.
+    /// Deprecated: a call to this function is no longer needed, as the containing system initializes this item
+    /// automatically. This function runs both initialization phases on this item; later calls have no effect.
     virtual void Initialize();
 
     /// Declare as explicit form (identity mass matrix).
@@ -68,9 +70,11 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     virtual unsigned int GetNumAlgebraicConstraints() const { return 0; }
 
     /// Get the initial state values (state at initial time).
+    /// This function initializes the item first, if it was not yet initialized.
     ChVectorDynamic<> GetInitialStates();
 
     /// Get the initial state derivative values (state derivatives at initial time).
+    /// This function initializes the item first, if it was not yet initialized.
     ChVectorDynamic<> GetInitialStateDerivatives();
 
     /// Get current states.
@@ -194,6 +198,12 @@ class ChApi ChExternalDynamicsDAE : public ChPhysicsItem {
     ) {}
 
   protected:
+    /// Initialization phase 1: size the states and allocate the solver variables.
+    virtual void SetupInitial() override;
+
+    /// Initialization phase 2: load the initial conditions (see SetInitialConditions).
+    virtual void SetupInitialState() override;
+
     virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_ny; }

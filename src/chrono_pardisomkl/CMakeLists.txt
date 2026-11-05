@@ -61,7 +61,13 @@ set_property(CACHE MKL_ARCH PROPERTY STRINGS intel64 ia32)
 set(MKL_LINK "dynamic" CACHE STRING "MKL linking mode")
 set_property(CACHE MKL_LINK PROPERTY STRINGS static dynamic sdl)
 
-set(MKL_THREADING "intel_thread" CACHE STRING "MKL threading lib")
+# Chrono defaults to gnu_thread with GCC: Chrono links GNU OpenMP, and loading the Intel OpenMP runtime as well (with
+# intel_thread) makes Pardiso fail with invalid input errors or run out of memory.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(MKL_THREADING "gnu_thread" CACHE STRING "MKL threading lib")
+else()
+  set(MKL_THREADING "intel_thread" CACHE STRING "MKL threading lib")
+endif()
 set_property(CACHE MKL_THREADING PROPERTY STRINGS intel_thread sequential gnu_thread pgi_thread tbb_thread)
 
 set(MKL_INTERFACE "lp64" CACHE STRING "MKL interface")

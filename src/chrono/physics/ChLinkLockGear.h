@@ -225,6 +225,16 @@ class ChApi ChLinkLockGear : public ChLinkLock {
     /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
+    // CHECKPOINTING
+
+    /// Save the internal state of this gear: the total rotations of the two gears (including full turns) and the phase,
+    /// and the data set at the last update of visual assets (marker positions, shaft 1 frame, wheel radii, contact
+    /// point), together with the reaction force on which the marker orientation depends.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of this gear, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.

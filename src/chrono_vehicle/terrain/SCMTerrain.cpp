@@ -274,12 +274,12 @@ void SCMTerrain::SetBoundary(const ChAABB& aabb) {
 void SCMTerrain::AddActiveDomain(std::shared_ptr<ChBody> body, const ChVector3d& OOBB_center, const ChVector3d& OOBB_dims) {
     // Discard the default domain, if one is present.
     //
-    // SetupInitial() -- reached through Initialize() -- creates a single domain with a null body
-    // when no user domain has been added yet. Adding a user domain afterwards switches
+    // SetupInitial() -- run when the system initializes the terrain -- creates a single domain with
+    // a null body when no user domain has been added yet. Adding a user domain afterwards switches
     // ComputeInternalForces() to the user-domain branch, which calls UpdateActiveDomain() for
     // every entry and dereferences m_body unconditionally, so that leftover null entry faults on
-    // the first step. Dropping it here makes AddActiveDomain() valid both before and after
-    // Initialize(), rather than only before.
+    // the first step. Dropping it here makes AddActiveDomain() valid both before and after the
+    // system is initialized, rather than only before.
     if (!m_loader->m_user_domains)
         m_loader->m_active_domains.clear();
 
@@ -530,8 +530,6 @@ void SCMLoader::Initialize(double sizeX, double sizeY, double delta) {
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
-
-    SetupInitial();
 }
 
 // Initialize the terrain from a specified height map.
@@ -606,7 +604,6 @@ void SCMLoader::Initialize(const std::string& heightmap_file, double sizeX, doub
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
-    SetupInitial();
 }
 
 // Initialize the terrain from a specified OBJ mesh file.
@@ -697,7 +694,6 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
 
     CreateVisualizationMesh(sizeX, sizeY);
     this->AddVisualShape(m_trimesh_shape);
-    SetupInitial();
 }
 
 void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
@@ -820,7 +816,7 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
 
 void SCMLoader::SetupInitial() {
     // If no user-specified active domains, create one that will encompass all collision shapes in the system
-    if (!m_user_domains) {
+    if (!m_user_domains && m_active_domains.empty()) {
         SCMLoader::ActiveDomainInfo ad;
         ad.m_body = nullptr;
         ad.m_center = {0, 0, 0};

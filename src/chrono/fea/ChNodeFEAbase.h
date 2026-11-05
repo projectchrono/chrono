@@ -18,6 +18,10 @@
 #include "chrono/physics/ChNodeBase.h"
 
 namespace chrono {
+
+class ChCheckpointWriter;
+class ChCheckpointReader;
+
 namespace fea {
 
 /// @addtogroup fea_nodes
@@ -52,12 +56,34 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     virtual unsigned int GetIndex() { return g_index; }
 
     /// Initial setup.
+    /// Called once by the containing mesh, before the node is first used in a simulation.
     virtual void SetupInitial(ChSystem* system) {}
+
+    /// Update the number of active coordinates from the current fixed state of the node.
+    /// Called by the containing mesh every time it counts coordinates. Only needed for nodes whose number of active
+    /// coordinates can change.
+    virtual void UpdateActiveCoords() {}
+
+    /// Return true if the internal state of this node can be saved in a checkpoint (see ChPhysicsItem).
+    /// The default is false; a derived class returns true once it saves all of its internal state.
+    virtual bool SupportsCheckpoint() const { return false; }
+
+    /// Save the internal state of this node: data not stored in the system state vectors that it carries from step to
+    /// step (for example, plastic strains). Derived classes must first call the base class implementation.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const {}
+
+    /// Load the internal state of this node, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) {}
 
     double m_TotalMass;  ///< Nodal mass obtained from element mass matrix
 
   protected:
     unsigned int g_index;  ///< global node index
+
+  private:
+    bool m_initialized = false;  ///< true once SetupInitial was called by the containing mesh
+
+    friend class ChMesh;
 };
 
 /// @} fea_nodes
