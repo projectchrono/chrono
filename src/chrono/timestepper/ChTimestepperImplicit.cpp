@@ -358,13 +358,32 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
     return pass;
 }
 
-std::string ChTimestepperImplicit::GetConvergenceReport() const {
+std::string ChTimestepperImplicit::GetResidualTestReport() const {
     std::ostringstream report;
     report << "residual test: |R| = " << R_nrm << (R_nrm < abstolS ? " < " : " >= ") << abstolS;
     report << ", |C| = " << C_nrm << (C_nrm < abstolS ? " < " : " >= ") << abstolS;
+    return report.str();
+}
+
+std::string ChTimestepperImplicit::GetConvergenceReport() const {
+    std::ostringstream report;
+    report << GetResidualTestReport();
     report << "; update test: |Ds|_WRMS = " << Ds_nrm << (Ds_nrm < 1 ? " < 1" : " >= 1");
     report << ", |Dl|_WRMS = " << Dl_nrm << (Dl_nrm < 1 ? " < 1" : " >= 1");
     return report.str();
+}
+
+void ChTimestepperImplicit::ProcessTerminatedSolve(const std::string& report) {
+    if (!accept_terminated) {
+        cerr << "  [ERROR] Newton did not converge. Exiting." << endl;
+        cerr << "  Last Newton iteration: " << report << endl;
+        throw std::runtime_error("Newton did not converge (" + report + ").");
+    }
+
+    num_terminated++;
+
+    if (verbose)
+        cout << "  Newton terminated; last Newton iteration: " << report << endl;
 }
 
 // Calculate the error weight vector corresponding to the specified solution vector x,
@@ -425,6 +444,7 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
     // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ Ds     ] = [ M*(v_old - v_new) + dt*f + dt*Cq'*l ]
     // [ Cq                           0   ] [ -dt*Dl ] = [ -C/dt  ]
     //
+    bool converged = false;
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; iteration++) {
         integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
@@ -434,14 +454,19 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
         integrable->LoadResidual_Mv(R, (V - Vnew), 1.0);  // R += M*(v_old - v_new)
         integrable->LoadResidual_CqL(R, L, dt);           // R += dt*Cq'*l
         integrable->LoadConstraint_C(Qc, 1.0 / dt, 1.0, Qc_do_clamp,
-                                     Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection), for vel constraints Qc= C 
+                                     Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection), for vel constraints Qc= C
+
+        // Convergence test on the dynamics residual and the position-level constraint violation C = dt*Qc
+        R_nrm = R.lpNorm<Eigen::Infinity>();
+        C_nrm = dt * Qc.lpNorm<Eigen::Infinity>();
 
         if (verbose)
-            cout << " Euler iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                 << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
+            cout << " Euler iteration=" << iteration << "  |R|=" << R_nrm << "  |C|=" << C_nrm << endl;
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
+        if (R_nrm < abstolS && C_nrm < abstolS) {
+            converged = true;
             break;
+        }
 
         integrable->StateSolveCorrection(       //
             Ds, Dl, R, Qc,                      //
@@ -467,6 +492,9 @@ void ChTimestepperEulerImplicit::OnAdvance(double dt) {
 
         Xnew = X + Vnew * dt;
     }
+
+    if (!converged)
+        ProcessTerminatedSolve(GetResidualTestReport());
 
     integrable->StateScatterAcceleration(
         (Vnew - V) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
@@ -747,6 +775,7 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
     integrable->LoadResidual_Mv(Rold, V, 1.0);   // M*v_old
     // integrable->LoadResidual_CqL(Rold, L, dt*0.5); // dt/2*l_old   assume L_old = 0
 
+    bool converged = false;
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; iteration++) {
         integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
@@ -757,12 +786,18 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
         integrable->LoadResidual_CqL(R, L, dt * 0.5);  // + dt/2*Cq*l_new
         integrable->LoadConstraint_C(Qc, 1.0 / dt, 1.0, Qc_do_clamp,
                                      Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
-        if (verbose)
-            cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                 << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
+        // Convergence test on the dynamics residual and the position-level constraint violation C = dt*Qc
+        R_nrm = R.lpNorm<Eigen::Infinity>();
+        C_nrm = dt * Qc.lpNorm<Eigen::Infinity>();
+
+        if (verbose)
+            cout << " Trapezoidal iteration=" << iteration << "  |R|=" << R_nrm << "  |C|=" << C_nrm << endl;
+
+        if (R_nrm < abstolS && C_nrm < abstolS) {
+            converged = true;
             break;
+        }
 
         integrable->StateSolveCorrection(       //
             Ds, Dl, R, Qc,                      //
@@ -788,6 +823,9 @@ void ChTimestepperTrapezoidal::OnAdvance(double dt) {
 
         Xnew = X + ((Vnew + V) * (dt * 0.5));  // Xnew = Xold + h/2(Vnew+Vold)
     }
+
+    if (!converged)
+        ProcessTerminatedSolve(GetResidualTestReport());
 
     integrable->StateScatterAcceleration(
         (Vnew - V) * (1 / dt));  // -> system auxiliary data (i.e acceleration as measure, fits DVI/MDI)
@@ -973,6 +1011,7 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
     //
     call_setup = true;
 
+    bool converged = false;
     unsigned int iteration;
     for (iteration = 0; iteration < max_iters; ++iteration) {
         integrable->StateScatter(Xnew, Vnew, T + dt, UpdateFlags::UPDATE_ALL_NO_VISUAL);  // state -> system
@@ -989,15 +1028,19 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
             Qc_do_clamp,
             Qc_clamping);  //  Qc = 1/(beta*dt^2)*C  (sign will be flipped later in StateSolveCorrection)
 
-        if (verbose)
-            cout << " Newmark iteration=" << iteration << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                 << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << endl;
+        // Convergence test on the dynamics residual and the position-level constraint violation C = beta*dt^2*Qc
+        R_nrm = R.lpNorm<Eigen::Infinity>();
+        C_nrm = beta * dt * dt * Qc.lpNorm<Eigen::Infinity>();
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL)) {
+        if (verbose)
+            cout << " Newmark iteration=" << iteration << "  |R|=" << R_nrm << "  |C|=" << C_nrm << endl;
+
+        if (R_nrm < abstolS && C_nrm < abstolS) {
             if (verbose) {
                 cout << " Newmark NR converged (" << iteration << ")."
                      << "  T = " << T + dt << "  h = " << dt << endl;
             }
+            converged = true;
             break;
         }
 
@@ -1033,6 +1076,9 @@ void ChTimestepperNewmark::OnAdvance(double dt) {
 
         Vnew = V + A * (dt * (1.0 - gamma)) + Anew * (dt * gamma);
     }
+
+    if (!converged)
+        ProcessTerminatedSolve(GetResidualTestReport());
 
     X = Xnew;
     V = Vnew;

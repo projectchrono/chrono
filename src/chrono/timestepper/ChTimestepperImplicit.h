@@ -214,6 +214,14 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// Return a description of the last convergence check (norms, tolerances, and failed tests).
     std::string GetConvergenceReport() const;
 
+    /// Return a description of the residual test at the last convergence check.
+    std::string GetResidualTestReport() const;
+
+    /// Handle a Newton solve that did not converge within the maximum number of iterations.
+    /// Throws an exception with the given report if terminated steps are not accepted; otherwise, counts the
+    /// terminated solve and prints the report in verbose mode.
+    void ProcessTerminatedSolve(const std::string& report);
+
     /// Calculate error weights based on the given state and tolerances.
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
 
@@ -246,8 +254,8 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 
     double Qc_scale;  ///< factor converting the constraint residual Qc to a position-level constraint violation
 
-    double R_nrm;   ///< 2-norm of the dynamics residual at the last convergence check
-    double C_nrm;   ///< 2-norm of the position-level constraint violation at the last convergence check
+    double R_nrm;   ///< norm of the dynamics residual at the last convergence check
+    double C_nrm;   ///< norm of the position-level constraint violation at the last convergence check
     double Ds_nrm;  ///< WRMS norm of the state update at the last convergence check
     double Dl_nrm;  ///< WRMS norm of the Lagrange multiplier update at the last convergence check
 
@@ -270,6 +278,16 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 };
 
 /// Euler implicit for II order systems.
+///
+/// The Newton iteration stops when both the dynamics residual R and the constraint violation C satisfy
+/// |R| < abstolS and |C| < abstolS (infinity norms), where
+/// - R is the momentum-level residual dt*f + M*(v_old - v_new) + dt*Cq'*l;
+/// - C is the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by dt.
+///
+/// The relative tolerance and the Lagrange multiplier tolerance are not used. If Newton does not converge within the
+/// maximum number of iterations, the step is accepted, or an exception is thrown if AcceptTerminatedStep(false) was
+/// called; in both cases, the norms at the last iteration are reported (in the exception message or in verbose mode).
 class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperEulerImplicit(ChIntegrableIIorder* intgr = nullptr);
@@ -348,6 +366,16 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 /// NOTE: this is a modified version of the trapezoidal for DAE: the original derivation would lead to a scheme that
 /// produces oscillatory reactions in constraints, so this is a modified version that is first order in constraint
 /// reactions. Use damped HHT or damped Newmark for more advanced options.
+///
+/// The Newton iteration stops when both the dynamics residual R and the constraint violation C satisfy
+/// |R| < abstolS and |C| < abstolS (infinity norms), where
+/// - R is the momentum-level residual M*(v_old - v_new) + dt/2*(f_old + f_new + Cq'*l_new);
+/// - C is the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by dt.
+///
+/// The relative tolerance and the Lagrange multiplier tolerance are not used. If Newton does not converge within the
+/// maximum number of iterations, the step is accepted, or an exception is thrown if AcceptTerminatedStep(false) was
+/// called; in both cases, the norms at the last iteration are reported (in the exception message or in verbose mode).
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperTrapezoidal(ChIntegrableIIorder* intgr = nullptr);
@@ -398,6 +426,16 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 };
 
 /// Newmark constrained implicit for II order DAE systems.
+///
+/// The Newton iteration stops when both the dynamics residual R and the constraint violation C satisfy
+/// |R| < abstolS and |C| < abstolS (infinity norms), where
+/// - R is the force-level residual f + Cq'*l - M*a;
+/// - C is the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by (beta/gamma)*dt.
+///
+/// The relative tolerance and the Lagrange multiplier tolerance are not used. If Newton does not converge within the
+/// maximum number of iterations, the step is accepted, or an exception is thrown if AcceptTerminatedStep(false) was
+/// called; in both cases, the norms at the last iteration are reported (in the exception message or in verbose mode).
 class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr);

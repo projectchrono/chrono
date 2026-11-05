@@ -5,7 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
-  - [\[Changed\] Newton convergence test of the HHT integrator](#changed-newton-convergence-test-of-the-hht-integrator)
+  - [\[Changed\] Newton convergence test of implicit integrators](#changed-newton-convergence-test-of-implicit-integrators)
   - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
   - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
   - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
@@ -153,16 +153,17 @@ Change Log
 
 # Unreleased (development branch) 
 
-## [Changed] Newton convergence test of the HHT integrator
+## [Changed] Newton convergence test of implicit integrators
 
-The residual part of the HHT Newton convergence test now checks the constraint violation at the position level, against the state absolute tolerance. Previously, it compared the constraint residual scaled by 1/(beta*h^2) against the multiplier absolute tolerance, so the effective limit on the constraint violation depended on the step size and became unreachable (below round-off) for small steps or for models far from the origin.
+The residual part of the Newton convergence test in the HHT, Newmark, Euler implicit, and trapezoidal integrators now checks the constraint violation at the position level, against the state absolute tolerance. Previously, it compared the scaled constraint residual (C/(beta*h^2) for HHT and Newmark, C/h for Euler implicit and trapezoidal) against the multiplier absolute tolerance, so the effective limit on the constraint violation depended on the step size and became unreachable (below round-off) for small steps or for models far from the origin.
 
-- The residual test is now `|R| < abstolS` and `|C| < abstolS`, with `R` the dynamics residual and `C` the position-level constraint violation. The update test (`|Ds|_WRMS < 1` and `|Dl|_WRMS < 1`) is unchanged.
-- The multiplier absolute tolerance (second argument of `SetAbsTolerances`) now applies only to the Lagrange multiplier update.
-- When Newton fails to converge, the exception message (or the verbose output, if the terminated step is accepted) reports the norms and tolerances of both tests at the last iteration.
-- The quantities and tolerances used in the convergence test are documented in `ChTimestepperHHT`.
+- The residual test is now `|R| < abstolS` and `|C| < abstolS`, with `R` the dynamics residual and `C` the position-level constraint violation. The HHT update test (`|Ds|_WRMS < 1` and `|Dl|_WRMS < 1`) is unchanged.
+- The multiplier absolute tolerance (second argument of `SetAbsTolerances`) now applies only to the Lagrange multiplier update in HHT. The Newmark, Euler implicit, and trapezoidal integrators, which use only the residual test, no longer use it.
+- The Newmark, Euler implicit, and trapezoidal integrators now count Newton solves that do not converge (`GetNumTerminated`) and honor `AcceptTerminatedStep(false)`, by throwing an exception.
+- When Newton fails to converge, the exception message (or the verbose output, if the terminated step is accepted) reports the norms and tolerances at the last iteration.
+- The quantities and tolerances used in the convergence tests are documented in each integrator class.
 
-For typical step sizes, the residual test is now less strict on the constraint violation than before (for example, with `abstolS = 1e-6` and `h = 2e-4`, it previously required a violation below about 1e-14). Simulations that relied on the residual test to keep constraint drift very small may need a smaller `abstolS`.
+For HHT and Newmark at typical step sizes, the residual test is now less strict on the constraint violation than before (for example, with `abstolS = 1e-6` and `h = 2e-4`, it previously required a violation below about 1e-14). Simulations that relied on the residual test to keep constraint drift very small may need a smaller `abstolS`. For Euler implicit and trapezoidal, the limit on the constraint violation changes from `abstolL*h` to `abstolS`.
 
 ## [Changed] Frame convention and reference point for hydrodynamic added mass
 
