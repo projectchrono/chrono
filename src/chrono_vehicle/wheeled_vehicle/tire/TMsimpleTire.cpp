@@ -57,10 +57,6 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
     m_rim_radius = d["Design"]["Rim Radius [m]"].GetDouble();
     m_width = d["Design"]["Width [m]"].GetDouble();
 
-    double p_li = 1.0;
-    double p_use = 1.0;
-    ////bool pressure_info_found = false;
-
     if (d.HasMember("Parameters")) {
         // Full parametrization
         m_par.pn = d["Parameters"]["Vertical"]["Nominal Vertical Force [N]"].GetDouble();
@@ -110,62 +106,31 @@ void TMsimpleTire::Create(const rapidjson::Document& d) {
         m_par.fys_pn = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][0u].GetDouble();
         m_par.fys_p2n = d["Parameters"]["Lateral"]["Sliding Fy Load [N]"][1u].GetDouble();
         SetHorizontalCoefficients();
-    } else if (d.HasMember("Load Index")) {
-        // Information about tire inflation pressure might be present
-        if (d.HasMember("Inflation Pressure Design [Pa]")) {
-            p_li = d["Inflation Pressure Design [Pa]"].GetDouble();
-        } else {
-            p_li = 0.0;
+    } else if (d.HasMember("Load Index") || d.HasMember("Maximum Bearing Capacity [N]")) {
+        // Guess parameters from the tire maximum load, given by the load index (higher priority) or the bearing capacity
+        double tire_load = d.HasMember("Load Index") ? GetTireMaxLoad(d["Load Index"].GetUint()) : d["Maximum Bearing Capacity [N]"].GetDouble();
+
+        // Inflation pressures are used only if both are specified and positive
+        double p_li = 1.0;
+        double p_use = 1.0;
+        if (d.HasMember("Inflation Pressure Design [Pa]") && d.HasMember("Inflation Pressure Use [Pa]")) {
+            double p_design = d["Inflation Pressure Design [Pa]"].GetDouble();
+            double p_in_use = d["Inflation Pressure Use [Pa]"].GetDouble();
+            if (p_design > 0.0 && p_in_use > 0.0) {
+                p_li = p_design;
+                p_use = p_in_use;
+            }
         }
-        if (d.HasMember("Inflation Pressure Use [Pa]")) {
-            p_use = d["Inflation Pressure Use [Pa]"].GetDouble();
-        } else {
-            p_use = 0.0;
-        }
-        if (p_use > 0.0 && p_li > 0.0) {
-            ////pressure_info_found = true;
-        } else {
-            p_li = p_use = 1.0;
-        }
-        // Specification through load index
-        unsigned int li = d["Load Index"].GetUint();
+
         std::string vehicle_type = d["Vehicle Type"].GetString();
         std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(),
                        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+        double ratio = (m_unloaded_radius - m_rim_radius) / m_width;
         if (vehicle_type.compare("truck") == 0) {
-            GuessTruck80Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
+            GuessTruck80Par(tire_load, m_width, ratio, 2 * m_rim_radius, p_li, p_use);
         } else {
-            GuessPassCar70Par(li, m_width, (m_unloaded_radius - m_rim_radius) / m_width, 2 * m_rim_radius, p_li, p_use);
-        }
-    } else if (d.HasMember("Maximum Bearing Capacity [N]")) {
-        // Information about tire inflation pressure might be present
-        if (d.HasMember("Inflation Pressure Design [Pa]")) {
-            p_li = d["Inflation Pressure Design [Pa]"].GetDouble();
-        } else {
-            p_li = 0.0;
-        }
-        if (d.HasMember("Inflation Pressure Use [Pa]")) {
-            p_use = d["Inflation Pressure Use [Pa]"].GetDouble();
-        } else {
-            p_use = 0.0;
-        }
-        if (p_use > 0.0 && p_li > 0.0) {
-            ////pressure_info_found = true;
-        } else {
-            p_use = 1.0;
-            p_li = 1.0;
-        }
-        // Specification through bearing capacity
-        double bearing_capacity = d["Maximum Bearing Capacity [N]"].GetDouble();
-        std::string vehicle_type = d["Name"].GetString();
-        std::transform(vehicle_type.begin(), vehicle_type.end(), vehicle_type.begin(),
-                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-        if (vehicle_type.compare("truck") == 0) {
-            GuessTruck80Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius, p_li,
-                            p_use);
-        } else {
-            GuessPassCar70Par(bearing_capacity, m_width, (m_unloaded_radius - m_rim_radius) / m_width, m_rim_radius,
-                              p_li, p_use);
+            GuessPassCar70Par(tire_load, m_width, ratio, 2 * m_rim_radius, p_li, p_use);
         }
     } else {
         std::cerr << "ERROR: Incorrect TMsimple JSON specification." << std::endl;
