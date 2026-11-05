@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <sstream>
 
 #include "chrono/timestepper/ChTimestepperImplicit.h"
 #include "chrono/input_output/ChCheckpointBlock.h"
@@ -37,6 +38,11 @@ ChTimestepperImplicit::ChTimestepperImplicit()
       abstolS(1e-10),
       abstolL(1e-10),
       convergence_rate(0),
+      Qc_scale(1),
+      R_nrm(0),
+      C_nrm(0),
+      Ds_nrm(0),
+      Dl_nrm(0),
       accept_terminated(true),
       step_control(true),
       maxiters_success(3),
@@ -250,13 +256,17 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             h *= step_decrease_factor;
 
             // re-attempt step with smaller step-size
-            if (verbose)
+            if (verbose) {
+                cout << "  Last Newton iteration: " << GetConvergenceReport() << endl;
                 cout << "  Reduce stepsize to " << h << endl;
+            }
 
             // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
+                std::string report = GetConvergenceReport();
                 cerr << "  [ERROR] Integrator at minimum stepsize. Exiting." << endl;
-                throw std::runtime_error("Reached minimum allowable step size.");
+                cerr << "  Last Newton iteration: " << report << endl;
+                throw std::runtime_error("Reached minimum allowable step size (" + report + ").");
             }
 
             call_setup = true;
@@ -266,17 +276,21 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
             //        Jacobian is current or we are not allowed to update it, and we do not control stepsize
 
             if (!accept_terminated) {
+                std::string report = GetConvergenceReport();
                 cerr << "  [ERROR] Newton did not converge with up-to-date or non-modifiable Jacobian. Exiting."
                      << endl;
-                throw std::runtime_error("Newton did not converge with up-to-date Jacobian.");
+                cerr << "  Last Newton iteration: " << report << endl;
+                throw std::runtime_error("Newton did not converge with up-to-date Jacobian (" + report + ").");
             }
 
             // reset the count of successive successful steps
             num_successful_steps = 0;
 
             // accept solution as-is and complete step
-            if (verbose)
+            if (verbose) {
                 cout << "  Newton terminated; advance T = " << T + h << endl;
+                cout << "  Last Newton iteration: " << GetConvergenceReport() << endl;
+            }
 
             num_terminated++;
 
@@ -309,15 +323,15 @@ void ChTimestepperImplicit::OnAdvance(double dt) {
 bool ChTimestepperImplicit::CheckConvergence(int it) {
     bool pass = false;
 
-    // Declare convergence when either the residual is below the absolute tolerance or
-    // the WRMS update norm is less than 1 (relative + absolute tolerance test)
-    //    |R|_2 < atol
-    // or |D|_WRMS < 1
-    // Both states and Lagrange multipliers must converge.
-    double R_nrm = R.norm();
-    double Qc_nrm = Qc.norm();
-    double Ds_nrm = Ds.wrmsNorm(ewtS);
-    double Dl_nrm = Dl.wrmsNorm(ewtL);
+    // Declare convergence when either
+    // - the dynamics residual and the position-level constraint violation are below the state absolute tolerance:
+    //      |R|_2 < abstolS  and  |C|_2 < abstolS
+    // - or the WRMS norms of the state and multiplier updates are less than 1 (relative + absolute tolerance test):
+    //      |Ds|_WRMS < 1  and  |Dl|_WRMS < 1
+    R_nrm = R.norm();
+    C_nrm = Qc_scale * Qc.norm();
+    Ds_nrm = Ds.wrmsNorm(ewtS);
+    Dl_nrm = Dl.wrmsNorm(ewtL);
 
     // Estimate convergence rate
     Ds_nrm_hist[it % 3] = Ds.norm();
@@ -332,16 +346,25 @@ bool ChTimestepperImplicit::CheckConvergence(int it) {
 
     if (verbose) {
         cout << "  Newton iteration: " << it;
-        cout << "  |R| = " << R_nrm << "  |Qc| = " << Qc_nrm << "  |Ds| = " << Ds_nrm << "  |Dl| = " << Dl_nrm;
+        cout << "  |R| = " << R_nrm << "  |C| = " << C_nrm << "  |Ds| = " << Ds_nrm << "  |Dl| = " << Dl_nrm;
         if (it >= 2)
             cout << "  Conv. rate = " << convergence_rate;
         cout << endl;
     }
 
-    if ((R_nrm < abstolS && Qc_nrm < abstolL) || (Ds_nrm < 1 && Dl_nrm < 1))
+    if ((R_nrm < abstolS && C_nrm < abstolS) || (Ds_nrm < 1 && Dl_nrm < 1))
         pass = true;
 
     return pass;
+}
+
+std::string ChTimestepperImplicit::GetConvergenceReport() const {
+    std::ostringstream report;
+    report << "residual test: |R| = " << R_nrm << (R_nrm < abstolS ? " < " : " >= ") << abstolS;
+    report << ", |C| = " << C_nrm << (C_nrm < abstolS ? " < " : " >= ") << abstolS;
+    report << "; update test: |Ds|_WRMS = " << Ds_nrm << (Ds_nrm < 1 ? " < 1" : " >= 1");
+    report << ", |Dl|_WRMS = " << Dl_nrm << (Dl_nrm < 1 ? " < 1" : " >= 1");
+    return report.str();
 }
 
 // Calculate the error weight vector corresponding to the specified solution vector x,

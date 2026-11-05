@@ -25,6 +25,30 @@ namespace chrono {
 /// Implementation of the HHT implicit integrator for II order systems.
 /// This timestepper allows use of an adaptive time-step, as well as optional use of a modified
 /// Newton scheme for the solution of the resulting nonlinear problem.
+///
+/// The Newton iteration solves for the accelerations and Lagrange multipliers at the end of the step. At each
+/// iteration, it evaluates the following quantities:
+/// - R: the dynamics residual (generalized forces, inertial forces, and constraint reactions);
+/// - C: the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by (beta/gamma)*h;
+/// - Ds: the acceleration update, measured in the WRMS norm with weights 1/(reltol*|a| + abstolS),
+///   with a the accelerations at the beginning of the step;
+/// - Dl: the Lagrange multiplier update, measured in the WRMS norm with weights 1/(reltol*|l| + abstolL),
+///   with l the multipliers at the beginning of the step.
+///
+/// Newton is declared converged if either of the following tests passes:
+/// - residual test: |R| < abstolS and |C| < abstolS (2-norms);
+/// - update test: |Ds|_WRMS < 1 and |Dl|_WRMS < 1.
+///
+/// The state tolerance abstolS therefore applies to all state-related quantities, while the multiplier tolerance
+/// abstolL applies only to the multiplier update. Both tests are limited by round-off: |C| cannot drop below about
+/// eps*|q| (with eps the machine precision and q the generalized coordinates), |R| cannot drop below about
+/// k*eps*|q| for a force with stiffness k, and the acceleration update cannot drop below about eps*|q|/(beta*h^2).
+/// The last limit grows quickly as the step size decreases; with very small steps, abstolS (or reltol) must stay
+/// above it for the update test to pass.
+///
+/// When Newton fails to converge, the integrator reports the norms and tolerances of both tests at the last
+/// iteration (in the exception message, or in the verbose output if the terminated step is accepted).
 class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);

@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Newton convergence test of the HHT integrator](#changed-newton-convergence-test-of-the-hht-integrator)
   - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
   - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
   - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
@@ -151,6 +152,17 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Changed] Newton convergence test of the HHT integrator
+
+The residual part of the HHT Newton convergence test now checks the constraint violation at the position level, against the state absolute tolerance. Previously, it compared the constraint residual scaled by 1/(beta*h^2) against the multiplier absolute tolerance, so the effective limit on the constraint violation depended on the step size and became unreachable (below round-off) for small steps or for models far from the origin.
+
+- The residual test is now `|R| < abstolS` and `|C| < abstolS`, with `R` the dynamics residual and `C` the position-level constraint violation. The update test (`|Ds|_WRMS < 1` and `|Dl|_WRMS < 1`) is unchanged.
+- The multiplier absolute tolerance (second argument of `SetAbsTolerances`) now applies only to the Lagrange multiplier update.
+- When Newton fails to converge, the exception message (or the verbose output, if the terminated step is accepted) reports the norms and tolerances of both tests at the last iteration.
+- The quantities and tolerances used in the convergence test are documented in `ChTimestepperHHT`.
+
+For typical step sizes, the residual test is now less strict on the constraint violation than before (for example, with `abstolS = 1e-6` and `h = 2e-4`, it previously required a violation below about 1e-14). Simulations that relied on the residual test to keep constraint drift very small may need a smaller `abstolS`.
 
 ## [Changed] Frame convention and reference point for hydrodynamic added mass
 

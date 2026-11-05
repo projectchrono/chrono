@@ -337,7 +337,7 @@ bool test_HHT(double step, int num_steps, const ChValidation::Data& ref_data, do
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(0);
     integrator->SetMaxIters(20);
-    integrator->SetAbsTolerances(1e-6);
+    integrator->SetAbsTolerances(1e-8);
 
     // Set verbose solver and integrator (for debugging).
     ////system->GetSolver()->SetVerbose(true);
