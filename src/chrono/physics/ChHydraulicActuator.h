@@ -99,13 +99,16 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     void SetActuatorLength(double len, double vel);
 
     /// Get the current actuator force.
-    /// Can be used in a co-simulation interface.
+    /// Can be used in a co-simulation interface. If called before the system is initialized (i.e., before the first
+    /// step), the actuator is initialized and the force corresponding to its initial conditions is returned.
     double GetActuatorForce();
 
     /// Get the current cylinder pressures.
+    /// If called before the system is initialized, the initial pressures are returned.
     std::array<double, 2> GetCylinderPressures();
 
     /// Get the current directional valve position.
+    /// If called before the system is initialized, the initial valve position is returned.
     double GetValvePosition();
 
   protected:

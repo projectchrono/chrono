@@ -82,16 +82,25 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
     m_Qforce.resize(12);
 }
 
+// The actuator states are allocated and set to their initial conditions during initialization. If the system was not
+// initialized yet (before the first step), initialize the actuator now so that the initial values are reported.
+
 double ChHydraulicActuatorBase::GetValvePosition() {
+    if (!IsInitialized())
+        InitializePhase(InitPhase::STATE);
     return ExtractValveSpoolPosition();
 }
 
 std::array<double, 2> ChHydraulicActuatorBase::GetCylinderPressures() {
+    if (!IsInitialized())
+        InitializePhase(InitPhase::STATE);
     Vec2 p = ExtractCylinderPressures();
     return {p(0), p(1)};
 }
 
 double ChHydraulicActuatorBase::GetActuatorForce() {
+    if (!IsInitialized())
+        InitializePhase(InitPhase::STATE);
     Vec2 p = ExtractCylinderPressures();
     return cyl.EvalForce(p, s - s_0, sd);
 }
