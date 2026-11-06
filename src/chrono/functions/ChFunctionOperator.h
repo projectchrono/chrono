@@ -31,7 +31,7 @@ class ChApi ChFunctionOperator : public ChFunction {
     ~ChFunctionOperator() {}
 
     /// Type of operation.
-    enum eChOperation {
+    enum OpType {
         ADD = 0,
         SUB,
         MUL,
@@ -49,22 +49,23 @@ class ChApi ChFunctionOperator : public ChFunction {
 
     virtual Type GetType() const override { return ChFunction::Type::OPERATOR; }
 
+    /// Get value by composing the two operand functions.
     virtual double GetVal(double x) const override;
 
     /// Set the operation type between the two operands.
-    void SetOperationType(eChOperation m_op) { m_op_type = m_op; }
+    void SetOperationType(OpType op) { m_op_type = op; }
 
     /// Get the operation type between the two operands.
-    eChOperation GetOperationType() const { return m_op_type; }
+    OpType GetOperationType() const { return m_op_type; }
 
     /// Set the first operand function.
-    void SetFirstOperandFunction(std::shared_ptr<ChFunction> m_m_first_fun) { m_first_fun = m_m_first_fun; }
+    void SetFirstOperandFunction(std::shared_ptr<ChFunction> first_fun) { m_first_fun = first_fun; }
 
     /// Get the first operand function.
     std::shared_ptr<ChFunction> GetFirstOperandFunction() const { return m_first_fun; }
 
     /// Set the second operand function.
-    void SetSecondOperandFunction(std::shared_ptr<ChFunction> m_m_second_fun) { m_second_fun = m_m_second_fun; }
+    void SetSecondOperandFunction(std::shared_ptr<ChFunction> second_fun) { m_second_fun = second_fun; }
 
     /// Get the second operand function.
     std::shared_ptr<ChFunction> GetSecondOperandFunction() const { return m_second_fun; }
@@ -76,7 +77,7 @@ class ChApi ChFunctionOperator : public ChFunction {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// @cond
-    CH_ENUM_MAPPER_BEGIN(eChOperation);
+    CH_ENUM_MAPPER_BEGIN(OpType);
     CH_ENUM_VAL(ADD);
     CH_ENUM_VAL(SUB);
     CH_ENUM_VAL(MUL);
@@ -87,13 +88,13 @@ class ChApi ChFunctionOperator : public ChFunction {
     CH_ENUM_VAL(MODULO);
     CH_ENUM_VAL(FABS);
     CH_ENUM_VAL(FUNCT);
-    CH_ENUM_MAPPER_END(eChOperation);
+    CH_ENUM_MAPPER_END(OpType);
     /// @endcond
 
   private:
     std::shared_ptr<ChFunction> m_first_fun;
     std::shared_ptr<ChFunction> m_second_fun;
-    eChOperation m_op_type;
+    OpType m_op_type;
 };
 
 /// @} chrono_functions

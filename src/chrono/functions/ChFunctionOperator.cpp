@@ -57,10 +57,10 @@ double ChFunctionOperator::GetVal(double x) const {
             res = std::min(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
         case ChFunctionOperator::MODULO:
-            res = fmod(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
+            res = std::fmod(m_first_fun->GetVal(x), m_second_fun->GetVal(x));
             break;
         case ChFunctionOperator::FABS:
-            res = fabs(m_first_fun->GetVal(x));
+            res = std::fabs(m_first_fun->GetVal(x));
             break;
         case ChFunctionOperator::FUNCT:
             res = m_first_fun->GetVal(m_second_fun->GetVal(x));
@@ -80,7 +80,7 @@ void ChFunctionOperator::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_first_fun);
     archive_out << CHNVP(m_second_fun);
-    eChOperation_mapper mmapper;
+    OpType_mapper mmapper;
     archive_out << CHNVP(mmapper(m_op_type), "operation_type");
 }
 
@@ -92,7 +92,7 @@ void ChFunctionOperator::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data:
     archive_in >> CHNVP(m_first_fun);
     archive_in >> CHNVP(m_second_fun);
-    eChOperation_mapper mmapper;
+    OpType_mapper mmapper;
     archive_in >> CHNVP(mmapper(m_op_type), "operation_type");
 }
 
