@@ -75,8 +75,7 @@ void TestTranslatingInline(ChSystem& sys, std::shared_ptr<ChBody> floor) {
     cam->SetPos(cam_pos);
     sys.Add(cam);
 
-    auto cam_line = chrono_types::make_shared<ChLineCam>();
-    cam_line->InitializeTranslatingInline(cam_radius, follower_rad);
+    auto cam_line = chrono_types::make_shared<ChLineCamTranslatingInline>(cam_radius, follower_rad);
     cam_line->SetOrigin(ChVector2d(0, 0));
     cam_line->SetPhase(0.0);
     cam_line->SetMotionLaw(motlaw_cam);
@@ -143,8 +142,7 @@ void TestTranslatingOffset(ChSystem& sys, std::shared_ptr<ChBody> floor) {
     cam->SetPos(cam_pos);
     sys.Add(cam);
 
-    auto cam_line = chrono_types::make_shared<ChLineCam>();
-    cam_line->InitializeTranslatingOffset(cam_radius, follower_rad, follower_offset);
+    auto cam_line = chrono_types::make_shared<ChLineCamTranslatingOffset>(cam_radius, follower_rad, follower_offset);
     cam_line->SetOrigin(ChVector2d(0, 0));
     cam_line->SetPhase(0.0);
     cam_line->SetMotionLaw(motlaw_cam);
@@ -209,8 +207,7 @@ void TestTranslatingFlat(ChSystem& sys, std::shared_ptr<ChBody> floor) {
     cam->SetPos(cam_pos);
     sys.Add(cam);
 
-    auto cam_line = chrono_types::make_shared<ChLineCam>();
-    cam_line->InitializeTranslatingFlat(cam_radius);
+    auto cam_line = chrono_types::make_shared<ChLineCamTranslatingFlat>(cam_radius);
     cam_line->SetOrigin(ChVector2d(0, 0));
     cam_line->SetPhase(0.0);
     cam_line->SetMotionLaw(motlaw_cam);
@@ -277,8 +274,7 @@ void TestOscillatingRoller(ChSystem& sys, std::shared_ptr<ChBody> floor) {
     cam->SetPos(cam_pos);
     sys.Add(cam);
 
-    auto cam_line = chrono_types::make_shared<ChLineCam>();
-    cam_line->InitializeOscillatingRoller(follower_rad, follower_arm_length, (cam_pos - follower_pos).Length(), follower_angle0);
+    auto cam_line = chrono_types::make_shared<ChLineCamOscillatingRoller>(follower_rad, follower_arm_length, (cam_pos - follower_pos).Length(), follower_angle0);
     cam_line->SetOrigin(ChVector2d(0, 0));
     cam_line->SetPhase(0.0);
     cam_line->SetMotionLaw(motlaw_cam);
@@ -345,8 +341,7 @@ void TestOscillatingFlat(ChSystem& sys, std::shared_ptr<ChBody> floor) {
     cam->SetPos(cam_pos);
     sys.Add(cam);
 
-    auto cam_line = chrono_types::make_shared<ChLineCam>();
-    cam_line->InitializeOscillatingFlat(follower_arm_offset, (cam_pos - follower_pos).Length(), follower_angle0);
+    auto cam_line = chrono_types::make_shared<ChLineCamOscillatingFlat>(follower_arm_offset, (cam_pos - follower_pos).Length(), follower_angle0);
     cam_line->SetOrigin(ChVector2d(0, 0));
     cam_line->SetPhase(0.0);
     cam_line->SetMotionLaw(motlaw_cam);
