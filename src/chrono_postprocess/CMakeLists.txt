@@ -15,17 +15,13 @@ message(STATUS "\n==== Chrono Postprocess module ====\n")
 
 #-----------------------------------------------------------------------------
 
-find_package(Gnuplot OPTIONAL)
-if(Gnuplot_FOUND)
-  message(STATUS "Gnuplot executable: ${GNUPLOT_EXECUTABLE}")
-  mark_as_advanced(FORCE GNUPLOT_EXECUTABLE)
-else()
-  set(GNUPLOT_EXECUTABLE "" CACHE PATH "Path to Gnuplot executable")
-  mark_as_advanced(CLEAR GNUPLOT_EXECUTABLE)
-  return()
-endif()
+find_package(Gnuplot QUIET)
 
-set(GNUPLOT_EXECUTABLE ${GNUPLOT_EXECUTABLE} PARENT_SCOPE)
+if(GNUPLOT_FOUND)
+  message(STATUS "Gnuplot executable: ${GNUPLOT_EXECUTABLE}")
+  message(STATUS "Gnuplot version:    ${GNUPLOT_VERSION_STRING}")
+  set(CHRONO_HAS_GNUPLOT "#define CHRONO_HAS_GNUPLOT" PARENT_SCOPE)
+endif()
 
 #-----------------------------------------------------------------------------
 
