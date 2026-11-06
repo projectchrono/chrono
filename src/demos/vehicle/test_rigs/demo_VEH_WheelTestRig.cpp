@@ -141,9 +141,9 @@ int main() {
 #ifdef CHRONO_FEA
     else if (mb_tire) {
         sys = new ChSystemSMC;
-        step_size = 5e-5;
-        solver_type = ChSolver::Type::BICGSTAB;
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+        step_size = 1e-4;
+        solver_type = ChSolver::Type::PARDISO_MKL;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     } else {
         sys = new ChSystemSMC;
         step_size = 5e-5;

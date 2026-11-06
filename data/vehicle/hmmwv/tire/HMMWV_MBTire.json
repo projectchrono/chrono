@@ -48,6 +48,6 @@
   },
 
   "Numerical Settings": {
-    "Stiff": false
+    "Stiff": true
   }
 }

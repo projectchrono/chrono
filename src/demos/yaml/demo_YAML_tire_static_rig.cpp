@@ -20,6 +20,7 @@
 
 #include <filesystem>
 #include <iomanip>
+#include <string>
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -52,7 +53,9 @@ int main(int argc, char* argv[]) {
         {"tire_static_rig_hmmwv_ancf8.yaml", "HMMWV ANCF 8-node shell tire"},  //
         {"tire_static_rig_hmmwv_reissner.yaml", "HMMWV Reissner shell tire"},  //
     #endif
-        {"tire_static_rig_hmmwv_mbtire.yaml", "HMMWV MB tire"},  //
+        {"tire_static_rig_hmmwv_mbtire.yaml", "HMMWV MB tire"},                                      //
+        {"tire_static_rig_hmmwv_mbtire_nokian.yaml", "Nokian 385/55R22.5 MB tire"},                  //
+        {"tire_static_rig_hmmwv_mbtire_nokian_buffed.yaml", "Nokian 385/55R22.5 MB tire (buffed)"},  //
 #endif
         {"tire_static_rig_polaris_rigid.yaml", "Polaris rigid tire"},           //
         {"tire_static_rig_polaris_rigidmesh.yaml", "Polaris rigid mesh tire"},  //
@@ -61,14 +64,28 @@ int main(int argc, char* argv[]) {
 #endif
     };
 
-    // Select test
+    // Default test: buffed Nokian MB tire (the tire measured in the Nokian tests), if available
     int num_tests = (int)tests.size();
-    int which = 0;
+    int which_default = 1;
+    for (int i = 0; i < num_tests; i++) {
+        if (tests[i].first == "tire_static_rig_hmmwv_mbtire_nokian_buffed.yaml")
+            which_default = i + 1;
+    }
+
+    // Select test (an empty input selects the default test)
     cout << "Options:\n";
     for (int i = 0; i < num_tests; i++)
         cout << std::setw(2) << i + 1 << "  " << tests[i].second << endl;
-    cout << "\nSelect tire: ";
-    cin >> which;
+    cout << "\nSelect tire [" << which_default << "]: ";
+    std::string input;
+    std::getline(cin, input);
+    int which = which_default;
+    try {
+        if (!input.empty())
+            which = std::stoi(input);
+    } catch (const std::exception&) {
+        which = which_default;
+    }
     cout << endl;
     ChClampValue(which, 1, num_tests);
 

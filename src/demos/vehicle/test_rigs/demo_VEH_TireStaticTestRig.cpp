@@ -144,16 +144,13 @@ int main() {
         cout << "Setting solver and integrator for MB tire" << endl;
 
         sys = new ChSystemSMC;
-        step_size = 3e-5;
-        ////solver_type = ChSolver::Type::PARDISO_MKL;
+        step_size = 1e-4;
+        solver_type = ChSolver::Type::PARDISO_MKL;
         ////solver_type = ChSolver::Type::MUMPS;
-        ////solver_type = ChSolver::Type::SPARSE_QR;
-        solver_type = ChSolver::Type::BICGSTAB;
-        ////solver_type = ChSolver::Type::PSOR;
+        ////solver_type = ChSolver::Type::BICGSTAB;
 
-        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-        ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-        ////integrator_type = ChTimestepper::Type::HHT;
+        integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+        ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT;
     } else if (fea_tire) {
         cout << "Setting solver and integrator for FEA tire" << endl;
 

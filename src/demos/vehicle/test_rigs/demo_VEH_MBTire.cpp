@@ -24,7 +24,6 @@
 
 #include "chrono/core/ChTimer.h"
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_models/vehicle/hmmwv/tire/HMMWV_MBTire.h"
@@ -50,9 +49,6 @@ bool fix_wheel = false;
 enum class TerrainType { RIGID, SCM };
 TerrainType terrain_type = TerrainType::RIGID;
 
-// Contact formulation type (SMC or NSC)
-ChContactMethod contact_method = ChContactMethod::SMC;
-
 // Number of OpenMP threads used in Chrono (here, for parallel spring force evaluation and SCM ray-casting)
 int num_threads_chrono = 4;
 
@@ -71,35 +67,15 @@ VerboseMode verbose = VerboseMode::RTF;
 // =============================================================================
 
 int main() {
-    // Create system and set solver
-    ChSystem* sys = nullptr;
-    ChSolver::Type solver_type;
-    ChTimestepper::Type integrator_type;
-    double step_size = 1e-3;
+    // Create system and set solver (the MB tire requires SMC contact)
+    ChSystem* sys = new ChSystemSMC;
+    double step_size = 1e-4;
 
-    switch (contact_method) {
-        case ChContactMethod::SMC:
-            sys = new ChSystemSMC;
-            step_size = 5e-5;
+    ChSolver::Type solver_type = ChSolver::Type::PARDISO_MKL;
+    ////ChSolver::Type solver_type = ChSolver::Type::BICGSTAB;
 
-            ////solver_type = ChSolver::Type::PARDISO_MKL;
-            ////solver_type = ChSolver::Type::SPARSE_QR;
-            solver_type = ChSolver::Type::BICGSTAB;
-
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-            ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-            break;
-        case ChContactMethod::NSC:
-            sys = new ChSystemNSC;
-            step_size = 1e-3;
-
-            solver_type = ChSolver::Type::BARZILAIBORWEIN;
-
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
-
-            break;
-    }
+    ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    ////ChTimestepper::Type integrator_type = ChTimestepper::Type::EULER_IMPLICIT;
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
@@ -155,7 +131,7 @@ int main() {
             cinfo.mu = 0.8f;
             cinfo.cr = 0.0f;
             cinfo.Y = 2e7f;
-            auto patch_mat = cinfo.CreateMaterial(contact_method);
+            auto patch_mat = cinfo.CreateMaterial(ChContactMethod::SMC);
 
             auto patch = terrain_rigid->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, 0, -1.2 * tire_radius), QUNIT), sizeX, sizeY, 0.1);
             patch->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 10, 10);

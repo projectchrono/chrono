@@ -49,21 +49,26 @@ def main():
     sys = chrono.ChSystemSMC()
     sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
-    step_size = 5e-5
+    step_size = 1e-4
     tire.SetStepsize(step_size)
 
-    sys.SetSolverType(chrono.ChSolver.Type_BICGSTAB)
-    #sys.SetSolverType(chrono.ChSolver.Type_PARDISO_MKL)
-    #sys.SetSolverType(chrono.ChSolver.Type_SPARSE_QR)
-
-    sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_PROJECTED)
-    #sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_LINEARIZED)
+    sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT_LINEARIZED)
+    #sys.SetTimestepperType(chrono.ChTimestepper.Type_EULER_IMPLICIT)
 
     num_threads_chrono = 4     # Number of OpenMP threads used in Chrono (SCM ray-casting and FEA)
     num_threads_collision = 4  # Number of threads used in collision detection
     num_threads_eigen = 1      # Number of threads used by Eigen
     num_threads_pardiso = 4    # Number of threads used by PardisoMKL
     sys.SetNumThreads(num_threads_chrono, num_threads_collision, num_threads_eigen)
+
+    # Use the PardisoMKL direct solver if available, otherwise BiCGSTAB
+    try:
+        import pychrono.pardisomkl as mkl
+        solver = mkl.ChSolverPardisoMKL(num_threads_pardiso)
+        solver.LockSparsityPattern(True)
+        sys.SetSolver(solver)
+    except ImportError:
+        sys.SetSolverType(chrono.ChSolver.Type_BICGSTAB)
 
     # -----------------------------
     # Create and configure test rig

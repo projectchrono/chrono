@@ -311,16 +311,15 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Solver settings
     // ---------------
-    double step_size = 8e-5;
+    double step_size = 1e-4;
     ChSolver::Type solver_type;
     ChTimestepper::Type integrator_type;
 
-    ////solver_type = ChSolver::Type::PARDISO_MKL;
-    ////solver_type = ChSolver::Type::SPARSE_QR;
-    solver_type = ChSolver::Type::BICGSTAB;
+    solver_type = ChSolver::Type::PARDISO_MKL;
+    ////solver_type = ChSolver::Type::BICGSTAB;
 
-    integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-    ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+    ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT;
 
     sys->SetNumThreads(num_threads_chrono, num_threads_collision, 1);
 

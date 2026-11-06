@@ -70,6 +70,9 @@ HMMWV_MBTire::HMMWV_MBTire(const std::string& name) : ChMBTire(name) {
     SetMeshSpringCoefficients(kC, cC, kT, cT);
     SetBendingSpringCoefficients(kBC, cBC, kBT, cBT);
 
+    // Generate Jacobians for the tire forces (the spring damping is too large for an explicit treatment)
+    IsStiff(true);
+
     ChContactMaterialData mat;
     mat.mu = m_friction;
     mat.cr = m_restitution;
