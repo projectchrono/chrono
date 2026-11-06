@@ -235,7 +235,7 @@ std::shared_ptr<fea::ChContactSurfaceMesh> ChMBTire::GetSurfaceMesh() const {
     // Otherwise, create a surface mesh over the same faces (not used for collision)
     if (!m_model->m_surface_mesh) {
         auto mat = m_contact_mat ? m_contact_mat : chrono_types::make_shared<ChContactMaterialSMC>();
-        m_model->m_surface_mesh = m_model->CreateSurfaceMesh(mat, 0);
+        m_model->m_surface_mesh = m_model->CreateSurfaceMesh(mat, 0, m_collision_family);
     }
 
     return m_model->m_surface_mesh;
@@ -1849,8 +1849,7 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
                 break;
             }
             case ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH: {
-                auto contact_surf = CreateSurfaceMesh(contact_mat, surface_dim);
-                contact_surf->DisableSelfCollisions(collision_family);
+                auto contact_surf = CreateSurfaceMesh(contact_mat, surface_dim, collision_family);
                 m_contact_surf = contact_surf;
                 break;
             }
@@ -1883,12 +1882,16 @@ void MBTireModel::Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurface
     }
 }
 
-std::shared_ptr<fea::ChContactSurfaceMesh> MBTireModel::CreateSurfaceMesh(std::shared_ptr<ChContactMaterialSMC> mat, double surface_dim) {
+std::shared_ptr<fea::ChContactSurfaceMesh> MBTireModel::CreateSurfaceMesh(std::shared_ptr<ChContactMaterialSMC> mat, double surface_dim, int collision_family) {
     const auto& idx_vertices = m_trimesh_shape->GetMesh()->GetIndicesVertices();
     const auto& auxdata = m_face_auxdata;
 
     auto surf = chrono_types::make_shared<fea::ChContactSurfaceMesh>(mat);
     surf->SetPhysicsItem(this);
+
+    // Must be called before adding faces: the collision family is set on each face as it is added
+    surf->DisableSelfCollisions(collision_family);
+
     for (int k = 0; k < m_num_faces; k++) {
         const auto& node1 = m_nodes[idx_vertices[k][0]];
         const auto& node2 = m_nodes[idx_vertices[k][1]];

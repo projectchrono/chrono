@@ -210,7 +210,8 @@ class CH_VEHICLE_API MBTireModel : public ChPhysicsItem {
     void Initialize(std::shared_ptr<ChBody> hub, ChTire::ContactSurfaceType surface_type, double surface_dim, int collision_family);
 
     // Create a triangle surface mesh over the grid nodes, using the specified contact material.
-    std::shared_ptr<fea::ChContactSurfaceMesh> CreateSurfaceMesh(std::shared_ptr<ChContactMaterialSMC> mat, double surface_dim);
+    // Collisions between the mesh triangles are disabled using the specified collision family.
+    std::shared_ptr<fea::ChContactSurfaceMesh> CreateSurfaceMesh(std::shared_ptr<ChContactMaterialSMC> mat, double surface_dim, int collision_family);
 
     // Calculate COG and inertia, expressed relative to the frame of the associated wheel hub body.
     void CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia);
