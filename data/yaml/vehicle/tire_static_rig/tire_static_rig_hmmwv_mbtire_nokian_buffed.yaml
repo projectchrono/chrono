@@ -18,7 +18,7 @@ test:
   longitudinal_speed: 0.1         # m/s
   lateral_speed: 0.1              # m/s
   torsional_speed: 0.1            # rad/s
-  transition_delay: 0.003         # s (100 steps)
+  transition_delay: 0.01          # s (100 steps)
 
 simulation:
   end_time: 20                    # a radial test ends when reaching the nominal load; negative for infinite end time
