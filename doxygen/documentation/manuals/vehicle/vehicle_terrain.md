@@ -170,9 +170,9 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/FEA_terrain.png" width="600" />
 
-## Deformable CRM (SPH-based Continuous Representation Model) {#vehicle_terrain_crm}
+## Deformable CRM (SPH-based Continuum Representation Model) {#vehicle_terrain_crm}
 
-[CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuous Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
+[CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuum Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
 
 CRMTerrain provides a very attractive alternative to granular dynamics as it gives similar accuracy and fidelity of soil dynamics with much better computational performance.
 

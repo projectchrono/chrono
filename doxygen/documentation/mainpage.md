@@ -77,9 +77,19 @@ Instructions for setting up an external project that uses Chrono.
 
 <h3>Developer Manuals</h3>
 
-- [Chrono Developer Manuals](@ref manual_developer)
+These manuals describe the internal design of Chrono. They are written for the Chrono development team and for users who extend Chrono with their own classes (for example a new physics item, FEA element, or node type).
+They complement the User Manuals, which describe how to use Chrono, and the API reference, which documents individual classes and functions.
 
-  Internal design of Chrono for the Chrono team and for users who extend Chrono with new classes
+- [Physics Item Lifecycle](@ref physics_item_lifecycle)
+
+---
+
+<h3>Verification and Validation</h3>
+
+These pages compare Chrono simulations with analytical solutions and reference results (verification) and with experiments (validation).
+Each page describes the tests and how they were set up, compares the results, and points to the programs that reproduce them.
+
+- [DEM Validation](@ref dem_validation)
 
 ---
 

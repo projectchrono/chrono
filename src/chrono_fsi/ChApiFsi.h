@@ -49,7 +49,7 @@
         @brief SPH-based fluid solver and FSI interface
         This sub-module provides a Smoothed Particle Hydrodynamics fluid solver with support for:
         - incompressible Navier-Stokes, and
-        - continuous representation model for terramechanics.
+        - the Continuum Representation Model (CRM) for terramechanics.
         @{
           @defgroup fsisph_physics Physics objects
           @defgroup fsisph_math Math support
