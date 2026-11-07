@@ -35,6 +35,7 @@ namespace chrono {
 /// slice_shift to simply 'translate' the function on abscissa.
 class ChApi ChFunctionRepeat : public ChFunction {
   public:
+    ChFunctionRepeat();
     ChFunctionRepeat(std::shared_ptr<ChFunction> func, double start = 0, double length = 1, double phase = 0);
     ChFunctionRepeat(const ChFunctionRepeat& other);
     ~ChFunctionRepeat() {}

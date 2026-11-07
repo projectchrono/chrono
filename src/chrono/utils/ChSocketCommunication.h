@@ -16,9 +16,7 @@
 #define CH_SOCKET_COMMUNICATION_H
 
 #include "chrono/core/ChApiCE.h"
-
 #include "chrono/utils/ChSocket.h"
-
 #include "chrono/core/ChMatrix.h"
 
 namespace chrono {

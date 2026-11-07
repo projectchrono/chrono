@@ -19,6 +19,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChFunctionRepeat)
 
+ChFunctionRepeat::ChFunctionRepeat() 
+    : fa(chrono_types::make_shared<ChFunctionConst>(0)), m_slice_start(0), m_slice_width(1), m_slice_shift(0) {}
+
 ChFunctionRepeat::ChFunctionRepeat(std::shared_ptr<ChFunction> func, double start, double length, double phase)
     : fa(func), m_slice_start(start), m_slice_width(length), m_slice_shift(phase) {}
 
@@ -30,7 +33,7 @@ ChFunctionRepeat::ChFunctionRepeat(const ChFunctionRepeat& other) {
 }
 
 double ChFunctionRepeat::GetVal(double x) const {
-    return fa->GetVal(this->m_slice_start + fmod(x + this->m_slice_shift, this->m_slice_width));
+    return fa->GetVal(m_slice_start + std::fmod(x + m_slice_shift, m_slice_width));
 }
 
 void ChFunctionRepeat::ArchiveOut(ChArchiveOut& archive) {

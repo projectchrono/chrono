@@ -17,6 +17,25 @@
 #include "chrono/utils/ChSocket.h"
 #include <cstdint>
 
+#ifdef UNIX
+    #include <sys/socket.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <cerrno>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+    #include <netinet/in.h>
+    #include <sys/types.h>
+    #include <sys/ioctl.h>
+    #include <cstring>
+    #ifdef __APPLE__
+        // Be sure to have TARGET_OS_MAC defined
+        #include "TargetConditionals.h"
+    #endif
+#else
+    #include <winsock2.h>
+#endif
+
 namespace chrono {
 namespace utils {
 
@@ -73,9 +92,10 @@ ChSocket::ChSocket(int port_number) {
        address of client applications with which communication is going
        to start
     */
-    clientAddr.sin_family = AF_INET;
-    clientAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    clientAddr.sin_port = htons(portNumber);
+    clientAddr = new sockaddr_in;
+    clientAddr->sin_family = AF_INET;
+    clientAddr->sin_addr.s_addr = htonl(INADDR_ANY);
+    clientAddr->sin_port = htons(portNumber);
 }
 
 ChSocket::~ChSocket() {
@@ -84,6 +104,9 @@ ChSocket::~ChSocket() {
 #else
     close(socketId);
 #endif
+
+    delete clientAddr;
+    clientAddr = nullptr;
 }
 
 void ChSocket::SetDebug(int debugToggle) {
@@ -500,6 +523,12 @@ void ChSocket::detectErrorGetSocketOption(int* errCode, std::string& errMsg) {
 
 #endif
 
+#ifdef UNIX
+char* ChSocket::sGetError() {
+    return strerror(errno);
+}
+#endif
+
 std::ostream& operator<<(std::ostream& os, ChSocket& socket) {
     std::string flagStr = "";
     os << "--------------- Summary of socket settings -------------------" << std::endl;
@@ -524,7 +553,7 @@ ChSocketTCP::ChSocketTCP(int port_number) : ChSocket(port_number) {}
 
 bool ChSocketTCP::BindSocket() {
     try {
-        if (::bind(socketId, (struct sockaddr*)&clientAddr, sizeof(struct sockaddr_in)) == -1) {
+        if (::bind(socketId, (struct sockaddr*)clientAddr, sizeof(struct sockaddr_in)) == -1) {
 #ifdef _WIN32
             int errorCode = 0;
             std::string errorMsg = "error calling bind(): \n";
@@ -819,7 +848,7 @@ void ChSocketTCP::detectErrorSend(int* errCode, std::string& errMsg) {
 
 #endif
 
-bool ChSocketTCP::ConnectToServer(std::string& serverNameOrAddr, HostType hType) {
+bool ChSocketTCP::ConnectToServer(const std::string& serverNameOrAddr, HostType hType) {
     /*
        when this method is called, a client socket has been built already,
        so we have the socketId and portNumber ready.
@@ -1120,7 +1149,7 @@ int ChSocketTCP::ReceiveData() {
 }
 
 // =============================================================================
-// ChSocketFramework
+// ChSocketHostInfo
 // =============================================================================
 ChSocketHostInfo::ChSocketHostInfo() {
 #ifdef UNIX
@@ -1205,6 +1234,10 @@ char* ChSocketHostInfo::GetHostIPAddress() {
     return inet_ntoa(*addr_ptr);
 }
 
+char* ChSocketHostInfo::GetHostName() {
+    return hostPtr->h_name;
+}
+
 #ifdef _WIN32
 void ChSocketHostInfo::detectErrorGethostbyname(int* errCode, std::string& errorMsg) {
     *errCode = WSAGetLastError();
@@ -1273,6 +1306,13 @@ char ChSocketHostInfo::getNextHost() {
     }
     return 0;
 }
+
+void ChSocketHostInfo::openHostDb() {
+    endhostent();
+    searchHostDB = 1;
+    sethostent(1);
+}
+
 #endif
 
 }  // namespace utils

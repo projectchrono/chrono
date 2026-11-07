@@ -72,8 +72,8 @@ int main(int argc, char* argv[]) {
             std::cout << "--- synchronization at time: " << mytime << std::endl << std::endl;
             std::cout << data_in << std::endl;
         }
-    } catch (std::exception exception) {
-        std::cerr << " ERRROR with socket system:\n" << exception.what() << std::endl;
+    } catch (const std::exception& exc) {
+        std::cerr << " ERRROR with socket system:\n" << exc.what() << std::endl;
     }
 
     return 0;
