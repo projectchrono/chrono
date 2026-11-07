@@ -13,7 +13,12 @@
 // =============================================================================
 //
 // Demo for static tire test rig simulations specified through YAML files.
-// The tire model to test is selected at run time.
+// The tire model to test is selected at run time from a list of sample YAML specifications. Alternatively, the path
+// to a static tire test rig YAML file can be given on the command line (no prompt, suitable for batch runs):
+//    demo_YAML_tire_static_rig [test_specification.yaml [chrono_data_dir]]
+// The optional Chrono data directory is needed when running from a directory other than the one containing the demo
+// executable (the default data directory is relative to the current directory). Output files are written relative to
+// the current directory.
 // This demo reproduces demo_VEH_TireStaticTestRig.
 //
 // =============================================================================
@@ -23,8 +28,11 @@
 #include <string>
 
 #include "chrono/ChConfig.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtils.h"
+
+#include "chrono_vehicle/ChVehicleDataPath.h"
 
 #include "chrono_parsers/yaml/ChParserTireStaticRigYAML.h"
 
@@ -72,24 +80,50 @@ int main(int argc, char* argv[]) {
             which_default = i + 1;
     }
 
-    // Select test (an empty input selects the default test)
-    cout << "Options:\n";
-    for (int i = 0; i < num_tests; i++)
-        cout << std::setw(2) << i + 1 << "  " << tests[i].second << endl;
-    cout << "\nSelect tire [" << which_default << "]: ";
-    std::string input;
-    std::getline(cin, input);
-    int which = which_default;
-    try {
-        if (!input.empty())
-            which = std::stoi(input);
-    } catch (const std::exception&) {
-        which = which_default;
-    }
-    cout << endl;
-    ChClampValue(which, 1, num_tests);
+    std::string yaml_filename;
+    std::string title;
 
-    std::string yaml_filename = GetChronoDataFile("yaml/vehicle/tire_static_rig/" + tests[which - 1].first);
+    if (argc > 1) {
+        // Test specification file given on the command line
+        yaml_filename = argv[1];
+        if (!std::filesystem::exists(yaml_filename)) {
+            cout << "Error: YAML file " << yaml_filename << " not found" << endl;
+            return 1;
+        }
+        title = std::filesystem::path(yaml_filename).stem().string();
+
+        // Chrono data directory given on the command line
+        if (argc > 2) {
+            auto data_dir = std::filesystem::absolute(argv[2]);
+            if (!std::filesystem::is_directory(data_dir / "vehicle")) {
+                cout << "Error: " << argv[2] << " is not a Chrono data directory" << endl;
+                return 1;
+            }
+            SetChronoDataPath((data_dir / "").lexically_normal().generic_string());
+            vehicle::SetVehicleDataPath(GetChronoDataPath() + "vehicle/");
+            cout << "Chrono data directory: " << GetChronoDataPath() << endl;
+        }
+    } else {
+        // Select test (an empty input selects the default test)
+        cout << "Options:\n";
+        for (int i = 0; i < num_tests; i++)
+            cout << std::setw(2) << i + 1 << "  " << tests[i].second << endl;
+        cout << "\nSelect tire [" << which_default << "]: ";
+        std::string input;
+        std::getline(cin, input);
+        int which = which_default;
+        try {
+            if (!input.empty())
+                which = std::stoi(input);
+        } catch (const std::exception&) {
+            which = which_default;
+        }
+        cout << endl;
+        ChClampValue(which, 1, num_tests);
+
+        yaml_filename = GetChronoDataFile("yaml/vehicle/tire_static_rig/" + tests[which - 1].first);
+        title = tests[which - 1].second;
+    }
     cout << "Simulation YAML file: " << yaml_filename << endl;
 
     // Create the YAML parser object
@@ -130,7 +164,7 @@ int main(int argc, char* argv[]) {
     if (render) {
         vis = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vis->AttachSystem(sys.get());
-        vis->SetWindowTitle("Static tire test rig YAML demo - " + tests[which - 1].second);
+        vis->SetWindowTitle("Static tire test rig YAML demo - " + title);
         vis->SetWindowSize(1200, 600);
         vis->SetWindowPosition(100, 100);
         vis->SetCameraVertical(CameraVerticalDir::Z);
