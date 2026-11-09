@@ -1,6 +1,6 @@
 ## Rig mechanism: Viper rover wheel (custom wheel assembly provided by the application), without suspension
 
-chrono-version: 10.0
+chrono-version: 11.0
 
 model:
   type: CUSTOM                    # VEHICLE, CUSTOM

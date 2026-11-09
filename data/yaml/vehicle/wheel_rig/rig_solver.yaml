@@ -1,6 +1,6 @@
 ## MBS solver for the single-wheel test rig samples (follows mbs_solver.schema)
 
-chrono-version: 10.0
+chrono-version: 11.0
 
 contact_method: NSC               # NSC, SMC
 

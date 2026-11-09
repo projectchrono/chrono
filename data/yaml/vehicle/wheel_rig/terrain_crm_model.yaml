@@ -2,7 +2,7 @@
 ## The fluid domain dimensions set the terrain patch size. The test rig places the patch relative to the wheel,
 ## so the fluid domain box_origin is ignored, as are any container and computational domain settings.
 
-chrono-version: 10.0
+chrono-version: 11.0
 
 model:
   name: CRM terrain

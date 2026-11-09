@@ -2,7 +2,7 @@
 ## Note: a granular terrain consists of many sphere bodies; practical run times require a Chrono::Multicore system,
 ## which is not yet supported by the wheel test rig YAML parser.
 
-chrono-version: 10.0
+chrono-version: 11.0
 
 type: GRANULAR
 
