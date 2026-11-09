@@ -509,7 +509,7 @@ Chrono::Vehicle output was updated accordingly. See `demo_MBS_checkpoint`, `demo
 ## [Changed] Chrono::FSI-SPH API and terminology
 
 The Chrono::FSI-SPH public API was reworked for consistency, and the "elastic SPH" terminology was
-replaced throughout by "CRM" (continuous representation method):
+replaced throughout by "CRM" (Continuum Representation Model):
 
 - The boolean flag `elastic_SPH` was replaced by an enum `PhysicsProblem` (`CFD` or `CRM`).
   Accordingly, `SetElasticSPH(const ElasticMaterialProperties&)` was replaced by
