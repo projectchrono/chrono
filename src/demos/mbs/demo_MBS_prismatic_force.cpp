@@ -15,9 +15,6 @@
 // Demonstration of actuating a translational joint with a ChLinkForce.
 // The model is built with gravity acting in the negative Y direction.
 //
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
-//
 // =============================================================================
 
 #include <cmath>

@@ -16,9 +16,6 @@
 // capability is only available for ChLinkLockRevolute.  It is not available
 // for ChLinkRevolute (which uses a different formulation).
 //
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
-//
 // =============================================================================
 
 #include <cstdio>

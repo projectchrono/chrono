@@ -116,7 +116,7 @@ class ChApiIrr ChIrrGUI {
 
     irr::gui::IGUITabControl* g_tabbed;
 
-    irr::gui::IGUIStaticText* g_textFPS;
+    irr::gui::IGUIStaticText* g_textSimulation;
     irr::gui::IGUIComboBox* g_drawcontacts;
     irr::gui::IGUIComboBox* g_labelcontacts;
     irr::gui::IGUIComboBox* g_drawlinks;
@@ -126,6 +126,8 @@ class ChApiIrr ChIrrGUI {
     irr::gui::IGUICheckBox* g_plot_cogs;
     irr::gui::IGUICheckBox* g_plot_collisionshapes;
     irr::gui::IGUICheckBox* g_plot_linkframes;
+    irr::gui::IGUICheckBox* g_plot_bodylabels;
+    irr::gui::IGUICheckBox* g_plot_linklabels;
     irr::gui::IGUICheckBox* g_plot_convergence;
 
     irr::gui::IGUIEditBox* g_symbolscale;

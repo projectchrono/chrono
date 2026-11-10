@@ -59,6 +59,34 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_SPACE:
                 m_gui->m_vis->SetUtilityFlag(!m_gui->m_vis->GetUtilityFlag());
                 return true;
+            case irr::KEY_F2:
+                if (m_gui->camera_auto_rotate_speed >= 0)
+                    m_gui->camera_auto_rotate_speed = -0.02;
+                else
+                    m_gui->camera_auto_rotate_speed *= 1.5;
+                return true;
+            case irr::KEY_F3:
+                m_gui->camera_auto_rotate_speed = 0;
+                return true;
+            case irr::KEY_F4:
+                if (m_gui->camera_auto_rotate_speed <= 0)
+                    m_gui->camera_auto_rotate_speed = 0.02;
+                else
+                    m_gui->camera_auto_rotate_speed *= 1.5;
+                return true;
+            case irr::KEY_F6:
+                std::cout << "Saving system vector and matrices to sys_xxyy.dat files.\n";
+                m_gui->WriteSystemMatrices();
+                return true;
+            case irr::KEY_F7:
+                if (!m_gui->m_system->IsSolverMatrixWriteEnabled()) {
+                    std::cout << "Start saving system vector and matrices to *.dat files...\n";
+                    m_gui->m_system->EnableSolverMatrixWrite(true);
+                } else {
+                    std::cout << "Stop saving system vector and matrices to *.dat files.\n";
+                    m_gui->m_system->EnableSolverMatrixWrite(false);
+                }
+                return true;
             case irr::KEY_F8: {
                 std::cout << "Saving system in JSON format to dump.json file \n";
                 std::ofstream mfileo("dump.json");
@@ -74,34 +102,6 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
                 return true;
             }
-            case irr::KEY_F6:
-                std::cout << "Saving system vector and matrices to sys_xxyy.dat files.\n";
-                m_gui->WriteSystemMatrices();
-                return true;
-            case irr::KEY_F7:
-                if (!m_gui->m_system->IsSolverMatrixWriteEnabled()) {
-                    std::cout << "Start saving system vector and matrices to *.dat files...\n";
-                    m_gui->m_system->EnableSolverMatrixWrite(true);
-                } else {
-                    std::cout << "Stop saving system vector and matrices to *.dat files.\n";
-                    m_gui->m_system->EnableSolverMatrixWrite(false);
-                }
-                return true;
-            case irr::KEY_F4:
-                if (m_gui->camera_auto_rotate_speed <= 0)
-                    m_gui->camera_auto_rotate_speed = 0.02;
-                else
-                    m_gui->camera_auto_rotate_speed *= 1.5;
-                return true;
-            case irr::KEY_F3:
-                m_gui->camera_auto_rotate_speed = 0;
-                return true;
-            case irr::KEY_F2:
-                if (m_gui->camera_auto_rotate_speed >= 0)
-                    m_gui->camera_auto_rotate_speed = -0.02;
-                else
-                    m_gui->camera_auto_rotate_speed *= 1.5;
-                return true;
             case irr::KEY_ESCAPE:
                 m_gui->GetDevice()->closeDevice();
                 return true;
@@ -118,8 +118,7 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::gui::EGET_EDITBOX_ENTER:
                 switch (id) {
                     case 9921: {
-                        double val = atof(
-                            irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                        double val = atof(irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
                         m_gui->SetSymbolScale(val);
                     } break;
                 }
@@ -136,8 +135,7 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
 
 class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
   public:
-    explicit DebugDrawer(irr::video::IVideoDriver* driver)
-        : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
+    explicit DebugDrawer(irr::video::IVideoDriver* driver) : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
     ~DebugDrawer() {}
 
     virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) override {
@@ -203,99 +201,95 @@ void ChIrrGUI::Initialize(ChVisualSystemIrrlicht* vis) {
     skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
 
     // Create GUI gadgets
-    g_tabbed = guienv->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 550), 0, true, true);
-    auto g_tab1 = g_tabbed->addTab(L"Dynamic");
-    auto g_tab3 = g_tabbed->addTab(L"Help");
+    g_tabbed = guienv->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 570), 0, true, true);
 
-    g_textFPS = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, g_tab1);
+    // Simulation tab
+    auto g_tab_simulation = g_tabbed->addTab(L"Simulation");
+    g_textSimulation = guienv->addStaticText(L"", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, g_tab_simulation);
 
-    g_labelcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), g_tab1, 9901);
-    g_labelcontacts->addItem(L"Contact distances");
+    g_labelcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), g_tab_simulation, 9901);
+    g_labelcontacts->addItem(L"Contact distance");
     g_labelcontacts->addItem(L"Contact force modulus");
-    g_labelcontacts->addItem(L"Contact force (normal)");
-    g_labelcontacts->addItem(L"Contact force (tangent)");
+    g_labelcontacts->addItem(L"Contact force normal");
+    g_labelcontacts->addItem(L"Contact force tangent");
     g_labelcontacts->addItem(L"Contact torque modulus");
-    g_labelcontacts->addItem(L"Contact torque (spinning)");
-    g_labelcontacts->addItem(L"Contact torque (rolling)");
+    g_labelcontacts->addItem(L"Contact torque spinning");
+    g_labelcontacts->addItem(L"Contact torque rolling");
     g_labelcontacts->addItem(L"Do not print contact values");
     g_labelcontacts->setSelected(7);
 
-    g_drawcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), g_tab1, 9901);
-    g_drawcontacts->addItem(L"Contact normals");
-    g_drawcontacts->addItem(L"Contact distances");
-    g_drawcontacts->addItem(L"Contact N forces");
-    g_drawcontacts->addItem(L"Contact forces");
+    g_drawcontacts = guienv->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), g_tab_simulation, 9901);
+    g_drawcontacts->addItem(L"Contact normal dir");
+    g_drawcontacts->addItem(L"Contact distance");
+    g_drawcontacts->addItem(L"Contact normal force");
+    g_drawcontacts->addItem(L"Contact force");
     g_drawcontacts->addItem(L"Do not draw contacts");
     g_drawcontacts->setSelected(4);
 
-    g_labellinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), g_tab1, 9923);
-    g_labellinks->addItem(L"Link react.force modulus");
-    g_labellinks->addItem(L"Link react.force X");
-    g_labellinks->addItem(L"Link react.force Y");
-    g_labellinks->addItem(L"Link react.force Z");
-    g_labellinks->addItem(L"Link react.torque modulus");
-    g_labellinks->addItem(L"Link react.torque X");
-    g_labellinks->addItem(L"Link react.torque Y");
-    g_labellinks->addItem(L"Link react.torque Z");
+    g_labellinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), g_tab_simulation, 9923);
+    g_labellinks->addItem(L"Link reaction force modulus");
+    g_labellinks->addItem(L"Link reaction force X");
+    g_labellinks->addItem(L"Link reaction force Y");
+    g_labellinks->addItem(L"Link reaction force Z");
+    g_labellinks->addItem(L"Link reaction torque modulus");
+    g_labellinks->addItem(L"Link reaction torque X");
+    g_labellinks->addItem(L"Link reaction torque Y");
+    g_labellinks->addItem(L"Link reaction torque Z");
     g_labellinks->addItem(L"Do not print link values");
     g_labellinks->setSelected(8);
 
-    g_drawlinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), g_tab1, 9924);
-    g_drawlinks->addItem(L"Link reaction forces");
-    g_drawlinks->addItem(L"Link reaction torques");
+    g_drawlinks = guienv->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), g_tab_simulation, 9924);
+    g_drawlinks->addItem(L"Link reaction force");
+    g_drawlinks->addItem(L"Link reaction torque");
     g_drawlinks->addItem(L"Do not draw link vectors");
     g_drawlinks->setSelected(2);
 
-    g_plot_aabb =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), g_tab1, 9914, L"Draw AABB");
+    const irr::s32 vspacing = 15;
+    irr::s32 voff = 330;
+    g_plot_aabb = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9914, L"Draw AABB");
+    voff += vspacing;
+    g_plot_cogs = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9915, L"Draw COMs");
+    voff += vspacing;
+    g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9920, L"Draw link frames");
+    voff += vspacing;
+    g_plot_bodylabels = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9927, L"Draw body labels");
+    voff += vspacing;
+    g_plot_linklabels = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9928, L"Draw link labels");
+    voff += vspacing;
+    g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9902, L"Draw collision shapes");
+    voff += vspacing;
+    g_plot_abscoord = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9904, L"Draw abs coordsys");
+    voff += vspacing;
+    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, voff, 200, voff + vspacing), g_tab_simulation, 9903, L"Plot convergence");
 
-    g_plot_cogs =
-        guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), g_tab1, 9915, L"Draw COMs");
-
-    g_plot_linkframes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), g_tab1, 9920,
-                                            L"Draw link frames");
-
-    g_plot_collisionshapes = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), g_tab1, 9902,
-                                                 L"Draw collision shapes");
-
-    g_plot_abscoord = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 390, 200, 390 + 15), g_tab1, 9904,
-                                          L"Draw abs coordsys");
-
-    g_plot_convergence = guienv->addCheckBox(false, irr::core::rect<irr::s32>(10, 405, 200, 405 + 15), g_tab1, 9903,
-                                             L"Plot convergence");
-
-    guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 330, 200, 330 + 15), false, false, g_tab1);
-    g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 345, 200, 345 + 15), true, g_tab1, 9921);
+    guienv->addStaticText(L"Symbols scale", irr::core::rect<irr::s32>(130, 330, 200, 330 + 15), false, false, g_tab_simulation);
+    g_symbolscale = guienv->addEditBox(L"", irr::core::rect<irr::s32>(170, 345, 200, 345 + 15), true, g_tab_simulation, 9921);
     SetSymbolScale(symbolscale);
 
-    // -- g_tab3
+    // Help tab
+    auto g_tab_help = g_tabbed->addTab(L"Help");
 
-    g_textHelp = guienv->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, g_tab3);
-    irr::core::stringw hstr = "Instructions for interface.\n\n";
-    hstr += "MOUSE \n\n";
-    hstr += " left button: camera rotation \n";
-    hstr += " righ button: camera translate \n";
-    hstr += " wheel rotation: camera forward \n";
+    irr::core::stringw hstr = "Instructions for GUI interface\n\n";
+    hstr += "MOUSE\n";
+    hstr += " left button: camera rotation\n";
+    hstr += " righ button: camera translate\n";
+    hstr += " wheel rotation: camera forward\n";
     hstr += " wheel button: drag collision shapes\n";
-    hstr += "\nKEYBOARD\n\n";
+    hstr += "\nKEYBOARD\n";
     hstr += " 'i' key: show/hide settings\n";
     hstr += " 'o' key: show/hide profiler\n";
     hstr += " 'u' key: show/hide property tree\n";
-    hstr += " arrows keys: camera X/Z translate\n";
+    hstr += " arrow keys: camera X/Z translate\n";
     hstr += " Pg Up/Dw keys: camera Y translate\n";
-    hstr += " 'spacebar' key: stop/start simul.\n";
-    hstr += " 'p' key: advance single step\n";
-    hstr += " 'Print Scr' key: video capture to .bmp's\n";
-    hstr += " 'F6' key: single dump sys. matrices.\n";
-    hstr += " 'F7' key: continuous dump sys. matrices.\n";
-    hstr += " 'F8' key: dump a .json file.\n";
-    hstr += " 'F10' key: non-linear statics.\n";
-    hstr += " 'F11' key: linear statics.\n";
-    hstr += " 'F2-F3-F4' key: auto rotate camera.\n";
-    g_textHelp->setText(hstr.c_str());
+    hstr += " 'spacebar': toggle internal utility flag\n";
+    hstr += " 'F6' key: single dump sys matrices\n";
+    hstr += " 'F7' key: cont. dump sys matrices\n";
+    hstr += " 'F8' key: dump sys to .txt/.json\n";
+    hstr += " 'F2-F3-F4' key: auto rotate camera\n";
+    hstr += " 'ESC' key: quit simulation\n";
+    g_textHelp = guienv->addStaticText(hstr.c_str(), irr::core::rect<irr::s32>(10, 10, 200, 380), true, true, g_tab_help);
 
-    g_treeview = guienv->addTreeView(
-        irr::core::rect<irr::s32>(2, 80, 300, GetVideoDriver()->getScreenSize().Height - 4), 0, 9919, true, true, true);
+    g_treeview = guienv->addTreeView(irr::core::rect<irr::s32>(2, 80, 300, GetVideoDriver()->getScreenSize().Height - 4), 0, 9919, true, true, true);
     auto child = g_treeview->getRoot()->addChildBack(L"System", 0);
     child->setExpanded(true);
 }
@@ -406,19 +400,19 @@ void ChIrrGUI::Render() {
     CH_PROFILE("Render");
 
     irr::core::stringw str = "World time:  ";
-    str += (int)(1000 * m_system->GetChTime());
-    str += " ms";
+    str += irr::core::stringw(m_system->GetChTime());
+    str += " s";
     str += "\n\nCPU step (total):  ";
-    str += (int)(1000 * m_system->GetTimerStep());
+    str += static_cast<int>(1000 * m_system->GetTimerStep());
     str += " ms";
     str += "\n  CPU Collision time:  ";
-    str += (int)(1000 * m_system->GetTimerCollision());
+    str += static_cast<int>(1000 * m_system->GetTimerCollision());
     str += " ms";
     str += "\n  CPU Solver time:  ";
-    str += (int)(1000 * m_system->GetTimerLSsolve());
+    str += static_cast<int>(1000 * m_system->GetTimerLSsolve());
     str += " ms";
     str += "\n  CPU Update time:  ";
-    str += (int)(1000 * m_system->GetTimerUpdate());
+    str += static_cast<int>(1000 * m_system->GetTimerUpdate());
     str += " ms";
     str += "\n\nReal Time Factor: ";
     str += m_system->GetRTF();
@@ -428,11 +422,11 @@ void ChIrrGUI::Render() {
     str += m_system->GetNumBodiesSleeping();
     str += "\nNum. contacts:  ";
     str += m_system->GetNumContacts();
-    str += "\nNum. coords:  ";
+    str += "\nNum. states:  ";
     str += m_system->GetNumCoordsVelLevel();
-    str += "\nNum. constr:  ";
+    str += "\nNum. constraints:  ";
     str += m_system->GetNumConstraints();
-    g_textFPS->setText(str.c_str());
+    g_textSimulation->setText(str.c_str());
 
     int dmode = g_drawcontacts->getSelected();
     tools::DrawAllContactPoints(m_vis, symbolscale, (ContactsDrawMode)dmode);
@@ -457,6 +451,16 @@ void ChIrrGUI::Render() {
 
     if (g_plot_linkframes->isChecked())
         tools::DrawAllLinkframes(m_vis, symbolscale);
+
+    if (g_plot_bodylabels->isChecked()) {
+        for (const auto& body : m_system->GetBodies())
+            tools::DrawLabel3D(m_vis, body->GetName(), body->GetPos());
+    }
+
+    if (g_plot_linklabels->isChecked()) {
+        for (const auto& link : m_system->GetLinks())
+            tools::DrawLabel3D(m_vis, link->GetName(), link->GetFrame1Abs().GetPos());
+    }
 
     if (g_plot_collisionshapes->isChecked())
         DrawCollisionShapes(irr::video::SColor(50, 0, 0, 110));

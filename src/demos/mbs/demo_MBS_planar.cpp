@@ -14,9 +14,6 @@
 //
 // Demonstration of the plane-plane joint
 //
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
-//
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -40,6 +37,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, true, false);
     sys.AddBody(ground);
     ground->SetFixed(true);
+    ground->SetName("ground");
 
     // Create the sliding body
     // Give an initial angular velocity
@@ -49,6 +47,7 @@ int main(int argc, char* argv[]) {
     body->SetPos(ChVector3d(-1.25, -0.75, 0.1));
     body->SetAngVelLocal(ChVector3d(0.1, 0.1, 0.1));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
+    body->SetName("body");
 
     // Create the plane-plane constraint
     // Constrain the sliding body to move and rotate in the x-y plane
@@ -79,6 +78,8 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector3d(3, 0, 3));
     vis->AddTypicalLights();
     vis->EnableBodyFrameDrawing(true);
+
+
 
     // Simulation loop
     double timestep = 0.005;

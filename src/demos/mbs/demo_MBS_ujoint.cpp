@@ -14,9 +14,6 @@
 //
 // Demo for universal joint.
 //
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
-//
 // =============================================================================
 
 #include <cmath>
