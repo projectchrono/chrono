@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Dario Fusai
 // =============================================================================
 //
 // Based on the work of Liyang Yu in the tutorial of Codeproject
@@ -107,13 +107,6 @@ class ChApi ChSocket {
     ChSocket() {}
     void SetSocketId(int socketFd) { socketId = socketFd; }
 
-    int socketId;             ///< socket file descriptor
-    int portNumber;           ///< socket port number
-    int blocking;             ///< blocking flag
-    int bindFlag;             ///< binding flag
-    sockaddr_in* clientAddr;  ///< address of the client that sent data
-
-  private:
     /// Get the system errors.
 #ifdef _WIN32
     void detectErrorOpenWinSocket(int*, std::string&);
@@ -124,12 +117,19 @@ class ChApi ChSocket {
 #ifdef UNIX
     char* sGetError();
 #endif
+
+    int socketId;             ///< socket file descriptor
+    int portNumber;           ///< socket port number
+    int blocking;             ///< blocking flag
+    int bindFlag;             ///< binding flag
+    sockaddr_in* clientAddr;  ///< address of the client that sent data
+
 };
 
 // =============================================================================
 // ChSocketTCP
 // =============================================================================
-/// ChSocket for TCP communications.
+/// ChSocket for TCP (i.e. stream) communications.
 /// Three modes for sending|receiving are available:
 /// - full-manual mode:
 ///   + user owns a buffer of type std::vector<char>
@@ -222,7 +222,7 @@ class ChApi ChSocketTCP : public ChSocket {
     /// Clear the internal sending buffer populated by EnqueueData().
     void ClearInternalSendDataBuffer() { m_internal_buffer_send.clear(); }
 
-    /// Send the data collected into the internal sending buffer and clear it.
+    /// Send the data collected into the internal sending buffer, then clear it.
     /// Return the number of bytes sent.
     int SendDataBuffer();
 
@@ -233,7 +233,7 @@ class ChApi ChSocketTCP : public ChSocket {
     int ReceiveDataBuffer(int data_in_size);
 
     /// Copy data from the internal receiving buffer, at the specified byte offset, into the given variable.
-    /// This method should be called (potentially multiple times) to access data received by ReceiveBuffer().
+    /// This method should be called (potentially multiple times) to access data received by ReceiveDataBuffer().
     template <typename T>
     void ParseReceivedData(T& data_read, int byte_offset = 0) {
         for (auto s = 0; s < sizeof(data_read); ++s) {
@@ -290,6 +290,150 @@ class ChApi ChSocketTCP : public ChSocket {
     std::vector<char> m_internal_buffer_send = {};     ///< internal buffer to collect data to be sent
     std::vector<char> m_internal_buffer_receive = {};  ///< internal buffer to collect received data
     int receive_offset = 0;                            ///< internal offset for variadic ReceiveData() function
+};
+
+// =============================================================================
+// ChSocketUDP
+// =============================================================================
+/// ChSocket for UDP (i.e. datagram) communications.
+/// Three modes for sending|receiving are available:
+/// - full-manual mode:
+///   + user owns a buffer of type std::vector<char>
+///     - single call to SendBuffer(const std::vector<char>&) | ReceiveBuffer(std::vector<char>&, int)
+///   + user owns a message of type std::string
+///     - single call to SendString(const std::string&) | ReceiveString(std::string&)
+/// - templated mode:
+///   + for sending:
+///     - multiple calls to EnqueueData()
+///     - single call to SendDataBuffer()
+///   + for receiving:
+///     - single call to ReceiveDataBuffer(int)
+///     - multiple calls to ParseReceivedData()
+/// - full-auto mode
+///   + single call to SendData() | ReceiveData(), with all the variables involved
+class ChApi ChSocketUDP : public ChSocket {
+  public:
+    /// Default empty constructor.
+    ChSocketUDP() {}
+
+    /// Create a UDP socket and assign it a unique ID.
+    /// Store the local port number for later use.
+    ChSocketUDP(int port_number);
+
+    /// Destroy UDP socket.
+    ~ChSocketUDP();
+
+    // Server-side functionalities ---------------------------------------------
+
+    /// Bind the socket to a local address and port number [SERVER SIDE].
+    /// Return true on success.
+    bool BindSocket();
+
+    // Client-side functionalities ---------------------------------------------
+
+    /// Set destination host for subsequent communication [CLIENT SIDE].
+    /// Target can be specified either by host name or IP address.
+    /// Return true on success.
+    bool SetDestinationHost(const std::string& server_name_or_addr, HostType host_type);
+
+    /// Set destination port for subsequent UDP communication [CLIENT SIDE].
+    void SetDestinationPort(int port_number);
+
+    // Manual communication functionalities ------------------------------------
+
+    /// Send a string message to the configured destination.
+    /// Return the number of bytes sent.
+    int SendString(const std::string& message_out);
+
+    /// Receive a string message from any sender.
+    /// Sender host name and port number are additionally returned in provided arguments.
+    /// Return the number of bytes received.
+    int ReceiveString(std::string& message_in, std::string& sender_host_name, int& sender_port_number);
+
+    /// Send a buffer of raw bytes to the configured destination.
+    /// Return the number of bytes sent.
+    int SendBuffer(const std::vector<char>& source_buffer);
+
+    /// Receive a buffer of raw bytes from any sender.
+    /// Sender host name and port number are additionally returned in provided arguments.
+    /// The destination buffer is resized to the specified size in bytes before receiving.
+    /// Return the number of bytes received.
+    int ReceiveBuffer(std::vector<char>& destination_buffer, int byte_size, std::string& sender_host_name, int& sender_port_number);
+
+    // Buffered communication functionalities ----------------------------------
+
+    /// Add data to the internal sending buffer.
+    /// When operation is completed, collected data can be sent at once using SendDataBuffer().
+    template <typename T>
+    void EnqueueData(const T& data_to_send) {
+        for (auto s = 0; s < sizeof(data_to_send); ++s) {
+            m_internal_buffer_send.push_back(reinterpret_cast<const char*>(&data_to_send)[s]);
+        }
+    }
+
+    /// Clear the internal sending buffer populated by EnqueueData().
+    void ClearInternalSendDataBuffer() { m_internal_buffer_send.clear(); }
+
+    /// Send the data collected into the internal sending buffer, then clear it.
+    /// Return the number of bytes sent.
+    int SendDataBuffer();
+
+    /// Receive one UDP datagram and store it, up to `data_in_size` bytes, into the internal receiving buffer.
+    /// Received data can be subsequently read using ParseReceivedData().
+    /// Sender host name and port number are additionally returned in provided arguments.
+    /// This method clears the internal receiving buffer before operating.
+    /// Return the number of bytes received.
+    int ReceiveDataBuffer(int data_in_size, std::string& sender_host_name, int& sender_port_number);
+
+    /// Copy data from the internal receiving buffer, at the specified byte offset, into the given variable.
+    /// This method should be called (potentially multiple times) to access data received by ReceiveDataBuffer().
+    template <typename T>
+    void ParseReceivedData(T& data_read, int byte_offset = 0) {
+        for (auto s = 0; s < sizeof(data_read); ++s) {
+            reinterpret_cast<char*>(&data_read)[s] = m_internal_buffer_receive[byte_offset + s];
+        }
+    }
+
+    /// Send the given variables as a single UDP datagram.
+    /// The sending order respects the order of the arguments.
+    /// Return the number of bytes sent.
+    template <typename DataInType, typename... DataInTypes>
+    int SendData(const DataInType& data_in_1, const DataInTypes&... data_ins) {
+        EnqueueData(data_in_1);
+        return SendData(data_ins...);
+    }
+
+    /// Receive the given variables from one UDP datagram.
+    /// The receiving order follows the order of the arguments.
+    /// Return the number of bytes received.
+    template <typename DataInType, typename... DataInTypes>
+    int ReceiveData(DataInType& data_in_1, DataInTypes&... data_ins) {
+        receive_offset += sizeof(data_in_1);
+        int received_size = ReceiveData(data_ins...);
+
+        if (received_size <= 0) {
+            return received_size;
+        }
+
+        receive_offset -= sizeof(data_in_1);
+        ParseReceivedData(data_in_1, receive_offset);
+
+        return received_size;
+    }
+
+  private:
+    /// SendData variadic specialization for empty arguments.
+    int SendData();
+
+    /// ReceiveData variadic specialization for empty arguments.
+    int ReceiveData();
+
+    std::vector<char> m_internal_buffer_send = {};     ///< internal buffer to collect data to be sent
+    std::vector<char> m_internal_buffer_receive = {};  ///< internal buffer to collect received data
+    int receive_offset = 0;                            ///< internal offset for variadic ReceiveData() function
+
+    sockaddr_in* destinationAddr = nullptr;  ///< destination address
+    int destinationPort = 0;                 ///< destination port
 };
 
 // =============================================================================

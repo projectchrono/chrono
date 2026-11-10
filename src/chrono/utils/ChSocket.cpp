@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Dario Fusai
 // =============================================================================
 
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -42,6 +42,7 @@ namespace utils {
 const int HOST_NAME_LENGTH = 64;
 const int MSG_HEADER_LEN = sizeof(uint64_t);
 const int MAX_RECV_LEN = 8096;
+const int MAX_UDP_DATAGRAM_SIZE = 65507;  // maximum possible IPv4 UDP payload
 
 // =============================================================================
 // ChSocketFramework
@@ -71,19 +72,6 @@ ChSocketFramework::~ChSocketFramework() {
 ChSocket::ChSocket(int port_number) {
     portNumber = port_number;
     blocking = 1;
-
-    if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-#ifdef _WIN32
-        int errorCode;
-        std::string errorMsg = "";
-        detectErrorOpenWinSocket(&errorCode, errorMsg);
-        throw std::runtime_error(errorMsg);
-#endif
-
-#ifdef UNIX
-        throw std::runtime_error("unix: error getting host by name");
-#endif
-    }
 
     /*
        set the initial address of client that shall be communicated with to
@@ -549,7 +537,20 @@ std::ostream& operator<<(std::ostream& os, ChSocket& socket) {
 // =============================================================================
 // ChSocketTCP
 // =============================================================================
-ChSocketTCP::ChSocketTCP(int port_number) : ChSocket(port_number) {}
+ChSocketTCP::ChSocketTCP(int port_number) : ChSocket(port_number) {
+    if ((socketId = (int)::socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+#ifdef _WIN32
+        int errorCode;
+        std::string errorMsg = "";
+        detectErrorOpenWinSocket(&errorCode, errorMsg);
+        throw std::runtime_error(errorMsg);
+#endif
+
+#ifdef UNIX
+        throw std::runtime_error("unix: error getting host by name");
+#endif
+    }
+}
 
 bool ChSocketTCP::BindSocket() {
     try {
@@ -961,8 +962,8 @@ int ChSocketTCP::SendString(const std::string& message) {
     */
 
     char msgLength[MSG_HEADER_LEN + 1];
-    std::string fmt = "%" + std::to_string(MSG_HEADER_LEN) + "ld";
-    snprintf(msgLength, MSG_HEADER_LEN, fmt.c_str(), static_cast<uint64_t>(message.size()));
+    std::string fmt = "%" + std::to_string(MSG_HEADER_LEN) + "llu";
+    snprintf(msgLength, sizeof(msgLength), fmt.c_str(), static_cast<unsigned long long>(message.size()));
     std::string sendMsg(msgLength);
     sendMsg += message;
 
@@ -1146,6 +1147,219 @@ int ChSocketTCP::ReceiveData() {
     m_internal_buffer_receive.resize(receive_offset);
     int received_bytes = ReceiveBuffer(m_internal_buffer_receive, (int)m_internal_buffer_receive.size());
     return received_bytes;
+}
+
+// =============================================================================
+// ChSocketUDP
+// =============================================================================
+ChSocketUDP::ChSocketUDP(int port_number) : ChSocket(port_number) {
+    bindFlag = 0;
+
+    // Create UDP socket
+    socketId = (int)::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (socketId == -1) {
+#ifdef _WIN32
+        throw std::runtime_error("Error creating UDP socket.");
+#endif
+
+#ifdef UNIX
+        throw std::runtime_error(std::string("Error creating UDP socket: ") + strerror(errno));
+#endif
+    }
+
+    // Initialize destination address
+    destinationAddr = new sockaddr_in{};
+    destinationAddr->sin_family = AF_INET;
+    destinationAddr->sin_addr.s_addr = htonl(INADDR_ANY);
+    destinationAddr->sin_port = 0;
+
+    destinationPort = 0;
+}
+
+ChSocketUDP::~ChSocketUDP() {
+    delete destinationAddr;
+    destinationAddr = nullptr;
+}
+
+bool ChSocketUDP::BindSocket() {
+    try {
+        if (::bind(socketId, (struct sockaddr*)clientAddr, sizeof(struct sockaddr_in)) == -1) {
+#ifdef _WIN32
+            throw std::runtime_error("Error calling bind() on UDP socket.");
+#endif
+
+#ifdef UNIX
+            throw std::runtime_error(std::string("Error calling bind(): ") + strerror(errno));
+#endif
+        }
+
+        bindFlag = 1;
+
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool ChSocketUDP::SetDestinationHost(const std::string& server_name_or_addr, HostType host_type) {
+    try {
+        ChSocketHostInfo serverInfo(server_name_or_addr, host_type);
+
+        unsigned long address = inet_addr(serverInfo.GetHostIPAddress());
+
+        if (address == INADDR_NONE) {
+            throw std::runtime_error("Error converting destination IP address.");
+        }
+
+        destinationAddr->sin_family = AF_INET;
+        destinationAddr->sin_addr.s_addr = address;
+        destinationAddr->sin_port = htons(destinationPort);
+
+    } catch (const std::exception& excp) {
+        std::cerr << excp.what() << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+void ChSocketUDP::SetDestinationPort(int port_number) {
+    if (port_number < 1 || port_number > 65535) {
+        throw std::invalid_argument("Invalid UDP destination port number.");
+    }
+
+    destinationPort = port_number;
+    destinationAddr->sin_port = htons(destinationPort);
+}
+
+int ChSocketUDP::SendString(const std::string& message_out) {
+    std::vector<char> buffer(message_out.begin(), message_out.end());
+    return SendBuffer(buffer);
+}
+
+int ChSocketUDP::ReceiveString(std::string& message_in, std::string& sender_host_name, int& sender_port_number) {
+    std::vector<char> buffer(MAX_UDP_DATAGRAM_SIZE);  // maximum possible IPv4 UDP payload
+    int receivedBytes = ReceiveBuffer(buffer, MAX_UDP_DATAGRAM_SIZE, sender_host_name, sender_port_number);
+    if (receivedBytes < 0) {
+        return receivedBytes;
+    }
+
+    message_in.assign(buffer.data(), receivedBytes);
+    return receivedBytes;
+}
+
+int ChSocketUDP::SendBuffer(const std::vector<char>& source_buffer) {
+    if (destinationPort == 0) {
+        throw std::runtime_error("UDP destination port has not been configured.");
+    }
+
+    int nbytes = (int)source_buffer.size();
+
+    if (nbytes > MAX_UDP_DATAGRAM_SIZE) {
+        throw std::runtime_error("UDP datagram exceeds maximum IPv4 payload size.");
+    }
+
+    // A valid pointer is provided even for an empty datagram
+    const char* data = nbytes ? source_buffer.data() : "";
+
+    int sentBytes = (int)sendto(socketId, data, nbytes, 0, (struct sockaddr*)destinationAddr, sizeof(struct sockaddr_in));
+
+    if (sentBytes == -1) {
+#ifdef _WIN32
+        throw std::runtime_error("Error calling sendto() on UDP socket.");
+#endif
+
+#ifdef UNIX
+        throw std::runtime_error(std::string("Error calling sendto(): ") + strerror(errno));
+#endif
+    }
+
+    return sentBytes;
+}
+
+int ChSocketUDP::ReceiveBuffer(std::vector<char>& destination_buffer, int byte_size, std::string& sender_host_name, int& sender_port_number) {
+    if (byte_size < 0 || byte_size > MAX_UDP_DATAGRAM_SIZE) {
+        throw std::invalid_argument("Invalid UDP receive buffer size.");
+    }
+
+    destination_buffer.resize(byte_size);
+
+    sockaddr_in senderAddress{};
+
+#ifdef _WIN32
+    int senderAddressLen = sizeof(senderAddress);
+#endif
+
+#ifdef UNIX
+    socklen_t senderAddressLen = sizeof(senderAddress);
+#endif
+
+    // Valid pointer even when receiving a zero-length datagram
+    char dummyBuffer = 0;
+    char* data = byte_size ? destination_buffer.data() : &dummyBuffer;
+    int receivedBytes = (int)recvfrom(socketId, data, byte_size, 0, (struct sockaddr*)&senderAddress, &senderAddressLen);
+
+    if (receivedBytes == -1) {
+#ifdef _WIN32
+        throw std::runtime_error("Error calling recvfrom() on UDP socket.");
+#endif
+
+#ifdef UNIX
+        throw std::runtime_error(std::string("Error calling recvfrom(): ") + strerror(errno));
+#endif
+    }
+
+    // Retrieve sender port
+    sender_port_number = ntohs(senderAddress.sin_port);
+
+    // Retrieve sender IP address
+    const char* senderIP = inet_ntoa(senderAddress.sin_addr);
+    std::string numericAddress(senderIP);
+
+    // Attempt hostname resolution
+    // If resolution fails, retain the numeric IP address
+    try {
+        ChSocketHostInfo senderInfo(numericAddress, HostType::ADDRESS);
+        sender_host_name = senderInfo.GetHostName();
+    } catch (...) {
+        sender_host_name = numericAddress;
+    }
+
+    return receivedBytes;
+}
+
+int ChSocketUDP::SendDataBuffer() {
+    int sentBytes = SendBuffer(m_internal_buffer_send);
+
+    m_internal_buffer_send.clear();
+
+    return sentBytes;
+}
+
+int ChSocketUDP::ReceiveDataBuffer(int data_in_size, std::string& sender_host_name, int& sender_port_number) {
+    m_internal_buffer_receive.clear();
+
+    int receivedBytes = ReceiveBuffer(m_internal_buffer_receive, data_in_size, sender_host_name, sender_port_number);
+
+    // Keep only the bytes actually received
+    if (receivedBytes >= 0) {
+        m_internal_buffer_receive.resize(receivedBytes);
+    }
+
+    return receivedBytes;
+}
+
+int ChSocketUDP::SendData() {
+    return SendDataBuffer();
+}
+
+int ChSocketUDP::ReceiveData() {
+    std::string sender_host_name;
+    int sender_port_number = 0;
+    int receivedBytes = ReceiveDataBuffer(receive_offset, sender_host_name, sender_port_number);
+    return receivedBytes;
 }
 
 // =============================================================================
