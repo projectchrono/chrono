@@ -72,7 +72,8 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
 
     /// Set root output directory (default: ".").
-    /// This function creates two additional subdirectories, `mbs` and `fluid`, respectively.
+    /// This function creates the subdirectories `mbs` and `fluid` for the MBS and fluid output, respectively, but only
+    /// for a system that generates output (and an `images` subdirectory if run-time visualization images are saved).
     virtual void SetOutputDir(const std::string& out_dir) override;
 
     /// Return true if generating output.

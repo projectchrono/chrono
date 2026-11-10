@@ -42,7 +42,8 @@ class ChApiParsers ChParserYAML {
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Set root output directory (default: ".").
-    /// The specified directory must exist.
+    /// The specified directory must exist. If run-time visualization images are saved, they are written to an `images`
+    /// subdirectory, created here.
     virtual void SetOutputDir(const std::string& out_dir);
 
     /// Return the name of the YAML model.

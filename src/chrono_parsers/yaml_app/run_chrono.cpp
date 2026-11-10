@@ -201,8 +201,9 @@ bool RunMBS(const std::string& yaml_filename, std::string& out_dir, bool disable
     render = false;
 #endif
 
-    // Create output directory
-    if (output) {
+    // Create output directory (if generating output or saving run-time visualization images)
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return false;
@@ -302,8 +303,9 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
     render = false;
     #endif
 
-    // Create output directory
-    if (output) {
+    // Create output directory (if generating output or saving run-time visualization images)
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return false;
@@ -315,8 +317,10 @@ bool RunVEHICLE(const std::string& yaml_filename, std::string& out_dir, bool dis
         }
         parser.SetOutputDir(out_dir);
 
-        double out_step = 1.0 / parser.GetOutputFPS();
-        vehicle->SetOutput(parser.GetOutputFormat(), parser.GetOutputMode(), out_dir, model_name, out_step);
+        if (output) {
+            double out_step = 1.0 / parser.GetOutputFPS();
+            vehicle->SetOutput(parser.GetOutputFormat(), parser.GetOutputMode(), out_dir, model_name, out_step);
+        }
     }
 
     // Simulation loop
@@ -416,8 +420,9 @@ bool RunFSI(const std::string& yaml_filename, std::string& out_dir, bool disable
     render = false;
     #endif
 
-    // Create output directory
-    if (output) {
+    // Create output directory (if generating output or saving run-time visualization images)
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return false;
@@ -478,20 +483,6 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
 
     bool output = parser.OutputEnabled() && !disable_output;
 
-    // Create output directory (named after the simulation specification file)
-    if (output) {
-        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return false;
-        }
-        out_dir = out_dir + "/" + std::filesystem::path(yaml_filename).stem().string();
-        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-            std::cout << "Error creating directory " << out_dir << std::endl;
-            return false;
-        }
-        parser.SetOutputDir(out_dir);
-    }
-
     const ChVector3d& camera_offset = parser.GetCameraOffset();
     const ChVector3d& camera_target_offset = parser.GetCameraTargetOffset();
 
@@ -516,6 +507,22 @@ bool RunWHEEL_RIG(const std::string& yaml_filename, std::string& out_dir, bool d
     #else
     render = false;
     #endif
+
+    // Create output directory, named after the simulation specification file (if generating output or saving run-time
+    // visualization images)
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return false;
+        }
+        out_dir = out_dir + "/" + std::filesystem::path(yaml_filename).stem().string();
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return false;
+        }
+        parser.SetOutputDir(out_dir);
+    }
 
     // Simulation loop
     ChRealtimeStepTimer rt_timer;

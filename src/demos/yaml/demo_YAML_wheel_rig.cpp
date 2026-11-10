@@ -101,22 +101,6 @@ int main(int argc, char* argv[]) {
     bool render = parser.VisualizationEnabled();
     bool output = parser.OutputEnabled();
 
-    // Create output directory (named after the simulation specification file)
-    if (output) {
-        std::string out_dir = GetChronoOutputPath() + "YAML_WHEEL_RIG";
-        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-            cout << "Error creating directory " << out_dir << endl;
-            return 1;
-        }
-        out_dir += "/" + std::filesystem::path(yaml_filename).stem().string();
-        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
-            cout << "Error creating directory " << out_dir << endl;
-            return 1;
-        }
-        parser.SetOutputDir(out_dir);
-        cout << "Output directory: " << out_dir << endl;
-    }
-
     const ChVector3d& camera_offset = parser.GetCameraOffset();
     const ChVector3d& camera_target_offset = parser.GetCameraTargetOffset();
 
@@ -143,6 +127,24 @@ int main(int argc, char* argv[]) {
         cout << "Chrono::VSG run-time visualization module not enabled. Disabling visualization." << endl;
     render = false;
 #endif
+
+    // Create output directory, named after the simulation specification file (if generating output or saving run-time
+    // visualization images)
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_WHEEL_RIG";
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            cout << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        out_dir += "/" + std::filesystem::path(yaml_filename).stem().string();
+        if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
+            cout << "Error creating directory " << out_dir << endl;
+            return 1;
+        }
+        parser.SetOutputDir(out_dir);
+        cout << "Output directory: " << out_dir << endl;
+    }
 
     // Simulation loop
     ChRealtimeStepTimer rt_timer;

@@ -355,7 +355,8 @@ bool ChParserFsiYAML::OutputEnabled() const {
 void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
     ChParserYAML::SetOutputDir(out_dir);
 
-    if (m_parserMBS) {
+    // Create output subdirectories only for the systems that generate output
+    if (m_parserMBS && m_parserMBS->OutputEnabled()) {
         std::string out_dir_MBS = out_dir + "/mbs";
         if (CreateOutputDirectory(std::filesystem::path(out_dir_MBS))) {
             m_parserMBS->SetOutputDir(out_dir_MBS);
@@ -365,7 +366,7 @@ void ChParserFsiYAML::SetOutputDir(const std::string& out_dir) {
         }
     }
 
-    if (m_parserCFD) {
+    if (m_parserCFD && m_parserCFD->OutputEnabled()) {
         std::string out_dir_CFD = out_dir + "/fluid";
         if (CreateOutputDirectory(std::filesystem::path(out_dir_CFD))) {
             m_parserCFD->SetOutputDir(out_dir_CFD);

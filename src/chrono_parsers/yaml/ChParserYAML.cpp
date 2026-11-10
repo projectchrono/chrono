@@ -94,7 +94,9 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
         }
     }
 
-    if (m_vis_settings.write_images) {
+    bool save_images = VisualizationEnabled() && m_vis_settings.write_images;
+
+    if (save_images) {
         bool success = CreateOutputDirectory(std::filesystem::path(m_vis_settings.image_dir));
         if (!success) {
             std::cerr << "Error creating image output directory " << m_vis_settings.image_dir << std::endl;
@@ -106,7 +108,7 @@ void ChParserYAML::SetOutputDir(const std::string& out_dir) {
         if (m_output_settings.format != ChOutput::Format::NONE)
             PrintOutputFileInfo();
 
-        if (m_vis_settings.write_images) {
+        if (save_images) {
             cout << "Image directory: " << m_vis_settings.image_dir << endl;
         }
     }
