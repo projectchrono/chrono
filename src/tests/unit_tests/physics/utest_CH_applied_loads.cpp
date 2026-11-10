@@ -62,10 +62,10 @@ TEST(ChBody, applied_loads) {
     body->AddForce(force);
     force->SetMode(ChForce::ForceType::FORCE);
     force->SetFrame(ChForce::ReferenceFrame::WORLD);
-    force->SetAlign(ChForce::AlignmentFrame::WORLD_DIR);
-    force->SetVpoint(ChVector3d(0.5, 2, 3));
-    force->SetDir(ChVector3d(0, 1, 0));
-    force->SetMforce(5);
+    force->SetAlignment(ChForce::AlignmentFrame::WORLD_DIR);
+    force->SetApplicationPointAbs(ChVector3d(0.5, 2, 3));
+    force->SetDirAbs(ChVector3d(0, 1, 0));
+    force->SetForceMagnitude(5);
 
     sys.Update();
 

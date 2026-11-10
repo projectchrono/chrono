@@ -160,7 +160,7 @@ ChVector3d RunModel(LoadMode mode) {
             body->AddForce(body_force);
             body_force->SetMode(ChForce::ForceType::FORCE);
             body_force->SetFrame(ChForce::ReferenceFrame::BODY);
-            body_force->SetAlign(ChForce::AlignmentFrame::WORLD_DIR);
+            body_force->SetAlignment(ChForce::AlignmentFrame::WORLD_DIR);
             body_force->SetVrelpoint(VNULL);
             body_force->SetDir(force.GetNormalized());
             body_force->SetMforce(force.Length());
@@ -168,7 +168,7 @@ ChVector3d RunModel(LoadMode mode) {
             auto body_torque = chrono_types::make_shared<ChForce>();
             body->AddForce(body_torque);
             body_torque->SetMode(ChForce::ForceType::TORQUE);
-            body_torque->SetAlign(ChForce::AlignmentFrame::BODY_DIR);
+            body_torque->SetAlignment(ChForce::AlignmentFrame::BODY_DIR);
             body_torque->SetRelDir(torque.GetNormalized());
             body_torque->SetMforce(torque.Length());
             break;

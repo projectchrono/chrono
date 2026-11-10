@@ -239,18 +239,18 @@ Copter<nop>::Copter(ChSystem& sys,
         thrust->SetBody(prop.get());
         prop->AddForce(thrust);
         thrust->SetMode(ChForce::FORCE);
-        thrust->SetMforce(0);
-        thrust->SetRelDir(up);
+        thrust->SetForceMagnitude(0);
+        thrust->SetDirRel(up);
         thrusts.push_back(thrust);
 
         auto backtorque = std::make_shared<ChForce>();
         backtorque->SetBody(prop.get());
         prop->AddForce(backtorque);
         backtorque->SetMode(ChForce::TORQUE);
-        backtorque->SetMforce(0);
+        backtorque->SetForceMagnitude(0);
         // Resistance Torque direction opposed to omega
         ChVector3d tdir = (clockwise[p]) ? up : -up;
-        backtorque->SetRelDir(tdir);
+        backtorque->SetDirRel(tdir);
         backtorques.push_back(backtorque);
     }
 
@@ -258,7 +258,7 @@ Copter<nop>::Copter(ChSystem& sys,
     lin_drag = std::make_shared<ChForce>();
     lin_drag->SetBody(chassis.get());
     lin_drag->SetMode(ChForce::FORCE);
-    lin_drag->SetMforce(0);
+    lin_drag->SetForceMagnitude(0);
 }
 
 template <int nop>
@@ -322,12 +322,12 @@ void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
         double rps = motors[i]->GetMotorAngleDt() / CH_2PI;
-        thrusts[i]->SetMforce(Ct * rho * std::pow(rps, 2) * std::pow(Dp, 4));
-        backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * std::pow(rps, 2) * std::pow(Dp, 5));
+        thrusts[i]->SetForceMagnitude(Ct * rho * std::pow(rps, 2) * std::pow(Dp, 4));
+        backtorques[i]->SetForceMagnitude((1 / CH_2PI) * Cp * rho * std::pow(rps, 2) * std::pow(Dp, 5));
     }
     // update linear drag / drag torque
-    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDt().Length2());
-    lin_drag->SetDir(-chassis->GetPosDt());
+    lin_drag->SetForceMagnitude(0.5 * Cd * Surf * rho * chassis->GetPosDt().Length2());
+    lin_drag->SetDirAbs(-chassis->GetPosDt());
     // update pressure, temperature, altitude:
     UpdateAirData();
 }

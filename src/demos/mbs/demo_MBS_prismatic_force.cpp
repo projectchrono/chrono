@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // Actuate second slider using a body force
     auto frc2 = chrono_types::make_shared<ChForce>();
-    frc2->SetF_x(mod);
+    frc2->SetForceModulationX(mod);
     slider2->AddForce(frc2);
 
     // Create the Irrlicht visualization sys
