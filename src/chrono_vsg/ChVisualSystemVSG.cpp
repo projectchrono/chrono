@@ -862,9 +862,11 @@ void ChVisualSystemVSG::Initialize() {
     m_renderCommandGraph = vsg::CommandGraph::create(m_window, m_renderGraph);
     m_computeCommandGraph = vsg::CommandGraph::create(m_window);
 
-    // initialize ImGui
+    // Initialize ImGui.
+    // Load the default GUI window layout from the Chrono data directory, but never save the layout (no ImGui ini file).
     ImGui::CreateContext();
-    ImGui::GetIO().IniFilename = "../data/vsg/imgui.ini";
+    ImGui::GetIO().IniFilename = nullptr;
+    ImGui::LoadIniSettingsFromDisk(GetChronoDataFile("vsg/imgui.ini").c_str());
 
 #ifdef __APPLE__
     // application runs on retina display by default (window 800*600 generates a viewport 1600*1200)
