@@ -1,7 +1,7 @@
 chrono-version: 11.0
 
 model:
-  name: Invertedd_pendulum_LOAD
+  name: Inverted_pendulum_LOAD
   angle_degrees: true
   
   data_path:

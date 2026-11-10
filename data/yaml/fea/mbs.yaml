@@ -20,5 +20,5 @@ visualization:
   enable_shadows: true
   camera:
     vertical: Z
-    location: [-0.8, -1.8, -0.3]
-    target: [0, -0.3, -0.4]
+    location: [-1.2, -3.0, -0.2]
+    target: [0, 0, -0.35]
