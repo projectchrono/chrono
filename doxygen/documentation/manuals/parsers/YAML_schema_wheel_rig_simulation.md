@@ -45,7 +45,8 @@ by the wheel equals the specified normal load (see the [rig model schema](@ref Y
 The test rig assumes a Z-up world frame. The motion of the wheel is controlled through:
 - a linear motor driving the carrier at the prescribed longitudinal speed,
 - a rotational motor driving the wheel at the prescribed angular speed,
-- for a wheel without a suspension, a rotation of the wheel about the vertical axis, imposing the prescribed slip angle,
+- for a wheel without a suspension, a rotation of the wheel about the vertical axis through its center, imposing the
+  prescribed slip angle,
 - for a wheel with a steerable suspension, a steering actuator acting on the steering mechanism of the assembly.
 
 A motor whose function is not specified is not actuated; for example, a driven wheel is obtained by specifying only
@@ -136,7 +137,7 @@ a wheel sliding without rotation.
 #### Slip angle and steering
 
 For a wheel without a suspension, the slip angle is imposed directly through the `slip_angle` function, by rotating
-the wheel about the vertical axis.
+the wheel about the vertical axis through its center. The steering angle is then zero.
 
 With a suspension, the suspension geometry dictates the wheel orientation, so `slip_angle` is ignored. A steerable
 suspension can instead be steered through the `steering` object, which specifies the following properties:
@@ -270,7 +271,7 @@ reported at the wheel hub. Quantities marked as measurements are zero until rig 
 | `long_slip` | Longitudinal slip, (r ω - v) / abs(v), with v the horizontal hub speed (measurement) | -- |
 | `slip_angle` | Slip angle, from the hub orientation (measurement) | rad |
 | `camber_angle` | Camber angle, from the hub orientation (measurement) | rad |
-| `steering_angle` | Steering angle, relative to the loaded configuration (measurement) | rad |
+| `steering_angle` | Steering angle, relative to the loaded configuration; 0 for a wheel without a suspension (measurement) | rad |
 | `steering_actuator` | Steering actuator coordinate (0 without a steering actuator) | actuator specific |
 | `wheel_force_x`, `wheel_force_y`, `wheel_force_z` | Terrain force on the wheel (measurement) | N |
 | `wheel_moment_x`, `wheel_moment_y`, `wheel_moment_z` | Terrain moment on the wheel (measurement) | N.m |

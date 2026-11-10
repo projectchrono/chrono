@@ -817,6 +817,13 @@ Notable fixes since the 10.0.0 release:
   the analyze phase whenever the problem size or the number of matrix nonzeros changed: some changes
   made during a simulation (such as fixing a body or disabling a link) are not flagged as structural
   changes, and skipping the analysis in those cases could produce wrong results or a crash.
+- In the single-wheel test rig (`ChWheelTestRig`) without a suspension, the slip angle rotated the
+  wheel about a vertical axis 0.3 m to the side of the wheel center, which moved the wheel fore and aft
+  relative to the carrier. With a time-varying slip angle, the hub speed therefore differed from the
+  prescribed longitudinal speed, and the longitudinal slip oscillated (for example, between 0.10 and
+  0.54 instead of a constant 0.28 for the Viper wheel YAML demo). The slip angle is now imposed about
+  the vertical axis through the wheel center. In addition, the reported steering angle of a wheel
+  without a suspension is now zero; it previously repeated the imposed slip angle with opposite sign.
 
 # Release 10.0.0 (2026-03-27)
 

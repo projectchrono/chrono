@@ -876,10 +876,12 @@ void ChWheelTestRig::CreateWheelMechanism(double dim) {
     m_slip_body->SetMass(mass);
     m_slip_body->SetInertia(inertia);
 
-    // Create chassis to slip body connection which allows controlling slip angle
+    // Create chassis to slip body connection which allows controlling slip angle.
+    // The slip angle is imposed as a rotation about the vertical axis through the wheel center, so that it does not
+    // move the wheel center relative to the rig chassis.
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
     AddItem(m_slip_lock);
-    m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
+    m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), QUNIT));
     m_slip_lock->SetMotionAxis(ChVector3d(0, 0, 1));
 
     // Connect wheel to slip body
@@ -1329,8 +1331,11 @@ TerrainForce ChWheelTestRig::CalculateTerrainForce(const std::vector<std::shared
 }
 
 double ChWheelTestRig::CalcHubYaw() const {
-    // Hub rotation axis, expressed in the rig chassis frame; yaw is positive for a rotation about the vertical axis
-    auto dir = m_chassis_body->TransformDirectionParentToLocal(m_wheel_assembly->GetHub()->GetRotMat().GetAxisY());
+    // Hub rotation axis, expressed in the frame of the body carrying the wheel assembly (the slip body for a wheel without
+    // a suspension, the rig chassis otherwise); yaw is positive for a rotation about the vertical axis.
+    // Measuring relative to the slip body excludes the imposed slip angle from the steering angle.
+    const ChBody* mount = m_slip_body ? m_slip_body.get() : m_chassis_body.get();
+    auto dir = mount->TransformDirectionParentToLocal(m_wheel_assembly->GetHub()->GetRotMat().GetAxisY());
     return std::atan2(-dir.x(), dir.y());
 }
 

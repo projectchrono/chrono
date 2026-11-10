@@ -277,8 +277,9 @@ class CH_VEHICLE_API ChWheelTestRig {
     void SetConstantLongitudinalSlip(double long_slip, double base_speed = 1);
 
     /// Specify wheel slip angle as function of time (default: constant value 0).
-    /// A slip angle function can be used only if the wheel is not attached to a suspension subsystem
-    /// (in that case, the suspension dictates slip angle).
+    /// The slip angle is imposed by rotating the wheel about the vertical axis through its center. A slip angle function
+    /// can be used only if the wheel is not attached to a suspension subsystem (in that case, the suspension dictates slip
+    /// angle).
     void SetSlipAngleFunction(std::shared_ptr<ChFunction> funct) { m_sa_fun = funct; }
 
     /// Specify wheel steering angle as function of time (default: none).
@@ -498,9 +499,11 @@ class CH_VEHICLE_API ChWheelTestRig {
     double GetCamberAngle() const;
 
     /// Get current wheel steering angle, relative to the initial configuration (positive to the left).
-    /// This value is calculated from the current hub normal direction, relative to the rig chassis. For a wheel with a
-    /// suspension, the initial configuration is the loaded configuration with the steering actuator at zero; a zero
-    /// steering angle therefore retains the static toe of the suspension in that configuration.
+    /// This value is calculated from the current hub normal direction, relative to the body carrying the wheel assembly.
+    /// For a wheel with a suspension, this is the rig chassis and the initial configuration is the loaded configuration
+    /// with the steering actuator at zero; a zero steering angle therefore retains the static toe of the suspension in
+    /// that configuration. For a wheel without a suspension, this is the body rotated to impose the slip angle, so the
+    /// steering angle is always zero.
     double GetSteeringAngle() const;
 
     /// Get current steering actuator coordinate (0 if the wheel assembly has no steering actuator).
@@ -537,7 +540,8 @@ class CH_VEHICLE_API ChWheelTestRig {
     /// Set the terrain offset and height based on the current wheel position.
     void SetTerrainLocation();
 
-    /// Calculate the current hub yaw angle relative to the rig chassis.
+    /// Calculate the current hub yaw angle relative to the body carrying the wheel assembly.
+    /// This is the slip body for a wheel without a suspension and the rig chassis otherwise.
     double CalcHubYaw() const;
 
     /// Create the terrain patch of specified type.
