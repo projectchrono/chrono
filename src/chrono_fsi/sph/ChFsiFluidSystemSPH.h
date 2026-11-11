@@ -245,7 +245,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(const double fzDim);
 
-    /// Set gravity for the FSI system.
+    /// Set gravity for the SPH fluid system.
+    /// This function can also be called after initialization, for example to apply the inertial (fictitious) force of a
+    /// translating, non-inertial reference frame: in a frame with acceleration a, use an effective gravity g - a. Unlike a
+    /// body force (see SetBodyForce), gravity is also included in the extrapolation of the BCE marker pressure.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Set a constant force applied to the fluid.

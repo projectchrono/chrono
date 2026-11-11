@@ -300,10 +300,13 @@ void ChFsiFluidSystemSPH::SetInitPressure(const double height) {
 }
 
 void ChFsiFluidSystemSPH::SetGravitationalAcceleration(const ChVector3d& gravity) {
-    ChAssertAlways(!m_is_initialized);
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
+
+    // On an initialized system, upload the new value to the device
+    if (m_is_initialized)
+        CopyParametersToDevice(m_paramsH, m_data_mgr->countersH);
 }
 
 void ChFsiFluidSystemSPH::SetBodyForce(const ChVector3d& force) {
