@@ -775,6 +775,12 @@ Notable fixes since the 10.0.0 release:
   statics and bearing response (now with a zero-tension cutoff); the normalization factor of the
   quintic spline SPH kernel; handling of markers outside the computational domain; and the
   rheology-failure error flag, which never actually reported.
+- In Chrono::FSI-SPH, `CreatePointsCylinderExterior` placed one BCE layer too many on the cylinder
+  side wall (the end caps were correct), and `CreatePointsTruncatedConeExterior` (also used by
+  `CreatePointsConeExterior`) changed the cone slope when adding layers, created no base cap, and
+  with Cartesian points cut the layers off at the base radius. Both now create the configured number
+  of layers on every surface, starting at the surface. Containers built with
+  `CreatePointsCylinderExterior` therefore have one side-wall layer fewer than before.
 - Transparent objects did not cast shadows, and Chrono::VSG rendering was incorrect when physics
   items were bound after visualization initialization or when body frame visibility was set
   beforehand. `ChColormap` crashed on NaN values (now rendered black), Irrlicht node lifetime

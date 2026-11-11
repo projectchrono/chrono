@@ -2677,13 +2677,9 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
 
     // Use polar coordinates
     if (polar) {
-        double rad_max = rad + num_layers * spacing;
-        double rad_min = rad_max - num_layers * spacing;
-        int np_r = (int)std::round((rad_max - rad_min) / spacing);
-        double delta_r = (rad_max - rad_min) / np_r;
-
-        for (int ir = 0; ir <= np_r; ir++) {
-            double r = rad_min + ir * delta_r;
+        // Side wall: num_layers layers, the first one on the cylinder surface
+        for (int ir = 0; ir < num_layers; ir++) {
+            double r = rad + ir * spacing;
             int np_th = (int)std::round(2 * pi * r / spacing);
             double delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
             for (int it = 0; it < np_th; it++) {
@@ -2698,8 +2694,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
         }
 
         // Add cylinder caps
-        np_r = (int)std::round(rad_min / spacing);
-        delta_r = rad_min / np_r;
+        int np_r = (int)std::round(rad / spacing);
+        double delta_r = rad / np_r;
 
         for (int ir = 0; ir < np_r; ir++) {
             double r = ir * delta_r;
@@ -2720,14 +2716,15 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
         return bce;
     }
 
-    // Inflate cylinder and accept/reject points on a Cartesian grid
+    // Inflate cylinder and accept/reject points on a Cartesian grid.
+    // Side wall points are those with rad <= r < rad + num_layers * delta_r (with a small tolerance).
     int np_r = (int)std::round(rad / spacing);
     double delta_r = rad / np_r;
     np_r += num_layers;
-    rad += num_layers * delta_r;
 
-    double rad_max = rad;
-    double rad_min = std::max(rad - num_layers * delta_r, 0.0);
+    double tol = 1e-6 * delta_r;
+    double rad_min = rad - tol;
+    double rad_max = rad + num_layers * delta_r - tol;
     double r_max2 = rad_max * rad_max;
     double r_min2 = rad_min * rad_min;
     for (int ix = -np_r; ix <= np_r; ix++) {
@@ -2841,72 +2838,96 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(d
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    // Calculate actual spacing
+    // Calculate actual spacing in the axial direction
     int np_h = (int)std::round(height / spacing);
     double delta_h = height / np_h;
 
-    // Inflate cone
-    np_h += 2 * num_layers;
-    height += 2 * num_layers * delta_h;
+    // The cone base is at z = 0 and its tip at z = height; the side surface is r(z) = rad - k * z.
+    // Side wall layer i is the side surface offset by i * spacing along its outward normal, i.e., the cone with radius
+    // r(z) + i * dr. The base and tip caps have layers at z = -i * delta_h and z = height + i * delta_h, respectively.
+    // A true cone (rad_tip = 0) has no tip cap; its side wall layers extend up to their apex.
+    double k = (rad - rad_tip) / height;
+    double sk = std::sqrt(1 + k * k);
+    double dr = spacing * sk;
+    bool tip_cap = rad_tip > 0;
+    double z_ext = (num_layers - 1) * delta_h;
+
+    // Top of the side wall layer with given index
+    auto z_top = [&](int il) { return tip_cap ? height + z_ext : height + il * dr / k; };
 
     // Use polar coordinates
     if (polar) {
-        for (int iz = 0; iz < np_h; iz++) {
-            double z = iz * delta_h;
-            // Interpolate between rad_tip and rad based on the height
-            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
-            double rad_out = rz + num_layers * spacing;
-            double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
-            if (iz >= np_h - num_layers)
-                rad_in = 0;
-            int np_r = (int)std::round((rad_out - rad_in) / spacing);
-            double delta_r = (rad_out - rad_in) / np_r;
-            for (int ir = 0; ir <= np_r; ir++) {
-                double r = rad_in + ir * delta_r;
-                int np_th = (int)std::round(2 * pi * r / spacing);
+        // Side wall layers, sampled along the cone generator and extended over the caps
+        for (int il = 0; il < num_layers; il++) {
+            double z_bot = -z_ext;
+            double z_max = z_top(il);
+            int np_g = std::max((int)std::round((z_max - z_bot) * sk / spacing), 1);
+            double delta_z = (z_max - z_bot) / np_g;
+            for (int iz = 0; iz <= np_g; iz++) {
+                double z = z_bot + iz * delta_z;
+                double r = std::max(rad - k * z + il * dr, 0.0);
+                int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
                 double delta_th = (2 * pi) / np_th;
                 for (int it = 0; it < np_th; it++) {
                     double theta = it * delta_th;
-                    double x = r * cos(theta);
-                    double y = r * sin(theta);
-                    bce.push_back({x, y, z});
+                    bce.push_back({r * cos(theta), r * sin(theta), z});
                 }
             }
         }
 
-        // Add tip point only for a true cone (rad_tip = 0)
-        if (rad_tip < std::numeric_limits<double>::epsilon()) {
-            bce.push_back({0.0, 0.0, height});
+        // Cap layers (disks up to the innermost side wall layer)
+        auto add_cap_layer = [&](double z) {
+            double r_cap = rad - k * z;
+            if (r_cap <= 0)
+                return;
+            int np_r = std::max((int)std::round(r_cap / spacing), 1);
+            double delta_r = r_cap / np_r;
+            for (int ir = 0; ir < np_r; ir++) {
+                double r = ir * delta_r;
+                int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
+                double delta_th = (2 * pi) / np_th;
+                for (int it = 0; it < np_th; it++) {
+                    double theta = it * delta_th;
+                    bce.push_back({r * cos(theta), r * sin(theta), z});
+                }
+            }
+        };
+        for (int il = 0; il < num_layers; il++) {
+            add_cap_layer(-il * delta_h);
+            if (tip_cap)
+                add_cap_layer(height + il * delta_h);
         }
-
-        //// TODO: add cap
 
         return bce;
     }
 
-    // Use a regular grid and accept/reject points
+    // Use a regular grid and accept/reject points.
+    // A point is a BCE point if it is outside the cone, its distance from the side surface (measured along the normal) is
+    // less than num_layers * spacing, and it lies on one of the first num_layers grid levels beyond each cap plane.
     int np_r = (int)std::round(rad / spacing);
     double delta_r = rad / np_r;
+    double r_ext = std::max(rad + k * z_ext, rad_tip - k * z_ext) + num_layers * dr;
+    np_r = (int)std::ceil(r_ext / delta_r) + 1;
 
-    for (int iz = 0; iz <= np_h; iz++) {
+    double tol = 1e-6 * spacing;
+    double d_max = num_layers * spacing - tol;
+    int iz_min = -(num_layers - 1);
+    int iz_max = (int)std::floor(z_top(num_layers - 1) / delta_h + 1e-6);
+
+    for (int iz = iz_min; iz <= iz_max; iz++) {
         double z = iz * delta_h;
-        // Interpolate between rad_tip and rad based on the height
-        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
-        double rad_out = rz + num_layers * spacing;
-        double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
-        double r_out2 = rad_out * rad_out;
-        double r_in2 = rad_in * rad_in;
         for (int ix = -np_r; ix <= np_r; ix++) {
             double x = ix * delta_r;
             for (int iy = -np_r; iy <= np_r; iy++) {
                 double y = iy * delta_r;
-                double r2 = x * x + y * y;
-                if (r2 >= r_in2 && r2 <= r_out2) {
+                double r = std::sqrt(x * x + y * y);
+                double d_side = (r - (rad - k * z)) / sk;
+                double d_base = -z;
+                double d_tip = tip_cap ? z - height : -1;
+                bool outside = std::max({d_side, d_base, d_tip}) >= -tol;
+                if (outside && d_side < d_max && d_base <= z_ext + tol && d_tip <= z_ext + tol)
                     bce.push_back({x, y, z});
-                }
             }
-
-            //// TODO: add cap
         }
     }
 

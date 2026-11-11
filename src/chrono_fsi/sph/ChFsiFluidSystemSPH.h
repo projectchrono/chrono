@@ -576,26 +576,26 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::vector<ChVector3d> CreatePointsCylinderExterior(double rad, double height, bool polar) const;
 
     /// Create interior marker points for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// The cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created inside the cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeInterior(double rad, double height, bool polar) const;
 
     /// Create interior marker points for a truncated cone of specified radius and height.
-    /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
+    /// The truncated cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created inside the truncated cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
     std::vector<ChVector3d> CreatePointsTruncatedConeInterior(double rad, double rad_tip, double height, bool polar) const;
 
     /// Create exterior marker points for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// The cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created outside the cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeExterior(double rad, double height, bool polar) const;
 
     /// Create exterior marker points for a truncated cone of specified radius and height.
-    /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
+    /// The truncated cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created outside the truncated cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
