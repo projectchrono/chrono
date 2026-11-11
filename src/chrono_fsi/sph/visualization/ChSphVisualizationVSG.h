@@ -144,6 +144,17 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
     /// Enable/disable rendering of boundary BCE markers (default: false).
     void EnableBoundaryMarkers(bool val) { m_bndry_bce_markers = val; }
 
+    /// Set the frame in which SPH particles and BCE markers are displayed (default: identity).
+    /// A marker with position x in the SPH system is rendered at frame * x. This can be used to display an SPH problem
+    /// solved in a moving reference frame (for example, one that translates with a body) at its location in the absolute
+    /// frame. The frame can be changed before each call to Render(). Active domain boxes are displayed in the same frame.
+    /// Velocities passed to color callbacks are not transformed, while positions passed to color and visibility callbacks
+    /// are the transformed ones.
+    void SetMarkersFrame(const ChFramed& frame) {
+        m_markers_frame = frame;
+        m_use_markers_frame = true;
+    }
+
     /// Add additional proxy body to supplemental system.
     /// Must be called before Initialize().
     /// The provided body is set fixed to ground and it is the caller's responsibility to update the position of
@@ -281,6 +292,9 @@ class CH_FSI_API ChSphVisualizationVSG : public vsg3d::ChVisualSystemVSGPlugin {
 
     bool m_write_images;      ///< if true, save snapshots
     std::string m_image_dir;  ///< directory for image files
+
+    bool m_use_markers_frame;  ///< if true, display markers in m_markers_frame
+    ChFramed m_markers_frame;  ///< frame in which markers are displayed
 
     friend class FSISPHStatsVSG;
 };

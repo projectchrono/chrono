@@ -190,7 +190,8 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
-      m_sph_cloud_index(-1) {  // start with invalid cache so we rescan once the VSG clouds are bound
+      m_sph_cloud_index(-1),  // start with invalid cache so we rescan once the VSG clouds are bound
+      m_use_markers_frame(false) {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_activeBoxScene = vsg::Switch::create();
 }
@@ -209,7 +210,8 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
-      m_sph_cloud_index(-1) {  // ensure the SPH cloud lookup is re-validated on the first query
+      m_sph_cloud_index(-1),  // ensure the SPH cloud lookup is re-validated on the first query
+      m_use_markers_frame(false) {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_activeBoxScene = vsg::Switch::create();
 }
@@ -765,6 +767,14 @@ void ChSphVisualizationVSG::OnRender() {
     // Copy SPH particle positions from device to host
     m_pos.clear();
     m_pos = m_sysSPH->GetPositions();
+    if (m_use_markers_frame) {
+        for (auto& p : m_pos) {
+            auto q = m_markers_frame.TransformPointLocalToParent(ChVector3d(p.x, p.y, p.z));
+            p.x = (Real)q.x();
+            p.y = (Real)q.y();
+            p.z = (Real)q.z();
+        }
+    }
     if (m_color_fun) {
         m_vel.clear();
         m_vel = m_sysSPH->GetVelocities();
@@ -852,15 +862,19 @@ void ChSphVisualizationVSG::OnRender() {
             child.node->getValue("Visible", visible);
             child.mask = visible && !suspended;
         }
+        ChFramed box_frame;
+        ChVector3d hsize;
         if (obj == nullptr) {
-            auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
-            transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
+            hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
+            box_frame = ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT);
         } else {
             const ChAABB& aabb = m_ad_body[obj.get()];
-            auto hsize = aabb.Size() / 2;
-            auto center = aabb.Center();
-            transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos() + center, QUNIT), hsize);
+            hsize = aabb.Size() / 2;
+            box_frame = ChFramed(obj->GetPos() + aabb.Center(), QUNIT);
         }
+        if (m_use_markers_frame)
+            box_frame = m_markers_frame * box_frame;
+        transform->matrix = vsg::dmat4CH(box_frame, hsize);
     }
 }
 
