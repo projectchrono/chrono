@@ -161,7 +161,7 @@ ChVector3d RunModel(LoadMode mode) {
             body_force->SetMode(ChForce::ForceType::FORCE);
             body_force->SetFrame(ChForce::ReferenceFrame::BODY);
             body_force->SetAlignment(ChForce::AlignmentFrame::WORLD_DIR);
-            body_force->SetApplicationPointAbs(VNULL);
+            body_force->SetApplicationPointRel(VNULL);
             body_force->SetDirAbs(force.GetNormalized());
             body_force->SetForceMagnitude(force.Length());
 
@@ -198,7 +198,7 @@ TEST(ChModalAssembly, node_accumulators) {
 
     // The applied loads must have an effect
     ASSERT_GT((pos_node - ChVector3d(6, 0, 0)).Length(), 1e-6);
-
+     
     // Loads applied through accumulators must give the same results as node loads
     ASSERT_NEAR((pos_acc - pos_node).Length(), 0.0, 1e-10);
     ASSERT_NEAR((pos_mixed - pos_node).Length(), 0.0, 1e-10);
