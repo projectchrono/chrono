@@ -222,6 +222,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set (initial) density.
     void SetDensity(double rho0);
 
+    /// Set the base pressure added to the pressure from the Tait equation of state (default: 0).
+    /// A positive base pressure keeps the pressure positive where the fluid is in tension, which prevents tensile
+    /// instability (particle clumping, particles pulled into walls) in confined flows. Use with care for flows with a
+    /// free surface, where it pushes the free-surface particles outward.
+    void SetBasePressure(double base_pressure);
+
     /// Set the PPST Shifting parameters.
     /// - `push`: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
     /// - `pull`: coefficient for the pulling term in the PPST shifting method
@@ -836,6 +842,7 @@ class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiFluidSystemSPH::P
 
         p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
         rho0 = sysSPH.GetDensity() + p0 / c2;
+        p0 += sysSPH.GetBasePressure();
         mu0 = sysSPH.GetViscosity();
         v0 = init_vel;
 

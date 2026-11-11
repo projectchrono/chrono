@@ -339,6 +339,11 @@ void ChFsiFluidSystemSPH::SetDensity(double rho0) {
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
 }
 
+void ChFsiFluidSystemSPH::SetBasePressure(double base_pressure) {
+    ChAssertAlways(!m_is_initialized);
+    m_paramsH->base_pressure = base_pressure;
+}
+
 void ChFsiFluidSystemSPH::SetShiftingPPSTParameters(double push, double pull) {
     ChAssertAlways(!m_is_initialized);
     m_paramsH->shifting_ppst_push = push;
