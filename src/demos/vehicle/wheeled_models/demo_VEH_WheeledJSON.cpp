@@ -31,9 +31,12 @@
 
 // =============================================================================
 
-// Trailer model selection (use only with HMMWV, Sedan, or UAZ)
+// Trailer model selection
+// - Ultra-Tow: use only with HMMWV, Sedan, or UAZ
+// - UTV trailer: use only with Polaris
 bool add_trailer = false;
 auto trailer_model = UT_Model();
+////auto trailer_model = UTV_Trailer_Model();
 
 // JSON files for terrain
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -112,13 +115,13 @@ int main(int argc, char* argv[]) {
     if (add_trailer) {
         trailer = chrono_types::make_shared<WheeledTrailer>(sys, GetVehicleDataFile(trailer_model.TrailerJSON()));
         trailer->Initialize(vehicle.GetChassis());
-        trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+        trailer->SetChassisVisualizationType(trailer_model.VisType());
         trailer->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-        trailer->SetWheelVisualizationType(VisualizationType::NONE);
+        trailer->SetWheelVisualizationType(trailer_model.VisType() == VisualizationType::MESH ? VisualizationType::MESH : VisualizationType::NONE);
         for (auto& axle : trailer->GetAxles()) {
             for (auto& wheel : axle->GetWheels()) {
                 auto tire = ReadTireJSON(GetVehicleDataFile(trailer_model.TireJSON()));
-                trailer->InitializeTire(tire, wheel, VisualizationType::PRIMITIVES);
+                trailer->InitializeTire(tire, wheel, trailer_model.VisType());
             }
         }
     }

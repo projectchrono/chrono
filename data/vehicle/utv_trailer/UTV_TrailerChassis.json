@@ -1,0 +1,26 @@
+{
+  "Name": "UTV trailer chassis",
+  "Type": "ChassisRear",
+  "Template": "RigidChassisRear",
+
+  // Reference frame at the axle center; the trailer bed (2.0 x 0.92 m) top is at z = 0.232
+  "Components": [
+    {
+      "Centroidal Frame": {
+        "Location": [ 0.363, 0, 0.189 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+      },
+      "Mass": 134.1,
+      "Moments of Inertia": [ 16.6, 93.0, 108.2 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Void": false
+    }
+  ],
+
+  // Hitch ball center
+  "Front Connector Location": [ 2.0, 0, 0.05 ],
+
+  "Visualization": {
+    "Mesh": "vehicle/utv_trailer/meshes/utv_trailer_chassis.obj"
+  }
+}
