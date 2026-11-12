@@ -20,7 +20,9 @@
 //
 // The coupled simulation is the preCICE counterpart of demo_FSI-SPH_Flexible_Cable
 // (single cable, no rigid bodies) and of the corresponding YAML models in
-// demo_YAML_fsi. The two participants must be run in separate processes.
+// demo_YAML_fsi (option '-m soft_cable'). With a stiffer cable (option '-m stiff_cable'),
+// the cable deflects moderately under the collapsing water column.
+// The two participants must be run in separate processes.
 //
 // =============================================================================
 
@@ -77,8 +79,8 @@ std::string CreateParticipantOutputDirectory(const std::string& out_dir, const s
     return dir;
 }
 
-void RunParticipantMBS(const std::string& precice_config_filename, const std::string& out_dir, bool verbose, bool visualize, bool output) {
-    ChPreciceAdapterMbs participant(precice_config_filename, GetChronoDataFile("precice/flexible_cable/solid_chrono/mbs_participant.yaml"), verbose);
+void RunParticipantMBS(const std::string& precice_config_filename, const std::string& participant_file, const std::string& out_dir, bool verbose, bool visualize, bool output) {
+    ChPreciceAdapterMbs participant(precice_config_filename, GetChronoDataFile(participant_file), verbose);
     participant.SetOutputDir(CreateParticipantOutputDirectory(out_dir, "solid"));
 
     if (output) {
@@ -128,6 +130,7 @@ int main(int argc, char* argv[]) {
     ChCLI cli(argv[0], help);
     cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH)");
     cli.AddOption<std::string>("", "f,fluid", "fluid phase problem (CRM, CFD)", "CRM");
+    cli.AddOption<std::string>("", "m,model", "cable model (soft_cable, stiff_cable)", "soft_cable");
     cli.AddOption<std::string>("", "c,config_file", "preCICE configuration file (default: depends on fluid problem)", "");
     cli.AddOption<bool>("", "quiet", "Disable verbose terminal output");
     cli.AddOption<bool>("", "no_vis", "Disable run-time visualization");
@@ -150,6 +153,15 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    auto model = ChToLower(cli.GetAsType<std::string>("model"));
+    if (model != "soft_cable" && model != "stiff_cable") {
+        cerr << "Unrecognized cable model. Use 'soft_cable' or 'stiff_cable'" << endl;
+        return 1;
+    }
+    std::string participant_file = "precice/flexible_cable/solid_chrono/mbs_participant.yaml";
+    if (model == "stiff_cable")
+        participant_file = "precice/flexible_cable/solid_chrono/mbs_participant_stiff.yaml";
+
     auto precice_config_filename = cli.GetAsType<std::string>("config_file");
     if (precice_config_filename.empty())
         precice_config_filename = GetChronoDataFile("precice/flexible_cable/precice_config_" + fluid + ".xml");
@@ -159,14 +171,14 @@ int main(int argc, char* argv[]) {
     bool output = !cli.GetAsType<bool>("no_output");
 
     // Output directory (each participant uses a subdirectory for its own output and snapshots)
-    std::string out_dir = GetChronoOutputPath() + "PRECICE_Flexible_Cable/" + ChToUpper(fluid);
+    std::string out_dir = GetChronoOutputPath() + "PRECICE_Flexible_Cable/" + ChToUpper(fluid) + "_" + ChToUpper(model);
     if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
         cerr << "Error creating directory " << out_dir << endl;
         return 1;
     }
 
     if (type == "Solid")
-        RunParticipantMBS(precice_config_filename, out_dir, verbose, visualize, output);
+        RunParticipantMBS(precice_config_filename, participant_file, out_dir, verbose, visualize, output);
     else if (type == "Fluid_SPH")
         RunParticipantSPH(precice_config_filename, out_dir, fluid, verbose, visualize);
     else

@@ -30,4 +30,22 @@ demo_PRECICE_flexible_cable -p Fluid_SPH -f CRM
 ```
 
 With output enabled (the default), the solid participant writes the trajectory of the top cable node to
-`DEMO_OUTPUT/PRECICE_Flexible_Cable/<CRM|CFD>/results.txt`, in the same format as `demo_FSI-SPH_Flexible_Cable`.
+`DEMO_OUTPUT/PRECICE_Flexible_Cable/<CRM|CFD>_SOFT_CABLE/results.txt`, in the same format as
+`demo_FSI-SPH_Flexible_Cable`.
+
+Stiff cable
+-----------
+
+The solid participant can also use a stiff cable (`solid_chrono/mbs_model_stiff.yaml`), identical to the soft cable
+(`solid_chrono/mbs_model.yaml`) except for its Young's modulus (1.2e10 instead of 6e8). Under the collapsing water
+column, the soft cable is bent flat onto the floor of the container, while the stiff cable deflects moderately (tip
+rotation below 20 degrees). Select it with `-m stiff_cable` (the default is `-m soft_cable`), passed to both
+participants so that they share the output directory `DEMO_OUTPUT/PRECICE_Flexible_Cable/<CRM|CFD>_STIFF_CABLE`:
+
+```
+demo_PRECICE_flexible_cable -p Solid -f CFD -m stiff_cable
+demo_PRECICE_flexible_cable -p Fluid_SPH -f CFD -m stiff_cable
+```
+
+The fluid participant is the same for both cable models: it only uses the positions, velocities, and accelerations
+of the cable nodes.
