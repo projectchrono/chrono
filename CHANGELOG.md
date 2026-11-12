@@ -39,6 +39,7 @@ Change Log
   - [\[Changed\] Upgrade of 3rd-party dependencies](#changed-upgrade-of-3rd-party-dependencies)
   - [\[Added\] YAML parsers for Chrono models and simulations](#added-yaml-parsers-for-chrono-models-and-simulations) 
   - [\[Changed\] Refactoring of Chrono::FSI and Chrono fluid solvers](#changed-refactoring-of-chronofsi-and-chrono-fluid-solvers)
+  - [\[Changed\] Renamed data path functions in Chrono::Vehicle and Chrono::Synchrono](#changed-renamed-data-path-functions-in-chronovehicle-and-chronosynchrono)
   - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
   - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
   - [\[Added\] Chrono::VSG features and capabilities](#added-chronovsg-features-and-capabilities)
@@ -967,6 +968,22 @@ Two separate FSI-aware fluid solver libraries can be built:
 2. Chrono::FSI-TDPF, which provides a Time-Dependent Potential Flow fluid solver.
 
 For details on the new code structure and the two fluid solvers, see the [documentation](https://api.projectchrono.org/manual_fsi.html) page.
+
+## [Changed] Renamed data path functions in Chrono::Vehicle and Chrono::Synchrono
+
+The functions that set and query the location of data files in Chrono::Vehicle and Chrono::Synchrono were renamed to follow the pattern of the core Chrono functions (`SetChronoDataPath`, `GetChronoDataPath`, and `GetChronoDataFile`):
+
+| Old name                  | New name                            |
+| :------------------------ | :---------------------------------- |
+| `vehicle::SetDataPath`    | `vehicle::SetVehicleDataPath`       |
+| `vehicle::GetDataPath`    | `vehicle::GetVehicleDataPath`       |
+| `vehicle::GetDataFile`    | `vehicle::GetVehicleDataFile`       |
+| `synchrono::SetDataPath`  | `synchrono::SetSynchronoDataPath`   |
+| `synchrono::GetDataPath`  | `synchrono::GetSynchronoDataPath`   |
+| `synchrono::GetDataFile`  | `synchrono::GetSynchronoDataFile`   |
+
+The Python and C# wrappers use the new names; for example, `veh.SetDataPath` in older PyChrono scripts is now `veh.SetVehicleDataPath`.
+Note that PyChrono sets the Chrono and Chrono::Vehicle data paths when the package is imported, so Python scripts need these functions only to look up data files (e.g., `veh.GetVehicleDataFile`) or to override the default location.
 
 ## [Added] Chrono::Peridynamics module
 
