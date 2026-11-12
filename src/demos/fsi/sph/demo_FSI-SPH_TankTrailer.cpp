@@ -20,6 +20,7 @@
 //               and hard braking).
 //
 // Optionally, the demo saves data for rendering in Blender (see the --blender option).
+// See tank_trailer_blender/README.md for the demo options and the rendering pipeline.
 //
 // The SPH problem is solved in a reference frame that translates with the tank,
 // so that the computational domain stays small and fixed no matter how far the
