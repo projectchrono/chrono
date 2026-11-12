@@ -80,7 +80,9 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// Add the specified FEA mesh as a preCICE interface object.
     /// All mesh nodes with position degrees of freedom (ChNodeFEAxyz and derived types, and ChNodeFEAxyzrot) are
     /// exchanged through coupling meshes of type FEA_MESH_NODES; other mesh nodes are ignored. Forces received from
-    /// preCICE are applied through a dedicated force accumulator on each node.
+    /// preCICE are applied through a dedicated force accumulator on each node. If a preCICE mapping requires mesh
+    /// connectivity (e.g., nearest-projection), each 2-node element (beam or cable) with both nodes in the coupling
+    /// interface is registered as an edge of the coupling mesh; other elements provide no connectivity.
     /// Notes:
     /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
@@ -212,6 +214,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
 #ifdef CHRONO_FEA
+    void RegisterFeaMeshEdges(const std::string& mesh_name);
     void ReadFeaNodeData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteFeaNodeData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 #endif

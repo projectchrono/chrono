@@ -57,7 +57,11 @@ name under `meshes` in a YAML specification) and are exchanged through a `FEA_ME
 are the mesh nodes with position degrees of freedom (`ChNodeFEAxyz` and derived types, and
 `ChNodeFEAxyzrot`), in the order in which the meshes were added and, within each mesh, in node order. FEA
 nodes can receive forces (but not torques) and send positions, displacements (relative to the initial node
-position), velocities, and accelerations.
+position), velocities, and accelerations. When a mapping in the preCICE configuration requires mesh
+connectivity, such as `nearest-projection`, each 2-node element (beam or cable) is registered as an edge of the
+`FEA_MESH_NODES` mesh. The other participant can then interpolate the node data along the elements onto a much
+finer mesh of its own (for example, the face centers of a CFD boundary patch around a cable) and map its forces
+back to the nodes conservatively, so only the FEA nodes are exchanged.
 
 **Applying received loads.** Forces and torques arriving from the fluid participant are applied through a
 Chrono force accumulator held per coupling body, and forces on FEA nodes through a force accumulator held per

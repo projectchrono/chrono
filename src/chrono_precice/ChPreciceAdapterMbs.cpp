@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <algorithm>
+#include <unordered_map>
 
 #include "chrono_precice/ChPreciceAdapterMbs.h"
 
@@ -467,6 +468,12 @@ void ChPreciceAdapterMbs::InitializeParticipant() {
 
         // Register coupling mesh with preCICE, taking into account mesh dimension
         RegisterMesh(mesh_name, vertices);
+
+#ifdef CHRONO_FEA
+        // Register the connectivity of FEA node coupling meshes (used by mappings such as nearest-projection)
+        if (mesh_info.type == CouplingMeshType::FEA_MESH_NODES)
+            RegisterFeaMeshEdges(mesh_name);
+#endif
     }
 
     // Handle added mass info (applied via a Chrono ChLoadHydrodynamics)
@@ -1005,6 +1012,55 @@ void ChPreciceAdapterMbs::WriteBodyMeshData(const std::string& mesh_name, Coupli
 // -----------------------------------------------------------------------------
 
 #ifdef CHRONO_FEA
+
+void ChPreciceAdapterMbs::RegisterFeaMeshEdges(const std::string& mesh_name) {
+    // preCICE ignores connectivity on meshes for which no mapping requires it
+    if (!m_participant->requiresMeshConnectivityFor(mesh_name))
+        return;
+
+    // Vertices of an FEA_MESH_NODES coupling mesh are the coupling nodes of all coupling FEA meshes, in order
+    const auto& vertex_ids = m_coupling_meshes[mesh_name].vertex_ids;
+    std::vector<int> edges;
+    size_t num_skipped = 0;
+    size_t offset = 0;
+    for (const auto& c_mesh : m_coupling_fea) {
+        // Map the mesh nodes in the coupling interface to their preCICE vertex IDs
+        std::unordered_map<const fea::ChNodeFEAbase*, int> vertex_of_node;
+        for (size_t i = 0; i < c_mesh->nodes.size(); i++) {
+            const auto& c_node = c_mesh->nodes[i];
+            const fea::ChNodeFEAbase* node = c_node.node_xyz.get();
+            if (!node)
+                node = c_node.node_xyzrot.get();
+            vertex_of_node[node] = vertex_ids[offset + i];
+        }
+        offset += c_mesh->nodes.size();
+
+        // Add one edge for each 2-node element with both nodes in the coupling interface
+        for (const auto& element : c_mesh->mesh->GetElements()) {
+            if (element->GetNumNodes() != 2) {
+                num_skipped++;
+                continue;
+            }
+            auto v0 = vertex_of_node.find(element->GetNode(0).get());
+            auto v1 = vertex_of_node.find(element->GetNode(1).get());
+            if (v0 == vertex_of_node.end() || v1 == vertex_of_node.end()) {
+                num_skipped++;
+                continue;
+            }
+            edges.push_back(v0->second);
+            edges.push_back(v1->second);
+        }
+    }
+
+    m_participant->setMeshEdges(mesh_name, edges);
+
+    if (m_verbose) {
+        cout << m_prefix1 << "Coupling mesh '" << mesh_name << "': registered " << edges.size() / 2 << " edges";
+        if (num_skipped > 0)
+            cout << " (" << num_skipped << " elements without connectivity)";
+        cout << endl;
+    }
+}
 
 void ChPreciceAdapterMbs::ReadFeaNodeData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info) {
     for (const auto& data_name : m_data_read[mesh_name]) {
