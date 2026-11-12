@@ -18,9 +18,11 @@
 // Checks:
 // 1. The documented pattern (configure, then Initialize) works unchanged.
 // 2. Every guarded setter throws std::runtime_error after Initialize().
-// 3. SetComputationalDomain and SetOutputLevel remain callable after
-//    Initialize() (the CRMTerrain moving patch updates the computational
-//    domain mid-simulation; the output level is a host-only setting).
+// 3. SetComputationalDomain, SetGravitationalAcceleration and SetOutputLevel
+//    remain callable after Initialize() (the CRMTerrain moving patch updates
+//    the computational domain mid-simulation; gravity is uploaded to the device
+//    when changed, e.g. for an effective gravity in a non-inertial frame; the
+//    output level is a host-only setting).
 // 4. The system still advances after the rejected calls (no partial state
 //    mutation).
 //
@@ -137,11 +139,11 @@ int main(int argc, char* argv[]) {
     ExpectThrow("SetFreeFlowDuration", [&] { sysSPH->SetFreeFlowDuration(1.0); });
     ExpectThrow("SetNumBCELayers", [&] { sysSPH->SetNumBCELayers(3); });
     ExpectThrow("SetInitPressure", [&] { sysSPH->SetInitPressure(0.1); });
-    ExpectThrow("SetGravitationalAcceleration", [&] { sysSPH->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8)); });
     ExpectThrow("SetBodyForce", [&] { sysSPH->SetBodyForce(ChVector3d(0.1, 0, 0)); });
     ExpectThrow("SetInitialSpacing", [&] { sysSPH->SetInitialSpacing(0.02); });
     ExpectThrow("SetKernelMultiplier", [&] { sysSPH->SetKernelMultiplier(1.2); });
     ExpectThrow("SetDensity", [&] { sysSPH->SetDensity(1200); });
+    ExpectThrow("SetBasePressure", [&] { sysSPH->SetBasePressure(100); });
     ExpectThrow("SetShiftingPPSTParameters", [&] { sysSPH->SetShiftingPPSTParameters(3.0, 0.0); });
     ExpectThrow("SetShiftingXSPHParameters", [&] { sysSPH->SetShiftingXSPHParameters(0.5); });
     ExpectThrow("SetShiftingDiffusionParameters", [&] { sysSPH->SetShiftingDiffusionParameters(1.0, 1.0, 1.0); });
@@ -156,6 +158,7 @@ int main(int argc, char* argv[]) {
 
     // These must remain callable after Initialize()
     ExpectNoThrow("SetComputationalDomain (post-init)", [&] { sysSPH->SetComputationalDomain(domain); });
+    ExpectNoThrow("SetGravitationalAcceleration (post-init)", [&] { sysSPH->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8)); });
     ExpectNoThrow("SetOutputLevel (post-init)", [&] { sysSPH->SetOutputLevel(OutputLevel::STATE); });
 
     // The rejected calls must not have altered any state: the system still advances
