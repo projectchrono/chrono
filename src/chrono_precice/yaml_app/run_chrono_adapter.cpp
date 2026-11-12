@@ -19,6 +19,7 @@
 #include <filesystem>
 
 #include "chrono/ChConfig.h"
+#include "chrono/core/ChDataPath.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/assets/ChVisualSystem.h"
 #include "chrono/physics/ChSystem.h"
@@ -69,6 +70,7 @@ int main(int argc, char* argv[]) {
     cout << endl;
     cout << "Chrono YAML specification file: " << yaml_filename << endl;
     cout << "preCICE configuration file:     " << precice_filename << endl;
+    cout << "Chrono data directory:          " << GetChronoDataPath() << endl;
     cout << "Verbose?          " << (disable_verbose ? "no" : "yes") << endl;
     cout << "Visualization?    " << (disable_vis ? "no" : "yes") << endl;
     cout << "Output?           " << (disable_output ? "no" : "yes") << endl;
@@ -109,6 +111,7 @@ bool ParseArgs(int argc,
     cli.AddOption<std::string>("", "p,participant_file", "Chrono preCICE participant specification file (YAML format)");
     cli.AddOption<std::string>("", "c,precice_config_file", "preCICE configuration file (XML format)");
     cli.AddOption<std::string>("", "o,out_dir", "Output directory", out_dir);
+    cli.AddOption<std::string>("", "d,data_path", "Chrono data directory", GetChronoDataPath());
     cli.AddOption<bool>("", "quiet", "Disable terminal output");
     cli.AddOption<bool>("", "no_output", "Disable output");
     cli.AddOption<bool>("", "no_visualization", "Disable run-time visualization");
@@ -137,6 +140,12 @@ bool ParseArgs(int argc,
     disable_vis = cli.GetAsType<bool>("no_visualization");
 
     out_dir = cli.Get("out_dir").as<std::string>();
+
+    // Chrono data files (e.g., colormaps) are located relative to this directory
+    auto data_path = cli.Get("data_path").as<std::string>();
+    if (!data_path.empty() && data_path.back() != '/' && data_path.back() != '\\')
+        data_path += '/';
+    SetChronoDataPath(data_path);
 
     return true;
 }
