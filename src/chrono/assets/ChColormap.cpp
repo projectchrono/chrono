@@ -64,16 +64,23 @@ void ChColormap::Load(Type type) {
         }
         ifs.close();
     } else {
-        std::cout << "Cannot open colormap data file " << filename << std::endl;
+        std::cout << "Cannot open colormap data file " << filename;
+        if (m_map.empty())
+            std::cout << " (colormap empty, using uniform gray)";
+        std::cout << std::endl;
     }
 }
 
 ChColor ChColormap::Get(double value) const {
+    // No colormap data loaded (missing data file)
+    if (m_map.empty())
+        return ChColor(0.5f, 0.5f, 0.5f);
+
     ChClampValue(value, 0.0, 1.0);
 
     if (std::isnan(value))
-        return ChColor(0, 0, 0); // return black to signal "NaN" 
-        
+        return ChColor(0, 0, 0);  // return black to signal "NaN"
+
     if (value <= m_map.front().first)
         return m_map.front().second;
 
