@@ -35,10 +35,10 @@ ChMassProperties::ChMassProperties(double mass, const ChVector3d& com, const ChV
 }
 
 void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions,
-                                        const std::vector<ChMatrix33<> >& rotations,
-                                        const std::vector<ChMatrix33<> >& Jlocal,
+                                        const std::vector<ChMatrix33d>& rotations,
+                                        const std::vector<ChMatrix33d>& Jlocal,
                                         const std::vector<double>& masses,
-                                        ChMatrix33<>& totJ,
+                                        ChMatrix33d& totJ,
                                         double& totmass,
                                         ChVector3d& barycenter) {
     assert(positions.size() == Jlocal.size());
@@ -48,25 +48,25 @@ void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions
     totJ.setZero();
     barycenter = VNULL;
 
-    // compute tot mass and barycenter position
+    // Compute tot mass and barycenter position
     for (unsigned int i = 0; i < positions.size(); ++i) {
         barycenter = (barycenter * totmass + positions[i] * masses[i]) / (totmass + masses[i]);
         totmass += masses[i];
     }
 
-    // compute inertia
+    // Compute inertia
     for (unsigned int i = 0; i < positions.size(); ++i) {
         // rotate ith tensor in absolute space
-        ChMatrix33<> R = rotations[i];
-        ChMatrix33<> Rt = rotations[i];
+        ChMatrix33d R = rotations[i];
+        ChMatrix33d Rt = rotations[i];
         Rt.transposeInPlace();
-        ChMatrix33<> absJ = R * Jlocal[i] * Rt;
+        ChMatrix33d absJ = R * Jlocal[i] * Rt;
 
         // Huygens-Steiner parallel axis theorem:
 
         ChVector3d dist = positions[i] - barycenter;
 
-        ChMatrix33<> absJtranslated;
+        ChMatrix33d absJtranslated;
         absJtranslated = absJ;
         absJtranslated(0, 0) += masses[i] * (dist.Length2() - dist.x() * dist.x());
         absJtranslated(1, 1) += masses[i] * (dist.Length2() - dist.y() * dist.y());
@@ -74,7 +74,7 @@ void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions
         absJtranslated(0, 1) += masses[i] * (-dist.x() * dist.y());
         absJtranslated(0, 2) += masses[i] * (-dist.x() * dist.z());
         absJtranslated(1, 2) += masses[i] * (-dist.y() * dist.z());
-        // symmetric part
+        // Symmetric part
         absJtranslated(1, 0) = absJtranslated(0, 1);
         absJtranslated(2, 0) = absJtranslated(0, 2);
         absJtranslated(2, 1) = absJtranslated(1, 2);
@@ -83,19 +83,19 @@ void ChInertiaUtils::InertiaFromCluster(const std::vector<ChVector3d>& positions
     }
 }
 
-void ChInertiaUtils::RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R, ChMatrix33<>& inertiaOut) {
-    ChMatrix33<> Rt = R;
+void ChInertiaUtils::RotateInertia(const ChMatrix33d& inertiaIn, const ChMatrix33d& R, ChMatrix33d& inertiaOut) {
+    ChMatrix33d Rt = R;
     Rt.transposeInPlace();
     inertiaOut = R * inertiaIn * Rt;
 }
 
-ChMatrix33<> ChInertiaUtils::RotateInertia(const ChMatrix33<> inertiaIn, const ChMatrix33<> R) {
-    ChMatrix33<> inertiaOut;
+ChMatrix33d ChInertiaUtils::RotateInertia(const ChMatrix33d& inertiaIn, const ChMatrix33d& R) {
+    ChMatrix33d inertiaOut;
     RotateInertia(inertiaIn, R, inertiaOut);
     return inertiaOut;
 }
 
-void ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn, const ChVector3d dist, const double mass, ChMatrix33<>& inertiaOut) {
+void ChInertiaUtils::TranslateInertia(const ChMatrix33d& inertiaIn, const ChVector3d& dist, double mass, ChMatrix33d& inertiaOut) {
     // Huygens-Steiner parallel axis theorem:
     inertiaOut = inertiaIn;
     inertiaOut(0, 0) += mass * (dist.Length2() - dist.x() * dist.x());
@@ -104,19 +104,19 @@ void ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn, const ChVect
     inertiaOut(0, 1) += mass * (-dist.x() * dist.y());
     inertiaOut(0, 2) += mass * (-dist.x() * dist.z());
     inertiaOut(1, 2) += mass * (-dist.y() * dist.z());
-    // symmetric part
+    // Symmetric part
     inertiaOut(1, 0) = inertiaOut(0, 1);
     inertiaOut(2, 0) = inertiaOut(0, 2);
     inertiaOut(2, 1) = inertiaOut(1, 2);
 }
 
-ChMatrix33<> ChInertiaUtils::TranslateInertia(const ChMatrix33<> inertiaIn, const ChVector3d dist, const double mass) {
-    ChMatrix33<> inertiaOut;
+ChMatrix33d ChInertiaUtils::TranslateInertia(const ChMatrix33d& inertiaIn, const ChVector3d& dist, double mass) {
+    ChMatrix33d inertiaOut;
     TranslateInertia(inertiaIn, dist, mass, inertiaOut);
     return inertiaOut;
 }
 
-void ChInertiaUtils::PrincipalInertia(const ChMatrix33<>& inertia, ChVector3d& principal_inertia, ChMatrix33<>& principal_axes) {
+void ChInertiaUtils::PrincipalInertia(const ChMatrix33d& inertia, ChVector3d& principal_inertia, ChMatrix33d& principal_axes) {
     ChVectorN<double, 3> principal_I;
     inertia.SelfAdjointEigenSolve(principal_axes, principal_I);
 
@@ -147,8 +147,8 @@ CompositeInertia::CompositeInertia() : m_mass(0) {
 
 // Utility function for calculating an inertia shift matrix from a given vector.
 // This matrix is used when applying the parallel axis theorem.
-ChMatrix33<> CompositeInertia::InertiaShiftMatrix(const ChVector3d& v) {
-    ChMatrix33<> shift;
+ChMatrix33d CompositeInertia::InertiaShiftMatrix(const ChVector3d& v) {
+    ChMatrix33d shift;
     shift(0, 0) = v.y() * v.y() + v.z() * v.z();
     shift(1, 1) = v.x() * v.x() + v.z() * v.z();
     shift(2, 2) = v.x() * v.x() + v.y() * v.y();
@@ -163,18 +163,18 @@ ChMatrix33<> CompositeInertia::InertiaShiftMatrix(const ChVector3d& v) {
 }
 
 // Calculate and return the inertia tensor of the composite body, with respect to its centroidal frame.
-ChMatrix33<> CompositeInertia::GetInertia() const {
+ChMatrix33d CompositeInertia::GetInertia() const {
     return m_inertia - InertiaShiftMatrix(m_com) * m_mass;
 }
 
 // Include sub-component inertia properties.
-void CompositeInertia::AddComponent(const ChFrame<>& frame,       // centroidal frame of sub-component
-                                    double mass,                  // mass of sub-component
-                                    const ChMatrix33<>& inertia,  // sub-component inertia tensor w.r.t. its centroidal frame
-                                    bool is_void                  // indicate if sub-component represents a material void
+void CompositeInertia::AddComponent(const ChFramed& frame,       // centroidal frame of sub-component
+                                    double mass,                 // mass of sub-component
+                                    const ChMatrix33d& inertia,  // sub-component inertia tensor w.r.t. its centroidal frame
+                                    bool is_void                 // indicate if sub-component represents a material void
 ) {
     const ChVector3d& com = frame.GetPos();
-    const ChMatrix33<>& A = frame.GetRotMat();
+    const ChMatrix33d& A = frame.GetRotMat();
 
     double sign = is_void ? -1 : +1;
 
@@ -185,7 +185,7 @@ void CompositeInertia::AddComponent(const ChFrame<>& frame,       // centroidal 
     m_mass = m_mass + sign * mass;
 
     // Express sub-component inertia w.r.t. the reference frame and update composite inertia
-    ChMatrix33<> increment = A * inertia * A.transpose() + InertiaShiftMatrix(com) * mass;
+    ChMatrix33d increment = A * inertia * A.transpose() + InertiaShiftMatrix(com) * mass;
     if (is_void)
         m_inertia -= increment;
     else
