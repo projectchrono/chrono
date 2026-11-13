@@ -123,8 +123,6 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-// WARNING: the DrawChFunction is not working properly since it cannot recognize that ChFunction_XXX is derived from ChFunction
-
 %import(module="pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVector2.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVector3.i"
@@ -132,7 +130,7 @@ using namespace gui;
 %import(module="pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChFrame.i"
 // %import(module="pychrono.core") "../../../chrono/functions/ChFunction.h"
-// %import(module="pychrono.core") "chrono_swig/interface/core/ChFunction.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChFunction.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChObject.i" // ChObject should be imported before ChPhysicsItem
 %import(module="pychrono.core") "chrono_swig/interface/core/ChPhysicsItem.i"
 %import(module="pychrono.core") "chrono_swig/interface/core/ChVisualMaterial.i"

@@ -161,12 +161,18 @@
 #endif             // --------------------------------------------------------------------- PYTHON
 
 // Include global functions not directly accessible because they're defined outside the ChVector3 Class
-// TODO: add more. Testing vdot and vcross for now
+// TODO: complete
 
 extern double Vdot(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern chrono::ChVector3d Vcross(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern chrono::ChVector3d Vadd(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern chrono::ChVector3d Vsub(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
+extern void Vset(chrono::ChVector3d& v, double mx, double my, double mz);
+extern chrono::ChVector3d Vmul(const chrono::ChVector3d& va, double fact);
+extern bool Vequal(const chrono::ChVector3d& va, const chrono::ChVector3d vb);
+extern bool Vnotnull(const chrono::ChVector3d& va);
+extern chrono::ChVector3d Vmin(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
+extern chrono::ChVector3d Vmax(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 
 %inline %{
     double Vdot(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
@@ -181,4 +187,22 @@ extern chrono::ChVector3d Vsub(const chrono::ChVector3d& va, const chrono::ChVec
 	chrono::ChVector3d Vsub(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
 		return chrono::Vsub(va, vb);		
     }
+	void Vset(chrono::ChVector3d& v, double mx, double my, double mz) {
+		chrono::Vset(v, mx, my, mz);
+	}
+	chrono::ChVector3d Vmul(const chrono::ChVector3d& va, double fact) {
+		return chrono::Vmul(va, fact);
+	}
+	bool Vequal(const chrono::ChVector3d& va, const chrono::ChVector3d vb) {
+		return chrono::Vequal(va, vb);
+	}
+	bool Vnotnull(const chrono::ChVector3d& va) {
+		return chrono::Vnotnull(va);
+	}
+	chrono::ChVector3d Vmin(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
+		return chrono::Vmin(va, vb);
+	}
+	chrono::ChVector3d Vmax(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
+		return chrono::Vmax(va, vb);
+	}
 %}
