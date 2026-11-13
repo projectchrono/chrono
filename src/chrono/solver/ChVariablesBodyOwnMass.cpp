@@ -77,7 +77,7 @@ void ChVariablesBodyOwnMass::AddMassTimesVector(ChVectorRef result, ChVectorCons
     result(5) += (inertia(2, 0) * vect(3) + inertia(2, 1) * vect(4) + inertia(2, 2) * vect(5));
 }
 
-void ChVariablesBodyOwnMass::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
+void ChVariablesBodyOwnMass::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, double ca) const {
     // optimized unrolled operations
     double q0 = vect(offset + 0);
     double q1 = vect(offset + 1);
@@ -94,7 +94,7 @@ void ChVariablesBodyOwnMass::AddMassTimesVectorInto(ChVectorRef result, ChVector
     result(offset + 5) += ca * (inertia(2, 0) * q3 + inertia(2, 1) * q4 + inertia(2, 2) * q5);
 }
 
-void ChVariablesBodyOwnMass::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+void ChVariablesBodyOwnMass::AddMassDiagonalInto(ChVectorRef result, double ca) const {
     result(offset + 0) += ca * mass;
     result(offset + 1) += ca * mass;
     result(offset + 2) += ca * mass;
@@ -103,10 +103,7 @@ void ChVariablesBodyOwnMass::AddMassDiagonalInto(ChVectorRef result, const doubl
     result(offset + 5) += ca * inertia(2, 2);
 }
 
-void ChVariablesBodyOwnMass::PasteMassInto(ChSparseMatrix& mat,
-                                           unsigned int start_row,
-                                           unsigned int start_col,
-                                           const double ca) const {
+void ChVariablesBodyOwnMass::PasteMassInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, double ca) const {
     mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * mass);
     mat.SetElement(offset + start_row + 1, offset + start_col + 1, ca * mass);
     mat.SetElement(offset + start_row + 2, offset + start_col + 2, ca * mass);

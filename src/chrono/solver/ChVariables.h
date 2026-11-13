@@ -42,7 +42,7 @@ class ChApi ChVariables {
     ChVariables& operator=(const ChVariables& other);
 
     /// Deactivates/freezes the variable (these variables won't be modified by the system solver).
-    void SetDisabled(bool mdis) { disabled = mdis; }
+    void SetDisabled(bool dis) { disabled = dis; }
 
     /// Check if the variables have been deactivated (these variables won't be modified by the system solver).
     bool IsDisabled() const { return disabled; }
@@ -57,16 +57,16 @@ class ChApi ChVariables {
     /// Get a reference to the differential states encapsulated by these variables.
     /// These variable states are part of 'q' in the system:
     /// <pre>
-    ///    | M -Cq'| * |q|- | f| = |0| ,  c>0, l>0, l*r=0;
-    ///    | Cq  0 |   |l|  |-b|   |c|
+    ///    | M -Cq'| * |q| - | f| = |0| ,  c>0, l>0, l*r=0;
+    ///    | Cq  0 |   |l|   |-b|   |c|
     /// </pre>
     ChVectorRef State() { return qb; }
 
     /// Get a reference to the generalized force corresponding to these variables.
     /// These variable forces are part of 'f' in the system:
     /// <pre>
-    ///    | M -Cq'| * |q|- | f| = |0| ,  c>0, l>0, l*r=0;
-    ///    | Cq  0 |   |l|  |-b|   |c|
+    ///    | M -Cq'| * |q| - | f| = |0| ,  c>0, l>0, l*r=0;
+    ///    | Cq  0 |   |l|   |-b|   |c|
     /// </pre>
     ChVectorRef Force() { return fb; }
 
@@ -81,21 +81,18 @@ class ChApi ChVariables {
     /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
     /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
     /// vectors using the offsets of each variable.
-    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const = 0;
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, double ca) const = 0;
 
     /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
     /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
     /// offsets of each variable.
-    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const = 0;
+    virtual void AddMassDiagonalInto(ChVectorRef result, double ca) const = 0;
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
     /// The masses will be scaled by the given factor 'ca'. The (start_row, start_col) pair specifies the top-left
     /// corner of the system-level mass matrix in the provided matrix. Assembling the system-level sparse matrix
     /// is required only if using a direct sparse solver or for debugging/reporting purposes.
-    virtual void PasteMassInto(ChSparseMatrix& mat,
-                               unsigned int start_row,
-                               unsigned int start_col,
-                               const double ca) const = 0;
+    virtual void PasteMassInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, double ca) const = 0;
 
     /// Set offset in the global state vector.
     /// This offset if set automatically by the ChSystemDescriptor during set up.

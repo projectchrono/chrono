@@ -156,15 +156,15 @@ using ChMatrixConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dyn
 using ChVectorRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor>>;
 
 /// Constant reference to a column vector expression, with double coefficients.
-/// This allows writing non-template functions that can accept either a ChVectorDynamic or a ChRowVectorN.
+/// This allows writing non-template functions that can accept either a ChVectorDynamic or a ChVectorN.
 using ChVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor>>&;
 
 /// Reference to a row vector expression, with double coefficients.
-/// This allows writing non-template functions that can accept either a ChRowVectorDynamic or a CVectorN.
+/// This allows writing non-template functions that can accept either a ChRowVectorDynamic or a ChRowVectorN.
 using ChRowVectorRef = Eigen::Ref<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>;
 
 /// Constant reference to a row vector expression, with double coefficients.
-/// This allows writing non-template functions that can accept either a ChRowVectorDynamic or a CVectorN.
+/// This allows writing non-template functions that can accept either a ChRowVectorDynamic or a ChRowVectorN.
 using ChRowVectorConstRef = const Eigen::Ref<const Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>&;
 
 /// Reference to an array expression, templated by coefficient type.

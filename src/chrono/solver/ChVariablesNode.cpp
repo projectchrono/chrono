@@ -56,7 +56,7 @@ void ChVariablesNode::AddMassTimesVector(ChVectorRef result, ChVectorConstRef ve
     result(2) += mass * vect(2);
 }
 
-void ChVariablesNode::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
+void ChVariablesNode::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, double ca) const {
     // optimized unrolled operations
     double scaledmass = ca * mass;
     result(offset + 0) += scaledmass * vect(offset);
@@ -64,16 +64,13 @@ void ChVariablesNode::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRe
     result(offset + 2) += scaledmass * vect(offset + 2);
 }
 
-void ChVariablesNode::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+void ChVariablesNode::AddMassDiagonalInto(ChVectorRef result, double ca) const {
     result(offset + 0) += ca * mass;
     result(offset + 1) += ca * mass;
     result(offset + 2) += ca * mass;
 }
 
-void ChVariablesNode::PasteMassInto(ChSparseMatrix& mat,
-                                    unsigned int start_row,
-                                    unsigned int start_col,
-                                    const double ca) const {
+void ChVariablesNode::PasteMassInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, double ca) const {
     double scaledmass = ca * mass;
     mat.SetElement(offset + start_row + 0, offset + start_col + 0, scaledmass);
     mat.SetElement(offset + start_row + 1, offset + start_col + 1, scaledmass);

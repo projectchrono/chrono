@@ -52,18 +52,15 @@ void ChVariablesShaft::AddMassTimesVector(ChVectorRef result, ChVectorConstRef v
     result(0) += m_inertia * vect(0);
 }
 
-void ChVariablesShaft::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
+void ChVariablesShaft::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, double ca) const {
     result(offset) += ca * m_inertia * vect(offset);
 }
 
-void ChVariablesShaft::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+void ChVariablesShaft::AddMassDiagonalInto(ChVectorRef result, double ca) const {
     result(offset) += ca * m_inertia;
 }
 
-void ChVariablesShaft::PasteMassInto(ChSparseMatrix& mat,
-                                     unsigned int start_row,
-                                     unsigned int start_col,
-                                     const double ca) const {
+void ChVariablesShaft::PasteMassInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, double ca) const {
     mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * m_inertia);
 }
 

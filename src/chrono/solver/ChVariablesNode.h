@@ -49,21 +49,18 @@ class ChApi ChVariablesNode : public ChVariables {
     /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
     /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
     /// vectors using the offsets of each variable.
-    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, double ca) const override;
 
     /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
     /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
     /// offsets of each variable.
-    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const override;
+    virtual void AddMassDiagonalInto(ChVectorRef result, double ca) const override;
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
     /// The masses will be scaled by the given factor 'ca'. The (start_row, start_col) pair specifies the top-left
     /// corner of the system-level mass matrix in the provided matrix. Assembling the system-level sparse matrix
     /// is required only if using a direct sparse solver or for debugging/reporting purposes.
-    virtual void PasteMassInto(ChSparseMatrix& mat,
-                               unsigned int start_row,
-                               unsigned int start_col,
-                               const double ca) const override;
+    virtual void PasteMassInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, double ca) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

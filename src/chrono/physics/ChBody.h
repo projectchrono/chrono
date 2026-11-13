@@ -201,7 +201,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetMass(double newmass) { variables.SetBodyMass(newmass); }
 
     /// Get the body mass.
-    double GetMass() { return variables.GetBodyMass(); }
+    double GetMass() const { return variables.GetBodyMass(); }
 
     /// Set the inertia tensor of the body.
     /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
