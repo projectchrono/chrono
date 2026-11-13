@@ -169,7 +169,7 @@ extern chrono::ChVector3d Vadd(const chrono::ChVector3d& va, const chrono::ChVec
 extern chrono::ChVector3d Vsub(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern void Vset(chrono::ChVector3d& v, double mx, double my, double mz);
 extern chrono::ChVector3d Vmul(const chrono::ChVector3d& va, double fact);
-extern bool Vequal(const chrono::ChVector3d& va, const chrono::ChVector3d vb);
+extern bool Vequal(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern bool Vnotnull(const chrono::ChVector3d& va);
 extern chrono::ChVector3d Vmin(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
 extern chrono::ChVector3d Vmax(const chrono::ChVector3d& va, const chrono::ChVector3d& vb);
@@ -193,7 +193,7 @@ extern chrono::ChVector3d Vmax(const chrono::ChVector3d& va, const chrono::ChVec
 	chrono::ChVector3d Vmul(const chrono::ChVector3d& va, double fact) {
 		return chrono::Vmul(va, fact);
 	}
-	bool Vequal(const chrono::ChVector3d& va, const chrono::ChVector3d vb) {
+	bool Vequal(const chrono::ChVector3d& va, const chrono::ChVector3d& vb) {
 		return chrono::Vequal(va, vb);
 	}
 	bool Vnotnull(const chrono::ChVector3d& va) {
