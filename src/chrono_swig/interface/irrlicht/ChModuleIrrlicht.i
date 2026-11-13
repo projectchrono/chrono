@@ -41,6 +41,18 @@
 
 #include "chrono/assets/ChVisualShapes.h"
 
+#include "chrono/functions/ChFunction.h"
+#include "chrono/functions/ChFunctionPosition.h"
+#include "chrono/functions/ChFunctionPositionLine.h"
+#include "chrono/functions/ChFunctionPositionSetpoint.h"
+#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
+#include "chrono/functions/ChFunctionRotation.h"
+#include "chrono/functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/functions/ChFunctionRotationAxis.h"
+#include "chrono/functions/ChFunctionRotationBSpline.h"
+#include "chrono/functions/ChFunctionRotationSetpoint.h"
+#include "chrono/functions/ChFunctionRotationSQUAD.h"
+
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrEffects.h"
