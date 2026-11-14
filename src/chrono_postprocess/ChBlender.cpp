@@ -517,7 +517,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file, std::ofstream& state_fi
                 // UV per each vertex (no m_face_uv_indices, assume indexing in m_face_v_indices used per vertex
                 // coordinates )
                 *mfile << "uvs = [ " << std::endl;
-                for (unsigned int it = 0; it < mesh->m_UV.size(); it += 3) {
+                for (unsigned int it = 0; it < mesh->m_face_v_indices.size(); it++) {
                     *mfile << mesh->m_UV[mesh->m_face_v_indices[it].x()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].x()].y() << ","
                            << mesh->m_UV[mesh->m_face_v_indices[it].y()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].y()].y() << ","
                            << mesh->m_UV[mesh->m_face_v_indices[it].z()].x() << "," << mesh->m_UV[mesh->m_face_v_indices[it].z()].y() << ","
