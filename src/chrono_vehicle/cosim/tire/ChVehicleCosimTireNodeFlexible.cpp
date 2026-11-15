@@ -42,7 +42,7 @@ namespace vehicle {
 ChVehicleCosimTireNodeFlexible::ChVehicleCosimTireNodeFlexible(int index, const std::string& tire_json) : ChVehicleCosimTireNode(index, tire_json) {
     assert(GetTireTypeFromSpecfile(tire_json) == TireType::FLEXIBLE);
     assert(m_tire);
-    m_tire_def = std::static_pointer_cast<ChDeformableTire>(m_tire);  // cache tire as ChDeformableTire
+    m_tire_def = std::static_pointer_cast<ChFEATire>(m_tire);  // cache tire as ChFEATire
 
     // Overwrite default solver and integrator
 #if defined(CHRONO_PARDISO_MKL)

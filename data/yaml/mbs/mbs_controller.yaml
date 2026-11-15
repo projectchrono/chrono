@@ -1,4 +1,4 @@
-chrono-version: 10.0
+chrono-version: 11.0
 type: MBS
 
 model:  "model_inverted_pendulum_load.yaml"
@@ -7,7 +7,6 @@ model:  "model_inverted_pendulum_load.yaml"
 solver: "solver_nonstiff.yaml"
 
 simulation:
-  time_step: 1e-4
   end_time: 100
   enforce_realtime: true
   

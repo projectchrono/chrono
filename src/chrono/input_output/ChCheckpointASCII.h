@@ -23,6 +23,7 @@
 #include <fstream>
 
 #include "chrono/input_output/ChCheckpoint.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 #include "chrono/input_output/ChWriterCSV.h"
 
 namespace chrono {
@@ -55,6 +56,7 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void SaveBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
     virtual void SaveLinMotors(const std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
+    virtual void SaveItems(const std::vector<std::shared_ptr<ChPhysicsItem>>& items) override;
 
     virtual void SaveDouble(double value) override;
     virtual void SaveInteger(int value) override;
@@ -75,6 +77,7 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void LoadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) override;
     virtual void LoadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLinear>>& motors) override;
     virtual void LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) override;
+    virtual void LoadItems(std::vector<std::shared_ptr<ChPhysicsItem>>& items) override;
 
     virtual void LoadDouble(double& value) override;
     virtual void LoadInteger(int& value) override;
@@ -83,6 +86,12 @@ class ChApi ChCheckpointASCII : public ChCheckpoint {
     virtual void LoadChQuaternion(ChQuaterniond& quat) override;
 
     void CheckIfOpen() const;
+
+    /// Write a block of checkpoint data as one line of space-separated entries (bytes as hexadecimal tokens).
+    void WriteBlock(const ChCheckpointWriter& block);
+
+    /// Parse a line written by WriteBlock.
+    static ChCheckpointReader ParseBlock(const std::string& line);
 
     ChWriterCSV m_csv;             ///< output checkpoint CSV
     bool m_file_read;              ///< true if the checkpoint was read from a file

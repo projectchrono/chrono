@@ -33,6 +33,8 @@
 
 #ifdef CHRONO_FEA
     #include "chrono/fea/ChMesh.h"
+    #include "chrono/fea/ChNodeFEAxyz.h"
+    #include "chrono/fea/ChNodeFEAxyzrot.h"
 #endif
 
 #include "chrono/utils/ChBodyGeometry.h"
@@ -76,6 +78,11 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
 
 #ifdef CHRONO_FEA
     /// Add the specified FEA mesh as a preCICE interface object.
+    /// All mesh nodes with position degrees of freedom (ChNodeFEAxyz and derived types, and ChNodeFEAxyzrot) are
+    /// exchanged through coupling meshes of type FEA_MESH_NODES; other mesh nodes are ignored. Forces received from
+    /// preCICE are applied through a dedicated force accumulator on each node. If a preCICE mapping requires mesh
+    /// connectivity (e.g., nearest-projection), each 2-node element (beam or cable) with both nodes in the coupling
+    /// interface is registered as an edge of the coupling mesh; other elements provide no connectivity.
     /// Notes:
     /// - if the MBS preCICE participant is created from a YAML specification file, calls to this function are made automatically.
     void AddCouplingFEAMesh(std::shared_ptr<fea::ChMesh> fea_mesh);
@@ -84,6 +91,7 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     /// Set baseline added mass blocks from specified HDF5 hydrodynamics file (infinite-frequency added mass).
     /// Notes:
     /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    /// - added mass coefficients from a hydrodynamics file are expressed in inertial axes (see SetAddedMassFrame).
     /// - with dynamic added mass, the self (diagonal) blocks applied at each time window are the sum of these baseline
     ///   blocks and the increments received from all participants that send added mass; the body-to-body coupling
     ///   blocks keep their baseline values. If no baseline is provided, a zero baseline is used.
@@ -97,6 +105,24 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     ///   blocks and the increments received from all participants that send added mass; the body-to-body coupling
     ///   blocks keep their baseline values. If no baseline is provided, a zero baseline is used.
     void SetAddedMassBlocks(const std::vector<ChMatrixDynamic<>> blocks);
+
+    /// Set the axes in which the added mass coefficients are expressed (default: inertial axes).
+    /// Only coefficients set explicitly (see SetAddedMassBlocks) can be expressed in body axes; coefficients read from
+    /// an HDF5 hydrodynamics file are always expressed in inertial axes. Added mass increments received from other
+    /// participants are expressed in the same axes as the baseline added mass. See ChLoadHydrodynamics.
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    void SetAddedMassFrame(ChLoadHydrodynamics::AddedMassFrame frame);
+
+    /// Set the points about which the added mass coefficients are given (default: body reference frame origins).
+    /// One point must be provided for each coupling body, in the order the bodies were added, expressed in the body
+    /// reference frame. A hydrodynamics file does not record the point about which its coefficients were computed, so
+    /// these points must be provided if they are not the origins of the body reference frames. The coefficients and
+    /// the added mass increments received from other participants are shifted to the body reference frame origins at
+    /// initialization (see ChLoadHydrodynamics::ComputeShiftTransformation).
+    /// Notes:
+    /// - if the MBS preCICE participant is created from a YAML specification file, this information is read from that file if present.
+    void SetAddedMassReferencePoints(const std::vector<ChVector3d>& points);
 
     /// Get underlying Chrono multibody system.
     ChSystem& GetSystem() { return *m_sys; }
@@ -154,10 +180,24 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     };
 
 #ifdef CHRONO_FEA
+    /// Coupling FEA mesh node data.
+    /// Exactly one of the two node pointers is set.
+    struct CouplingFEANode {
+        std::shared_ptr<fea::ChNodeFEAxyz> node_xyz;        ///< coupling node (ChNodeFEAxyz or derived)
+        std::shared_ptr<fea::ChNodeFEAxyzrot> node_xyzrot;  ///< coupling node (ChNodeFEAxyzrot)
+        ChVector3d init_pos;                                ///< initial node position (absolute)
+        unsigned int accumulator_index;                     ///< index of associated force accumulator
+
+        ChVector3d GetPos() const { return node_xyz ? node_xyz->GetPos() : node_xyzrot->GetPos(); }
+        ChVector3d GetPosDt() const { return node_xyz ? node_xyz->GetPosDt() : node_xyzrot->GetPosDt(); }
+        ChVector3d GetPosDt2() const { return node_xyz ? node_xyz->GetPosDt2() : node_xyzrot->GetPosDt2(); }
+    };
+
     /// Coupling FEA mesh data.
     struct CouplingFEAMesh {
-        int index;                          ///< index of coupling FEA mesh
-        std::shared_ptr<fea::ChMesh> mesh;  ///< coupling FEA mesh
+        int index;                           ///< index of coupling FEA mesh
+        std::shared_ptr<fea::ChMesh> mesh;   ///< coupling FEA mesh
+        std::vector<CouplingFEANode> nodes;  ///< coupling nodes (mesh nodes with position degrees of freedom)
     };
 #endif
 
@@ -173,6 +213,12 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     void ReadBodyMeshData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
     void WriteBodyMeshData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
 
+#ifdef CHRONO_FEA
+    void RegisterFeaMeshEdges(const std::string& mesh_name);
+    void ReadFeaNodeData(const std::string& mesh_name, const CouplingMeshInfo& mesh_info);
+    void WriteFeaNodeData(const std::string& mesh_name, CouplingMeshInfo& mesh_info);
+#endif
+
     std::shared_ptr<ChSystem> m_sys;  ///< underlying Chrono system
     double m_time_step;               ///< integration step size
     bool m_enforce_realtime;          ///< flag indicating soft real-time
@@ -187,9 +233,13 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     std::vector<std::shared_ptr<CouplingFEAMesh>> m_coupling_fea;  ///< coupling FEA meshes
 #endif
 
-    bool m_has_added_mass;                               ///< participant provides added mass
-    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;  ///< baseline added mass blocks (not modified by updates)
-    std::shared_ptr<ChLoadHydrodynamics> m_hydro_load;   ///< hydrodynamic added mass loads
+    bool m_has_added_mass;                                   ///< participant provides added mass
+    bool m_added_mass_from_file;                             ///< baseline added mass read from a hydrodynamics file
+    ChLoadHydrodynamics::AddedMassFrame m_added_mass_frame;  ///< axes in which the added mass is expressed
+    std::vector<ChVector3d> m_added_mass_ref_points;         ///< points of the coefficients (body reference frames)
+    std::vector<ChMatrix66d> m_added_mass_shifts;            ///< shifts to the body reference frame origins
+    std::vector<ChMatrixDynamic<>> m_added_mass_blocks;      ///< baseline added mass blocks (not modified by updates)
+    std::shared_ptr<ChLoadHydrodynamics> m_hydro_load;       ///< hydrodynamic added mass loads
 
     // Dynamics callbacks
     std::shared_ptr<BeforeStepDynamicsCallback> m_beforestep_callback;  ///< operations performed before advancing dynamics

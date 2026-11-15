@@ -75,4 +75,19 @@ By calling @ref chrono::modal::ChModalAssembly::DoModalReduction() "ChModalAssem
 
 *NOTE: at the moment only linear dynamics is supported for the subassembly, in the sense that the subassembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this*
 
+### Supported items
+
+The modal reduction (and the simulation of the reduced assembly) assumes that the velocity-level coordinates of every boundary and internal item come in groups of 6: 3 translational coordinates (expressed in the absolute frame) followed by 3 rotational coordinates (expressed in the local frame of the item). The following items can therefore be used in a @ref chrono::modal::ChModalAssembly "ChModalAssembly" that is reduced:
+- rigid bodies (@ref chrono::ChBody "ChBody" and derived classes)
+- FEA meshes with @ref chrono::fea::ChNodeFEAxyzrot "ChNodeFEAxyzrot" nodes only (e.g., Euler, IGA, or Tapered Timoshenko beams; Reissner shells)
+- links and other items without states of their own (e.g., ChLinkMate and ChLinkLock joints, loads)
+
+The following items are **not** supported in a modal reduction, neither as boundary nor as internal items:
+- FEA meshes with @ref chrono::fea::ChNodeFEAxyz "ChNodeFEAxyz" nodes (3 coordinates per node)
+- FEA meshes with @ref chrono::fea::ChNodeFEAxyzD "ChNodeFEAxyzD", ChNodeFEAxyzDD, or ChNodeFEAxyzDDD nodes (ANCF cables, beams, and shells), whose slope coordinates are not rotations
+- FEA meshes with ChNodeFEAxyzP or ChNodeFEAcurv nodes
+- shafts (@ref chrono::ChShaft "ChShaft") and links with internal states (e.g., motors with internal shafts)
+
+Such items are currently *not detected*: using them in a reduced modal assembly leads to incorrect results. These restrictions do not apply to the modal analysis of an assembly in its full (unreduced) state.
+
 In order to call the modal reduction on an assembly the user should build a modal solver first (as discussed in the previous section) and then pass it as an argument to the @ref chrono::modal::ChModalAssembly::DoModalReduction() "ChModalAssembly::DoModalReduction()" method as suggested in [demo_MOD_reduction](https://github.com/projectchrono/chrono/blob/main/src/demos/modal/demo_MOD_reduction.cpp).

@@ -37,6 +37,8 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
     virtual ~ChExternalDynamicsODE();
 
     /// Initialize the physics item.
+    /// Deprecated: a call to this function is no longer needed, as the containing system initializes this item
+    /// automatically. This function runs both initialization phases on this item; later calls have no effect.
     virtual void Initialize();
 
     /// Declare as stiff (default: false).
@@ -47,6 +49,7 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
     virtual unsigned int GetNumStates() const = 0;
 
     /// Get the initial values (state at initial time).
+    /// This function initializes the item first, if it was not yet initialized.
     ChVectorDynamic<> GetInitialStates();
 
     /// Get current states.
@@ -83,6 +86,12 @@ class ChApi ChExternalDynamicsODE : public ChPhysicsItem {
     }
 
   protected:
+    /// Initialization phase 1: size the states and allocate the solver variables.
+    virtual void SetupInitial() override;
+
+    /// Initialization phase 2: load the initial conditions (see SetInitialConditions).
+    virtual void SetupInitialState() override;
+
     virtual void Update(double time, UpdateFlags update_flags) override;
 
     virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }

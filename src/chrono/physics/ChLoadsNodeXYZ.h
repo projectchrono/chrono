@@ -83,6 +83,9 @@ class ChApi ChLoadNodeXYZForce : public ChLoadCustom {
   public:
     ChLoadNodeXYZForce(std::shared_ptr<ChNodeXYZ> node);
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Compute the force on the node, in absolute coordsystem, given position of node as abs_pos.
     virtual void ComputeForce(const ChVector3d& abs_pos, const ChVector3d& abs_vel, ChVector3d& abs_force) = 0;
 
@@ -159,6 +162,9 @@ class ChApi ChLoadNodeXYZNodeXYZ : public ChLoadCustomMultiple {
     ChLoadNodeXYZNodeXYZ(std::shared_ptr<ChNodeXYZ> nodeA,  ///< node A to apply load to
                          std::shared_ptr<ChNodeXYZ> nodeB   ///< node B to apply load to, as reaction
     );
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// Compute the force on the nodeA, in absolute coordsystem, given relative position of nodeA with respect to B.
     virtual void ComputeForce(const ChVector3d& rel_pos, const ChVector3d& rel_vel, ChVector3d& abs_force) = 0;
@@ -286,6 +292,9 @@ class ChApi ChLoadNodeXYZBody : public ChLoadCustomMultiple {
     ChLoadNodeXYZBody(std::shared_ptr<ChNodeXYZ> node,  ///< node
                       std::shared_ptr<ChBody> body      ///< body
     );
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// Compute the force on the nodeA, in local coord system, given relative position of nodeA respect to B.
     /// The local coordinate system is that specified with SetApplicationFrameB (the auxiliary frame attached to body).

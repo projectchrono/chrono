@@ -738,6 +738,22 @@ class ChApi ChInternalDataLumpedCosserat : public ChBeamMaterialInternalData {
         }
     }
 
+    virtual void SaveCheckpoint(ChCheckpointWriter& writer) const override {
+        ChBeamMaterialInternalData::SaveCheckpoint(writer);
+        writer.Write(p_strain_acc_e);
+        writer.Write(p_strain_acc_k);
+        writer.Write(p_strain_e);
+        writer.Write(p_strain_k);
+    }
+
+    virtual void LoadCheckpoint(ChCheckpointReader& reader) override {
+        ChBeamMaterialInternalData::LoadCheckpoint(reader);
+        reader.Read(p_strain_acc_e);
+        reader.Read(p_strain_acc_k);
+        reader.Read(p_strain_e);
+        reader.Read(p_strain_k);
+    }
+
     ChVector3d p_strain_acc_e;  // separate strain accumulator for xyz
     ChVector3d p_strain_acc_k;  // separate strain accumulator for xyz
     ChVector3d p_strain_e;

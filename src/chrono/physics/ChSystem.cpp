@@ -48,6 +48,7 @@ ChSystem::ChSystem(const std::string& name)
       G_acc(ChVector3d(0, 0, 0)),
       is_initialized(false),
       is_updated(false),
+      m_items_pending(true),
       m_num_coords_pos(0),
       m_num_coords_vel(0),
       m_num_constr(0),
@@ -122,6 +123,7 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
 
     is_initialized = false;
     is_updated = false;
+    m_items_pending = true;
     applied_forces_current = false;
 }
 
@@ -417,15 +419,17 @@ void ChSystem::EnableCoordWeightsWv(bool enable, ChVectorDynamic<>& W) {
 
 // -----------------------------------------------------------------------------
 
-// Initial system setup before analysis. Must be called once the system construction is completed.
+// Initial system setup before analysis.
+// Initializes all physics items not yet initialized; the first call also performs one-time system setup.
 void ChSystem::Initialize() {
+    // Set num threads for Eigen
+    if (!is_initialized)
+        Eigen::setNbThreads(nthreads_eigen);
+
+    InitializeItems();
+
     if (is_initialized)
         return;
-
-    // Set num threads for Eigen
-    Eigen::setNbThreads(nthreads_eigen);
-
-    assembly.SetupInitial();
 
     // Initialize the collision system, if one is attached
     if (collision_system) {
@@ -439,6 +443,19 @@ void ChSystem::Initialize() {
     }
 
     is_initialized = true;
+}
+
+// Run initialization phase 1 on all items, then phase 2 on all items.
+// Items that already completed a phase are skipped (see ChPhysicsItem::InitializePhase).
+void ChSystem::InitializeItems() {
+    if (!m_items_pending)
+        return;
+
+    // Clear the flag first, so that items added during initialization are picked up at the next call
+    m_items_pending = false;
+
+    assembly.InitializePhase(ChPhysicsItem::InitPhase::STRUCTURE);
+    assembly.InitializePhase(ChPhysicsItem::InitPhase::STATE);
 }
 
 // -----------------------------------------------------------------------------
@@ -658,8 +675,7 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
-    if (!is_initialized)
-        assembly.SetupInitial();
+    InitializeItems();
 
     CH_PROFILE("Setup");
 

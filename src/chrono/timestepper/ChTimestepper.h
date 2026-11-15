@@ -25,6 +25,9 @@
 
 namespace chrono {
 
+class ChCheckpointWriter;
+class ChCheckpointReader;
+
 /// @addtogroup chrono_timestepper
 /// @{
 
@@ -71,6 +74,14 @@ class ChApi ChTimestepper {
 
     /// Turn on/off logging of messages.
     void SetVerbose(bool verb) { verbose = verb; }
+
+    /// Save the internal state of this timestepper, for checkpointing.
+    /// The internal state is any data carried from step to step that is not stored in the integrable object (the
+    /// state, accelerations, and Lagrange multipliers are). See the developer manual on the physics item lifecycle.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const {}
+
+    /// Load the internal state of this timestepper, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) {}
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive);

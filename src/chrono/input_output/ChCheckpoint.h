@@ -167,6 +167,11 @@ class ChApi ChCheckpoint {
     /// Only for a COMPONENT type checkpoint DB.
     virtual void SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
 
+    /// Save coordinates, accelerations, reactions and internal state of the physics items in the provided list.
+    /// This generic function works for any physics item; the system containing the items must be set up.
+    /// Only for a COMPONENT type checkpoint DB.
+    virtual void SaveItems(const std::vector<std::shared_ptr<ChPhysicsItem>>& items) = 0;
+
     /// Save the specified double value.
     /// Only for a COMPONENT type checkpoint DB.
     virtual void SaveDouble(double value) = 0;
@@ -232,6 +237,11 @@ class ChApi ChCheckpoint {
     /// Load motor states from the input checkpoint database and set them to the rotational motors in the provided list.
     /// Only for a COMPONENT type checkpoint DB.
     virtual void LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRotation>>& motors) = 0;
+
+    /// Load coordinates, accelerations, reactions and internal state of the physics items in the provided list.
+    /// The items are initialized first (if needed), so that they record their reference configuration before the
+    /// saved state is loaded. Only for a COMPONENT type checkpoint DB.
+    virtual void LoadItems(std::vector<std::shared_ptr<ChPhysicsItem>>& items) = 0;
 
     /// Load a double value and set it to the provided variable.
     /// Only for a COMPONENT type checkpoint DB.

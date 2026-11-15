@@ -100,14 +100,22 @@ if(CHRONO_GPU_VENDOR_RESOLVED STREQUAL "NVIDIA")
       endif()
     endif()
 
-    # Architectures older than 60 have no double-precision atomicAdd.
+    # Minimum supported architecture: Turing (7.5), the oldest one supported by CUDA 13. Older
+    # architectures are dropped even when building with an older toolkit. CUDA 12 lists 7.0 (and not
+    # 7.5) as the Turing-compatible entry of 'all-major', so 7.x entries below 7.5 are raised to 7.5
+    # (keeping any -real/-virtual suffix) rather than dropped, which would leave no code for Turing.
     set(_cuda_archs "")
     foreach(_arch IN LISTS CHRONO_CUDA_ARCHITECTURES)
-      if(_arch MATCHES "^([0-9]+)" AND CMAKE_MATCH_1 LESS 60)
-        continue()
+      if(_arch MATCHES "^([0-9]+)(.*)$")
+        if(CMAKE_MATCH_1 LESS 70)
+          continue()
+        elseif(CMAKE_MATCH_1 LESS 75)
+          set(_arch "75${CMAKE_MATCH_2}")
+        endif()
       endif()
       list(APPEND _cuda_archs "${_arch}")
     endforeach()
+    list(REMOVE_DUPLICATES _cuda_archs)
     set(CHRONO_CUDA_ARCHITECTURES "${_cuda_archs}")
     unset(_cuda_archs)
     message(STATUS "  CUDA archs (filtered):   ${CHRONO_CUDA_ARCHITECTURES}")

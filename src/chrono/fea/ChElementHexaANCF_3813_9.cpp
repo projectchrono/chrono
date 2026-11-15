@@ -22,6 +22,7 @@
 
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 namespace fea {
@@ -96,6 +97,20 @@ void ChElementHexaANCF_3813_9::SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
 }
 
 // Initial element setup
+void ChElementHexaANCF_3813_9::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChElementGeneric::SaveInternalState(writer);
+
+    writer.Write(m_Alpha_Plast);
+    writer.Write(m_CCPinv_Plast);
+}
+
+void ChElementHexaANCF_3813_9::LoadInternalState(ChCheckpointReader& reader) {
+    ChElementGeneric::LoadInternalState(reader);
+
+    reader.Read(m_Alpha_Plast);
+    reader.Read(m_CCPinv_Plast);
+}
+
 void ChElementHexaANCF_3813_9::SetupInitial(ChSystem* system) {
     //// TODO any other initializations go here
 

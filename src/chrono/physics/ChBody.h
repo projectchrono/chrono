@@ -202,7 +202,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetMass(double newmass) { variables.SetBodyMass(newmass); }
 
     /// Get the body mass.
-    double GetMass() { return variables.GetBodyMass(); }
+    double GetMass() const { return variables.GetBodyMass(); }
 
     /// Set the inertia tensor of the body.
     /// The provided 3x3 matrix should be symmetric and contain the inertia tensor, expressed in the local coordinate
@@ -293,58 +293,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// for each UpdateState().
     void ComputeGyro();
 
-    // UTILITIES FOR FORCES/TORQUES:
-
-    /// Add a new force and torque accumulator.
-    /// An arbitrary number of accumulators can be specified for a body, differentiated by their index `idx` (as
-    /// returned by this function). At each step in a simulation loop, a typical use of these accumulators is: 
-    /// <pre>
-    ///    EmptyAccumulator(idx);
-    ///    AccumulateForce(idx, ...);
-    ///    AccumulateTorque(idx, ...);
-    ///    ...
-    ///    AccumulateForce(idx, ...);
-    ///    ...
-    /// </pre>
-    unsigned int AddAccumulator();
-
-    /// Clear the accumulator with specified index.
-    void EmptyAccumulator(unsigned int idx);
-
-    /// Include a concentrated body force in the specified accumulator.
-    /// The accumulator force and torque are incremented with the specified applied force and induced moment at the body
-    /// COM. It is the caller's responsibility to clear the force and torque accumulator before reuse (e.g., at each
-    /// integration step). If local = true, the provided applied force and application point are assumed to be expressed
-    /// in body coordinates; otherwise (local = false), these quantities are assumed to be expressed in absolute
-    /// coordinates.
-    void AccumulateForce(unsigned int idx,              ///< index of the accumulator
-                         const ChVector3d& force,       ///< applied force
-                         const ChVector3d& appl_point,  ///< application point
-                         bool local                     ///< force and point expressed in body local frame?
-    );
-
-    /// Include a body torque in the specified accumulator.
-    /// The accumulator torque is incremented with the specified torque. It is the caller's responsibility to clear the
-    /// force and torque accumulator before reuse (e.g., at each integration step). If local = true, the provided
-    /// applied torque is assumed to be expressed in body coordinates; otherwise (local = false), it is assumed to be
-    /// expressed in absolute coordinates.
-    void AccumulateTorque(unsigned int idx,          ///< index of the accumulator
-                          const ChVector3d& torque,  ///< applied torque
-                          bool local                 ///< torque expressed in body local frame?
-    );
-
-    /// Return the current value of the accumulated force from the specified accumulator.
-    /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
-    const ChVector3d& GetAccumulatedForce(unsigned int idx) const;
-
-    /// Return the current value of the accumulated torque from the specified accumulator.
-    /// Note that this is a resultant torque expressed in the body local frame.
-    const ChVector3d& GetAccumulatedTorque(unsigned int idx) const;
-
-    // This function should *not* exist. It's here only because of the asinine implementation of ChModalAssembly!
-    // Collects the resultant wrench across all accumulators.
-    const ChWrenchd GetAccumulatorWrench() const;
-
     // UPDATE FUNCTIONS
 
     /// Update all children markers of the rigid body, at current body state
@@ -376,6 +324,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override { return this; }
+
+    // CHECKPOINTING
+
+    /// Save the rotation velocity and acceleration as stored (quaternion derivatives).
+    /// The coordinates hold the angular velocity and acceleration, which do not convert back to the same quaternion
+    /// derivatives exactly; saving these makes a restart reproduce a continuous run.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the rotation velocity and acceleration (quaternion derivatives).
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
+    /// Return true, unless this body can be put to sleep.
+    /// The sleeping state is not saved in checkpoints, and sleeping bodies are excluded from the state vectors.
+    virtual bool SupportsCheckpoint() const override;
 
     // SERIALIZATION
 
@@ -419,20 +381,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ) override;
 
   protected:
-    struct WrenchAccumulator {
-        ChVector3d force;   ///< force accumulator, applied to COM (in absolute coords)
-        ChVector3d torque;  ///< torque accumulator (in body local coords)
-    };
-
     std::vector<std::shared_ptr<ChMarker>> marklist;  ///< list of markers
     std::vector<std::shared_ptr<ChForce>> forcelist;  ///< list of forces
 
     ChVector3d gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector3d Xforce;   ///< force  acting on body, applied to COM (in absolute coords)
-    ChVector3d Xtorque;  ///< torque acting on body  (in body local coords)
-
-    std::vector<WrenchAccumulator> accumulators;
+    ChVector3d Xforce;   ///< gravity and body force list, applied to COM (in absolute coords), excluding accumulators
+    ChVector3d Xtorque;  ///< torque from body force list (in body local coords), excluding accumulators
 
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
@@ -475,6 +430,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                       const unsigned int off_v,
                                       ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void IntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,

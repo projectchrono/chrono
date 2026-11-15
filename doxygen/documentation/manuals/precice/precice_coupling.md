@@ -103,9 +103,12 @@ infinite-frequency added mass, including any body-to-body coupling terms; withou
 A fluid participant sends, for each body, a 6x6 *increment* to that body's own (self) block relative to this
 baseline. At every window, the solid participant applies its baseline self blocks plus the increments
 received from all fluid participants, while the body-to-body coupling terms keep their baseline values.
-Increments are not cumulative: each window's increments replace those of the previous window. A fluid
-participant whose added mass is the constant infinite-frequency added mass, such as the TDPF adapter, therefore
-sends zero increments.
+Increments are not cumulative: each window's increments replace those of the previous window. Increments are
+expressed in the same axes and about the same points as the baseline (inertial axes and the origins of the body
+reference frames by default; see [Added mass in Chrono::FSI-TDPF](@ref manual_fsi_tdpf_added_mass_frame)), and are
+shifted with the same transformations. A fluid participant
+whose added mass is the constant infinite-frequency added mass, such as the TDPF adapter, therefore sends zero
+increments.
 
 Any number of fluid participants can send added mass. preCICE requires each mesh to be provided by a single
 participant, so every sending participant provides its own `FluidAddedMass...` mesh (for example

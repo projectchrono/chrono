@@ -83,7 +83,7 @@
 #ifdef CHRONO_FEA
     #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
     #include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
-    #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/SolidFEATire.h"
     #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
     #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
 #endif
@@ -297,7 +297,7 @@ TEST(ChronoVehicle, destructors_wheeled) {
         chrono_types::make_shared<ANCFToroidalTire>(GetVehicleDataFile("generic/tire/ANCFToroidalTire.json"));
     }
     {
-        chrono_types::make_shared<FEATire>(GetVehicleDataFile("hmmwv/tire/HMMWV_FEATire.json"));
+        chrono_types::make_shared<SolidFEATire>(GetVehicleDataFile("hmmwv/tire/HMMWV_SolidFEATire.json"));
     }
     {
         chrono_types::make_shared<ReissnerTire>(GetVehicleDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));

@@ -222,9 +222,9 @@ ChApiIrr void DrawColorbar(const ChVisualSystemIrrlicht* vis,  ///< visual syste
 );
 
 ChApiIrr void DrawPlot3D(const ChVisualSystemIrrlicht* vis,
-                         ChMatrixConstRef X,  // x of points, in local csys x
-                         ChMatrixConstRef Y,  // y of points, in local csys y
-                         ChMatrixConstRef Z,  // z height map of points, in local csys z
+                         ChMatrixConstRef X,  ///< x of points, in local csys x
+                         ChMatrixConstRef Y,  ///< y of points, in local csys y
+                         ChMatrixConstRef Z,  ///< z height map of points, in local csys z
                          const ChCoordsysd& coord = CSYSNORM,
                          const ChColor& col = ChColor(1.f, 1.f, 1.f),
                          bool use_Zbuffer = false);
@@ -233,7 +233,7 @@ ChApiIrr void DrawPlot3D(const ChVisualSystemIrrlicht* vis,
 ChApiIrr void DrawProfiler(const ChVisualSystemIrrlicht* vis);
 
 /// Draw RGB coordinate system.
-ChApiIrr void DrawCoordsys(const ChVisualSystemIrrlicht* vis, const ChCoordsysd& coord = CSYSNORM, double scale = 1, bool use_Zbuffer = false);
+ChApiIrr void DrawCoordsys(const ChVisualSystemIrrlicht* vis, const ChCoordsysd& coord = CSYSNORM, double scale = 1.0, bool use_Zbuffer = false);
 
 /// Draw a line arrow in 3D space with given color.
 ChApiIrr void DrawArrow(const ChVisualSystemIrrlicht* vis,            ///< visual system
@@ -246,11 +246,21 @@ ChApiIrr void DrawArrow(const ChVisualSystemIrrlicht* vis,            ///< visua
 );
 
 /// Draw a label in 3D scene at given position.
+/// Optionally pass desired font; use default one otherwise.
 ChApiIrr void DrawLabel3D(const ChVisualSystemIrrlicht* vis,
                           const std::string& text,
                           const ChVector3d& position,
                           const ChColor& color = ChColor(0.f, 0.f, 0.f),
-                          bool use_Zbuffer = false);
+                          bool use_Zbuffer = false,
+                          irr::gui::IGUIFont* font = nullptr);
+
+/// Draw some (dynamic) text on screen.
+/// Optionally pass desired font; use default one otherwise.
+ChApiIrr void DrawText(const ChVisualSystemIrrlicht* vis,
+                       const std::string& text,
+                       const ChVector2i& position,
+                       const ChColor& color = ChColor(0.f, 0.f, 0.f),
+                       irr::gui::IGUIFont* font = nullptr);
 
 }  // end namespace tools
 

@@ -20,6 +20,7 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 
@@ -181,14 +182,48 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                const double c           // a scaling factor
 ) {
+    // Applied force and torque (as evaluated at the last force update), plus forces and torques from body accumulators
+    // (if any). Accumulators are read here, not cached at update time, so that loads accumulated since the last system
+    // update are included.
+    ChVector3d force = Xforce;
+    ChVector3d torque = Xtorque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
     // add applied forces to 'fb' vector
-    R.segment(off, 3) += c * Xforce.eigen();
+    R.segment(off, 3) += c * force.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (!IsUsingGyroTorque())
-        R.segment(off + 3, 3) += c * Xtorque.eigen();
+        R.segment(off + 3, 3) += c * torque.eigen();
     else
-        R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
+        R.segment(off + 3, 3) += c * (torque - gyro).eigen();
+}
+
+void ChBody::IntLoadResidual_F_applied(const unsigned int off,  // offset in R residual
+                                       ChVectorDynamic<>& R,    // result: the R residual, R += c*F_applied
+                                       const double c           // a scaling factor
+) {
+    // Loads from body accumulators and from the forces in the body force list (as evaluated at the last force update).
+    // Unlike IntLoadResidual_F, exclude the gravitational force and the gyroscopic torque.
+    ChVector3d force;
+    ChVector3d torque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+    for (const auto& f : forcelist) {
+        ChVector3d f_force;
+        ChVector3d f_torque;
+        f->GetBodyForceTorque(f_force, f_torque);
+        force += f_force;
+        torque += f_torque;
+    }
+
+    R.segment(off, 3) += c * force.eigen();
+    R.segment(off + 3, 3) += c * torque.eigen();
 }
 
 void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R residual
@@ -254,14 +289,22 @@ void ChBody::VariablesFbReset() {
 }
 
 void ChBody::VariablesFbLoadForces(double factor) {
+    // Applied force and torque (as evaluated at the last force update), plus forces and torques from body accumulators
+    ChVector3d force = Xforce;
+    ChVector3d torque = Xtorque;
+    for (const auto& a : accumulators) {
+        force += a.force;
+        torque += a.torque;
+    }
+
     // add applied forces to 'fb' vector
-    variables.Force().segment(0, 3) += factor * Xforce.eigen();
+    variables.Force().segment(0, 3) += factor * force.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
     if (!IsUsingGyroTorque())
-        variables.Force().segment(3, 3) += factor * Xtorque.eigen();
+        variables.Force().segment(3, 3) += factor * torque.eigen();
     else
-        variables.Force().segment(3, 3) += factor * (Xtorque - gyro).eigen();
+        variables.Force().segment(3, 3) += factor * (torque - gyro).eigen();
 }
 
 void ChBody::VariablesFbIncrementMq() {
@@ -384,51 +427,6 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 
 // -----------------------------------------------------------------------------
 
-unsigned int ChBody::AddAccumulator() {
-    auto idx = accumulators.size();
-    accumulators.push_back(WrenchAccumulator());
-    return (unsigned int)idx;
-}
-
-void ChBody::EmptyAccumulator(unsigned int idx) {
-    accumulators[idx].force = VNULL;
-    accumulators[idx].torque = VNULL;
-}
-
-void ChBody::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
-    ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
-                            : AppliedForceParentToWrenchParent(force, appl_point);
-    accumulators[idx].force += w_abs.force;
-    accumulators[idx].torque += TransformDirectionParentToLocal(w_abs.torque);
-}
-
-void ChBody::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
-    if (local)
-        accumulators[idx].torque += torque;
-    else
-        accumulators[idx].torque += TransformDirectionParentToLocal(torque);
-}
-
-const ChVector3d& ChBody::GetAccumulatedForce(unsigned int idx) const {
-    return accumulators[idx].force;
-}
-
-const ChVector3d& ChBody::GetAccumulatedTorque(unsigned int idx) const {
-    return accumulators[idx].torque;
-}
-
-//// TODO - get rid of this as soon as ChModalAssembly is dealt with (fixed or removed)
-const ChWrenchd ChBody::GetAccumulatorWrench() const {
-    ChWrenchd wrench;
-    for (const auto& a : accumulators) {
-        wrench.force += a.force;
-        wrench.torque += a.torque;
-    }
-    return wrench;
-}
-
-// -----------------------------------------------------------------------------
-
 void ChBody::ComputeGyro() {
     ChVector3d Wvel = GetAngVelLocal();
     gyro = Vcross(Wvel, variables.GetBodyInertia() * Wvel);
@@ -462,9 +460,8 @@ void ChBody::AddMarker(std::shared_ptr<ChMarker> amarker) {
     amarker->SetBody(this);
     marklist.push_back(amarker);
 
-    // If the body is already added to a system, mark the system uninitialized and out-of-date
+    // If the body is already added to a system, mark the system out-of-date
     if (system) {
-        system->is_initialized = false;
         system->is_updated = false;
     }
 }
@@ -477,9 +474,8 @@ void ChBody::AddForce(std::shared_ptr<ChForce> aforce) {
     aforce->SetBody(this);
     forcelist.push_back(aforce);
 
-    // If the body is already added to a system, mark the system uninitialized and out-of-date
+    // If the body is already added to a system, mark the system out-of-date
     if (system) {
-        system->is_initialized = false;
         system->is_updated = false;
     }
 }
@@ -563,11 +559,7 @@ void ChBody::UpdateForces(double time, UpdateFlags update_flags) {
     Xforce = system ? system->GetGravitationalAcceleration() * GetMass() : VNULL;
     Xtorque = VNULL;
 
-    // Add forces and torques from body accumulators (if any)
-    for (const auto& a : accumulators) {
-        Xforce += a.force;
-        Xtorque += a.torque;
-    }
+    // Note: forces and torques from body accumulators are not included here; they are added when loading the residual.
 
     // Accumulate applied generalized forces (if any)
     for (auto& f : forcelist) {
@@ -991,6 +983,28 @@ void ChBody::ComputeNF(
 
 // ---------------------------------------------------------------------------
 // FILE I/O
+
+bool ChBody::SupportsCheckpoint() const {
+    // A fixed body never sleeps
+    return IsFixed() || !(IsSleepingAllowed() && GetSystem() && GetSystem()->IsSleepingAllowed());
+}
+
+void ChBody::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChPhysicsItem::SaveInternalState(writer);
+
+    writer.Write(GetRotDt());
+    writer.Write(GetRotDt2());
+}
+
+void ChBody::LoadInternalState(ChCheckpointReader& reader) {
+    ChPhysicsItem::LoadInternalState(reader);
+
+    ChQuaterniond rot_dt, rot_dtdt;
+    reader.Read(rot_dt);
+    reader.Read(rot_dtdt);
+    SetRotDt(rot_dt);
+    SetRotDt2(rot_dtdt);
+}
 
 void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

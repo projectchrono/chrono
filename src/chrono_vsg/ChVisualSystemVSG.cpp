@@ -698,10 +698,17 @@ void ChVisualSystemVSG::Initialize() {
     windowTraits->fullscreen = m_use_fullscreen;
     windowTraits->screenNum = m_screen_num;
 
+    // The label font is the first file read from the Chrono data directory, which also provides the shaders and GUI
+    // textures, so stop here if it cannot be found
     m_label_font = vsg::read_cast<vsg::Font>(m_label_font_path, m_options);
     if (!m_label_font) {
-        cout << "Failed to read font : " << m_label_font_path << endl;
-        return;
+        std::string search_paths;
+        for (const auto& path : m_options->paths)
+            search_paths += " '" + path.string() + "'";
+        std::string msg = "ChVisualSystemVSG: cannot read font file '" + m_label_font_path + "' (search paths:" + search_paths +
+                          "). Call SetChronoDataPath with the Chrono data directory before creating the visual system.";
+        cerr << "Error: " << msg << endl;
+        throw std::runtime_error(msg);
     }
 
     m_scene = vsg::Group::create();
@@ -798,8 +805,8 @@ void ChVisualSystemVSG::Initialize() {
 
     m_window = vsg::Window::create(windowTraits);
     if (!m_window) {
-        cout << "Could not create window." << endl;
-        return;
+        cerr << "Error: ChVisualSystemVSG: could not create window." << endl;
+        throw std::runtime_error("ChVisualSystemVSG: could not create window");
     }
 
     ////auto& limits = m_window->getOrCreatePhysicalDevice()->getProperties().limits;  // VkPhysicalDeviceLimits
@@ -855,9 +862,11 @@ void ChVisualSystemVSG::Initialize() {
     m_renderCommandGraph = vsg::CommandGraph::create(m_window, m_renderGraph);
     m_computeCommandGraph = vsg::CommandGraph::create(m_window);
 
-    // initialize ImGui
+    // Initialize ImGui.
+    // Load the default GUI window layout from the Chrono data directory, but never save the layout (no ImGui ini file).
     ImGui::CreateContext();
-    ImGui::GetIO().IniFilename = "../data/vsg/imgui.ini";
+    ImGui::GetIO().IniFilename = nullptr;
+    ImGui::LoadIniSettingsFromDisk(GetChronoDataFile("vsg/imgui.ini").c_str());
 
 #ifdef __APPLE__
     // application runs on retina display by default (window 800*600 generates a viewport 1600*1200)
@@ -877,8 +886,9 @@ void ChVisualSystemVSG::Initialize() {
             ImGuiIO& io = ImGui::GetIO();
             auto imguiFont = io.Fonts->AddFontFromFileTTF(c_fontFile.c_str(), m_gui_font_size);
             if (!imguiFont) {
-                cout << "Failed to load font: " << c_fontFile << endl;
-                return;
+                std::string msg = "ChVisualSystemVSG: cannot load GUI font file '" + c_fontFile + "'";
+                cerr << "Error: " << msg << endl;
+                throw std::runtime_error(msg);
             }
         }
 #ifdef __APPLE__
@@ -1748,7 +1758,14 @@ void ChVisualSystemVSG::BindAll() {
 
 // -----------------------------------------------------------------------------
 
+void ChVisualSystemVSG::ExcludeFromBinding(std::shared_ptr<ChBody> body) {
+    m_excluded_bodies.insert(body.get());
+}
+
 void ChVisualSystemVSG::BindBody(const std::shared_ptr<ChBody>& body) {
+    if (m_excluded_bodies.count(body.get()) > 0)
+        return;
+
     if (!body->IsFixed()) {
         BindReferenceFrame(body, ObjectType::BODY);
         BindBodyCOMFrame(body);
@@ -3139,8 +3156,15 @@ void ChVisualSystemVSG::ExportScreenImage() {
 
     destinationImage->compile(device);
 
-    auto deviceMemory =
-        vsg::DeviceMemory::create(device, destinationImage->getMemoryRequirements(device->deviceID), VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    // Use host-cached memory if available: reading back from uncached (write-combined) memory is very slow.
+    auto memoryRequirements = destinationImage->getMemoryRequirements(device->deviceID);
+    vsg::ref_ptr<vsg::DeviceMemory> deviceMemory;
+    try {
+        deviceMemory =
+            vsg::DeviceMemory::create(device, memoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+    } catch (const vsg::Exception&) {
+        deviceMemory = vsg::DeviceMemory::create(device, memoryRequirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    }
 
     destinationImage->bind(deviceMemory, 0);
 
@@ -3269,20 +3293,29 @@ void ChVisualSystemVSG::ExportScreenImage() {
     VkSubresourceLayout subResourceLayout;
     vkGetImageSubresourceLayout(*device, destinationImage->vk(device->deviceID), &subResource, &subResourceLayout);
 
+    // Copy the mapped memory into a CPU array before encoding, in a single sequential pass: the image writers read each
+    // pixel several times, which is very slow from memory that is not host-cached. The mapped memory is not contiguous
+    // like vsg::Array2D if rows are padded, so map it as a flat ubyteArray (unmapped on destruction) and copy row by row.
     size_t destRowWidth = width * sizeof(vsg::ubvec4);
-    vsg::ref_ptr<vsg::Data> imageData;
-    if (destRowWidth == subResourceLayout.rowPitch) {
-        imageData = vsg::MappedData<vsg::ubvec4Array2D>::create(deviceMemory, subResourceLayout.offset, 0, vsg::Data::Properties{targetImageFormat}, width, height);
-    } else {
-        // Map the buffer memory and assign as a ubyteArray that will automatically unmap itself on destruction.
-        // A ubyteArray is used as the graphics buffer memory is not contiguous like vsg::Array2D, so map to a flat
-        // buffer first then copy to Array2D.
-        auto mappedData =
-            vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0, vsg::Data::Properties{targetImageFormat}, subResourceLayout.rowPitch * height);
-        imageData = vsg::ubvec4Array2D::create(width, height, vsg::Data::Properties{targetImageFormat});
-        for (uint32_t row = 0; row < height; ++row) {
-            std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch), destRowWidth);
-        }
+    auto mappedData =
+        vsg::MappedData<vsg::ubyteArray>::create(deviceMemory, subResourceLayout.offset, 0, vsg::Data::Properties{targetImageFormat}, subResourceLayout.rowPitch * height);
+    auto imageData = vsg::ubvec4Array2D::create(width, height, vsg::Data::Properties{targetImageFormat});
+    for (uint32_t row = 0; row < height; ++row) {
+        std::memcpy(imageData->dataPointer(row * width), mappedData->dataPointer(row * subResourceLayout.rowPitch), destRowWidth);
+    }
+
+    // Make the image opaque. The alpha channel of the color buffer holds blending results for translucent objects; it
+    // is ignored on screen, but image viewers would show those objects washed out over the viewer background.
+    switch (targetImageFormat) {
+        case VK_FORMAT_R8G8B8A8_UNORM:
+        case VK_FORMAT_R8G8B8A8_SRGB:
+        case VK_FORMAT_B8G8R8A8_UNORM:
+        case VK_FORMAT_B8G8R8A8_SRGB:
+            for (auto& pixel : *imageData)
+                pixel.a = 255;
+            break;
+        default:
+            break;
     }
 
     if (!vsg::write(imageData, m_image_filename, m_options)) {

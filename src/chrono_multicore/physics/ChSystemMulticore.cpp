@@ -213,6 +213,9 @@ void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> body) {
     // collision shapes to the collision system if not already done.
     body->SetSystem(this);
 
+    // Let the system initialize the body before the next step.
+    m_items_pending = true;
+
     // Reserve space for this body in the system-wide vectors. Note that the
     // actual data is set in UpdateBodies().
     data_manager->host_data.pos_rigid.push_back(real3());
@@ -230,6 +233,7 @@ void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> body) {
 void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
     shaft->index = data_manager->num_shafts;
     shaft->SetSystem(this);
+    m_items_pending = true;
 
     assembly.shaftlist.push_back(shaft);
     data_manager->num_shafts++;
@@ -263,6 +267,7 @@ void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
 void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
     newitem->SetSystem(this);
     assembly.otherphysicslist.push_back(newitem);
+    m_items_pending = true;
 
     ////if (newitem->IsCollisionEnabled()) {
     ////    newitem->AddCollisionModelsToSystem();

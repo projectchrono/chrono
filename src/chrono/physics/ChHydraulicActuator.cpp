@@ -45,11 +45,11 @@ void ChHydraulicActuatorBase::SetInitialLoad(double initial_load) {
     F0 = initial_load;
 }
 
-void ChHydraulicActuatorBase::Initialize() {
+void ChHydraulicActuatorBase::SetupInitialState() {
     OnInitialize(cyl.p0, cyl.L0, dvalve.U0);
 
-    // Initialize the external dynamics
-    ChExternalDynamicsODE::Initialize();
+    // Load the initial conditions of the external dynamics
+    ChExternalDynamicsODE::SetupInitialState();
 }
 
 void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // first connected body
@@ -59,9 +59,6 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
                                          ChVector3d loc2                 // location of connection point on body 2
 ) {
     is_attached = true;
-
-    // Call base initialization
-    Initialize();
 
     // Cache connected bodies and body local connection points
     m_body1 = body1.get();
@@ -85,16 +82,25 @@ void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // firs
     m_Qforce.resize(12);
 }
 
+// The actuator states are allocated and set to their initial conditions during initialization. If the system was not
+// initialized yet (before the first step), initialize the actuator now so that the initial values are reported.
+
 double ChHydraulicActuatorBase::GetValvePosition() {
+    if (!IsInitialized())
+        InitializePhase(InitPhase::STATE);
     return ExtractValveSpoolPosition();
 }
 
 std::array<double, 2> ChHydraulicActuatorBase::GetCylinderPressures() {
+    if (!IsInitialized())
+        InitializePhase(InitPhase::STATE);
     Vec2 p = ExtractCylinderPressures();
     return {p(0), p(1)};
 }
 
 double ChHydraulicActuatorBase::GetActuatorForce() {
+    if (!IsInitialized())
+        InitializePhase(InitPhase::STATE);
     Vec2 p = ExtractCylinderPressures();
     return cyl.EvalForce(p, s - s_0, sd);
 }

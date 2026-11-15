@@ -65,6 +65,9 @@ class ChApi ChFeeder : public ChPhysicsItem {
     /// Get the number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
 
+    /// Return true: the internal state of this item is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

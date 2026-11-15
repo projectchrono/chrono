@@ -100,6 +100,9 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double time, UpdateFlags update_flags) override;
 
+    /// Return true: the internal state of this torque converter is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

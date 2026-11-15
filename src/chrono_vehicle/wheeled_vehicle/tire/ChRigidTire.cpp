@@ -24,7 +24,11 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
+#include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
+#ifdef CHRONO_CRM
+    #include "chrono_vehicle/terrain/CRMTerrain.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -216,6 +220,21 @@ TerrainForce ChRigidTire::ReportTireForce(ChTerrain* terrain) const {
 
         return tire_force;
     }
+
+#ifdef CHRONO_CRM
+    // If interacting with a CRM terrain, interrogate the FSI system for the force on the associated rigid body
+    // (the SPH interaction forces are not reported as collision contact forces).
+    if (auto crm = dynamic_cast<CRMTerrain*>(terrain)) {
+        auto spindle = m_wheel->GetSpindle();
+        if (crm->IsFsiSolid(spindle)) {
+            TerrainForce tire_force;
+            tire_force.point = spindle->GetPos();
+            tire_force.force = crm->GetFsiBodyForce(spindle);
+            tire_force.moment = crm->GetFsiBodyTorque(spindle);
+            return tire_force;
+        }
+    }
+#endif
 
     // Otherwise, calculate and return the resultant of the contact forces acting on the tire.
     // The resulting tire force and moment are expressed in global frame, as applied at the center

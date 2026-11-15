@@ -62,8 +62,8 @@ Building PyChrono requires SWIG version **4.0.0** or newer.
 3. Set `CH_ENABLE_MODULE_PYTHON` as 'on', then press 'Configure' (to refresh the variable list) 
 
 4. The Python package should be detected by CMake automatically.
-If prompted, set the `CH_PYTHONDIR` variable to the directory where you have your copy of Python. 
-   For example, it could be <tt>C:/Python33</tt>
+   If it is not found, add a `Python3_ROOT_DIR` entry ('Add Entry' in the CMake GUI) set to the directory where you have your copy of Python, then press 'Configure' again.
+   For example, it could be <tt>C:/Program Files/Python312</tt>
 
 5. If prompted, set the CMake <tt>SWIG_EXECUTABLE</tt> variable to specify the SWIG executable. 
    On Linux, this should be detected automatically. On Windows, depending on how SWIG was installed, you may need to set this manually. 
@@ -73,12 +73,12 @@ If prompted, set the `CH_PYTHONDIR` variable to the directory where you have you
 If you have multiple Python installations on the same machine, you may need to explicitly specify which one to use in the call to CMake.  For example, under Linux (Mac is similar to Linux):
 
 <pre>
-% ccmake -DPYTHON_EXECUTABLE:FILEPATH=/usr/local/python/3.6.0/bin/python3
-  -DPYTHON_LIBRARY=/usr/local/python/3.6.0/lib/libpython3.so
-  -DPYTHON_INCLUDE_DIR=/usr/local/python/3.6.0/include
+% ccmake -DPython3_EXECUTABLE:FILEPATH=/usr/local/python/3.12/bin/python3
+  -DPython3_LIBRARY=/usr/local/python/3.12/lib/libpython3.12.so
+  -DPython3_INCLUDE_DIR=/usr/local/python/3.12/include/python3.12
   ../../chrono
 On the Mac:
-% ccmake -DPYTHON_EXECUTABLE:FILEPATH=$(which python3) ../../chrono
+% ccmake -DPython3_EXECUTABLE:FILEPATH=$(which python3) ../../chrono
 </pre>
 
 After successful compilation, the [PyChrono](@ref pychrono_introduction) modules can be used either from the *BUILD* tree or, after installation, from the *INSTALL* tree.  In order for the generated Python modules to be accessible, you must set/append to the <tt>PYTHONPATH</tt> environment variable.  During configuration, the Chrono CMake script will output the proper paths to be used in setting the PYTHONPATH environment variables; for example:
@@ -140,21 +140,24 @@ Support for Python 2.7 is discontinued.
 </div>
 
 <div class="ce-warning">
-In some distributions of Python, the debug library 'python33_d.lib' (the debug version of the python33.lib library) is not included by default. 
-If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib by following these steps:
-1. Comment out the line:
-   ~~~{.py}
-   //#define Py_DEBUG
+In some distributions of Python, the debug library (for example 'python312_d.lib', the debug version of 'python312.lib' for Python 3.12) is not included by default. 
+If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h (in the 'Include' directory of your Python installation) to force the use of the release library by following these steps:
+1. Comment out the line that defines `Py_DEBUG`:
+   ~~~{.c}
+   #ifdef _DEBUG
+   //#       define Py_DEBUG
+   #endif
    ~~~
 2. Modify
-   ~~~{.py}
+   ~~~{.c}
    #if defined(_DEBUG)
-   #pragma comment(lib,"python33_d.lib")
+   #pragma comment(lib,"python312_d.lib")
    ~~~
    to
-   ~~~{.py}
+   ~~~{.c}
    #if defined(_DEBUG)
-   #pragma comment(lib,"python33.lib")
+   #pragma comment(lib,"python312.lib")
    ~~~
-3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead of 'python33_d.lib'.
+
+No change is needed in CMake: when it does not find the debug library, CMake links the release library in all configurations.
 </div>

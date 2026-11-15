@@ -9,6 +9,7 @@ endif()
 set(DEMOS
   demo_MBS_aux_ref
   demo_MBS_bricks
+  demo_MBS_cam
   demo_MBS_callbackNSC
   demo_MBS_callbackSMC
   demo_MBS_collisionNSC

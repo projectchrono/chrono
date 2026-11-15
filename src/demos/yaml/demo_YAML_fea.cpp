@@ -106,9 +106,10 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    // Create output directory
-    if (output) {
-        std::string out_dir = GetChronoOutputPath() + "YAML_MBS";
+    // Create output directory (if generating output or saving run-time visualization images)
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
+        std::string out_dir = GetChronoOutputPath() + "YAML_FEA";
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
             return 1;

@@ -219,6 +219,7 @@ double ChMixtureIngredient::GetDensity() {
 
 // Calculate the volume and gyration tensor of an object of given size created
 // from this ingredient type.
+// The dimensions passed here must match those of the collision shape created in ChGenerator::CreateObjects.
 void ChMixtureIngredient::CalcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration) {
     switch (m_type) {
         case MixtureType::SPHERE:
@@ -226,35 +227,72 @@ void ChMixtureIngredient::CalcGeometricProps(const ChVector3d& size, double& vol
             gyration = ChSphere::CalcGyration(size.x()).diagonal();
             break;
         case MixtureType::ELLIPSOID:
-            volume = ChEllipsoid::CalcVolume(size);
-            gyration = ChEllipsoid::CalcGyration(size).diagonal();
+            volume = ChEllipsoid::CalcVolume(size * 2);
+            gyration = ChEllipsoid::CalcGyration(size * 2).diagonal();
             break;
         case MixtureType::BOX:
-            volume = ChBox::CalcVolume(size);
-            gyration = ChBox::CalcGyration(size).diagonal();
+            volume = ChBox::CalcVolume(size * 2);
+            gyration = ChBox::CalcGyration(size * 2).diagonal();
             break;
         case MixtureType::CYLINDER:
             volume = ChCylinder::CalcVolume(size.x(), size.y());
             gyration = ChCylinder::CalcGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CONE:
-            volume = ChCone::CalcVolume(size.x(), size.y());
-            gyration = ChCone::CalcGyration(size.x(), size.y()).diagonal();
+            volume = ChCone::CalcVolume(size.x(), size.z());
+            gyration = ChCone::CalcGyration(size.x(), size.z()).diagonal();
             break;
         case MixtureType::CAPSULE:
-            volume = ChCapsule::CalcVolume(size.x(), size.y());
-            gyration = ChCapsule::CalcGyration(size.x(), size.y()).diagonal();
+            volume = ChCapsule::CalcVolume(size.x(), size.z());
+            gyration = ChCapsule::CalcGyration(size.x(), size.z()).diagonal();
             break;
     }
 }
 
-// Calculate a necessary minimum separation based on the largest possible
-// dimension of an object created based on attributes of this ingredient.
-double ChMixtureIngredient::CalcMinSeparation() {
-    if (m_sizeDist)
-        return std::max(m_maxSize.x(), std::max(m_maxSize.y(), m_maxSize.z()));
+// Calculate the radius of a sphere that bounds any object created based on
+// attributes of this ingredient.
+double ChMixtureIngredient::CalcBoundingSphereRadius() {
+    const ChVector3d& size = m_sizeDist ? m_maxSize : m_defSize;
 
-    return std::max(m_defSize.x(), std::max(m_defSize.y(), m_defSize.z()));
+    switch (m_type) {
+        case MixtureType::SPHERE:
+            return ChSphere::CalcBoundingSphereRadius(size.x());
+        case MixtureType::ELLIPSOID:
+            return ChEllipsoid::CalcBoundingSphereRadius(size * 2);
+        case MixtureType::BOX:
+            return ChBox::CalcBoundingSphereRadius(size * 2);
+        case MixtureType::CYLINDER:
+            return ChCylinder::CalcBoundingSphereRadius(size.x(), size.y());
+        case MixtureType::CONE:
+            return ChCone::CalcBoundingSphereRadius(size.x(), size.z());
+        case MixtureType::CAPSULE:
+            return ChCapsule::CalcBoundingSphereRadius(size.x(), size.z());
+    }
+
+    return 0;
+}
+
+// Calculate the dimensions of an axis-aligned box that bounds any object
+// created based on attributes of this ingredient (in its initial orientation).
+ChVector3d ChMixtureIngredient::CalcBoundingBoxSize() {
+    const ChVector3d& size = m_sizeDist ? m_maxSize : m_defSize;
+
+    switch (m_type) {
+        case MixtureType::SPHERE:
+            return ChSphere::CalcBoundingBox(size.x()).Size();
+        case MixtureType::ELLIPSOID:
+            return ChEllipsoid::CalcBoundingBox(size * 2).Size();
+        case MixtureType::BOX:
+            return ChBox::CalcBoundingBox(size * 2).Size();
+        case MixtureType::CYLINDER:
+            return ChCylinder::CalcBoundingBox(size.x(), size.y()).Size();
+        case MixtureType::CONE:
+            return ChCone::CalcBoundingBox(size.x(), size.z()).Size();
+        case MixtureType::CAPSULE:
+            return ChCapsule::CalcBoundingBox(size.x(), size.z()).Size();
+    }
+
+    return VNULL;
 }
 
 // =============================================================================
@@ -432,22 +470,26 @@ int ChGenerator::SelectIngredient() {
     return 0;
 }
 
-// Calculate the minimum distance to ensure contact shapes never overlap.
+// Calculate the minimum distance between sampled points to ensure contact shapes never overlap.
+// Points can be in any direction relative to each other, so use the diameter of the largest bounding sphere.
 double ChGenerator::CalcMinSeparation(double sep) {
     for (int i = 0; i < m_mixture.size(); i++)
-        sep = std::max(sep, m_mixture[i]->CalcMinSeparation());
+        sep = std::max(sep, 2 * m_mixture[i]->CalcBoundingSphereRadius());
 
     return sep;
 }
 
+// Calculate the minimum grid spacing to ensure contact shapes never overlap.
+// Shapes at neighboring grid points are separated along at least one grid direction, so it is enough for the spacing
+// in each direction to be at least the size of the largest bounding box in that direction.
 ChVector3d ChGenerator::CalcMinSeparation(const ChVector3d& sep) {
-    ChVector3d res;
+    ChVector3d res = sep;
 
     for (int i = 0; i < m_mixture.size(); i++) {
-        double mix_sep = m_mixture[i]->CalcMinSeparation();
-        res.x() = std::max(sep.x(), mix_sep);
-        res.y() = std::max(sep.y(), mix_sep);
-        res.z() = std::max(sep.z(), mix_sep);
+        ChVector3d mix_size = m_mixture[i]->CalcBoundingBoxSize();
+        res.x() = std::max(res.x(), mix_size.x());
+        res.y() = std::max(res.y(), mix_size.y());
+        res.z() = std::max(res.z(), mix_size.z());
     }
 
     return res;
@@ -515,7 +557,7 @@ void ChGenerator::CreateObjects(const PointVector& points, const ChVector3d& vel
         m_totalMass += mass;
         m_totalVolume += volume;
 
-        // Add collision geometry
+        // Add collision geometry (dimensions must match those used in ChMixtureIngredient::CalcGeometricProps)
         switch (m_mixture[index]->m_type) {
             case MixtureType::SPHERE:
                 AddSphereGeometry(body.get(), mat, size.x());

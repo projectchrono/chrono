@@ -1,0 +1,24 @@
+{
+  "Name": "UTV utility trailer",
+  "Type": "Trailer",
+  "Template": "WheeledTrailer",
+
+  "Chassis": {
+    "Input File": "utv_trailer/UTV_TrailerChassis.json"
+  },
+
+  "Connector": {
+    "Input File": "utv_trailer/UTV_TrailerHitch.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "utv_trailer/UTV_LeafspringAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Left Wheel Input File": "Polaris/Polaris_Wheel.json",
+      "Right Wheel Input File": "Polaris/Polaris_Wheel.json",
+      "Left Brake Input File": "Polaris/Polaris_BrakeSimple.json",
+      "Right Brake Input File": "Polaris/Polaris_BrakeSimple.json"
+    }
+  ]
+}

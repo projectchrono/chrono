@@ -135,8 +135,7 @@ int main(int argc, char* argv[]) {
     // Create the tire
     // ---------------
 
-    ChVector3d tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2,
-                           terrain_height + 1.01 * tire_rad);
+    ChVector3d tire_center(terrain.GetPatchRear() + tire_rad, (terrain.GetPatchLeft() + terrain.GetPatchRight()) / 2, terrain_height + 1.01 * tire_rad);
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(500);
     body->SetInertiaXX(ChVector3d(20, 20, 20));
@@ -144,8 +143,7 @@ int main(int argc, char* argv[]) {
     body->SetRot(QuatFromAngleZ(CH_PI_2));
     sys->AddBody(body);
 
-    auto trimesh =
-        ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);
@@ -196,11 +194,17 @@ int main(int argc, char* argv[]) {
     bool is_pitched = false;
     double time = 0;
 
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver. vis->Run() is still called every iteration so the
+    // window stays responsive and a close request still breaks the loop.
+    double render_fps = 60;
+    int render_frame = 0;
+
     while (time < time_end) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
-            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
-                      << std::endl;
+            std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z() << std::endl;
             sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
@@ -217,23 +221,26 @@ int main(int argc, char* argv[]) {
         ////}
 
         if (vis->Run()) {
-            switch (cam_type) {
-                case FRONT: {
-                    ChVector3d cam_loc(terrain.GetPatchFront(), -3, 0.3);
-                    ChVector3d cam_point(terrain.GetPatchFront(), 0, 0);
-                    vis->UpdateCamera(cam_loc, cam_point);
-                    break;
+            if (time >= render_frame / render_fps) {
+                switch (cam_type) {
+                    case FRONT: {
+                        ChVector3d cam_loc(terrain.GetPatchFront(), -3, 0.3);
+                        ChVector3d cam_point(terrain.GetPatchFront(), 0, 0);
+                        vis->UpdateCamera(cam_loc, cam_point);
+                        break;
+                    }
+                    case TRACK: {
+                        ChVector3d cam_point = body->GetPos();
+                        ChVector3d cam_loc = cam_point + ChVector3d(-3 * tire_rad, -1, 0.6);
+                        vis->UpdateCamera(cam_loc, cam_point);
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                case TRACK: {
-                    ChVector3d cam_point = body->GetPos();
-                    ChVector3d cam_loc = cam_point + ChVector3d(-3 * tire_rad, -1, 0.6);
-                    vis->UpdateCamera(cam_loc, cam_point);
-                    break;
-                }
-                default:
-                    break;
+                vis->Render();
+                render_frame++;
             }
-            vis->Render();
         } else {
             break;
         }

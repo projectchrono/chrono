@@ -18,6 +18,7 @@
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChConstants.h"
 #include "chrono/fea/ChBeamSectionShape.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 namespace fea {
@@ -35,6 +36,12 @@ class ChApi ChBeamMaterialInternalData {
     virtual ~ChBeamMaterialInternalData(){};
 
     virtual void Copy(const ChBeamMaterialInternalData& other) { p_strain_acc = other.p_strain_acc; }
+
+    /// Save the internal variables to a checkpoint. Derived classes must first call the base class implementation.
+    virtual void SaveCheckpoint(ChCheckpointWriter& writer) const { writer.Write(p_strain_acc); }
+
+    /// Load the internal variables from a checkpoint. Derived classes must first call the base class implementation.
+    virtual void LoadCheckpoint(ChCheckpointReader& reader) { reader.Read(p_strain_acc); }
 
     double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
 };

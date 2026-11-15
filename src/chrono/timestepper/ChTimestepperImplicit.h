@@ -46,20 +46,20 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     void SetMaxIters(int iters) { max_iters = iters; }
 
     /// Set the relative tolerance.
-    /// This tolerance is used in the Newton convergence test (optionally used by derived integrator classes).
+    /// This tolerance is used in the Newton convergence test. See the documentation of each derived integrator class
+    /// for the quantities it is applied to.
     void SetRelTolerance(double rel_tol) { reltol = rel_tol; }
 
-    /// Set the absolute tolerances.
-    /// These tolerances are used in the Newton convergence test (optionally used by derived integrator classes).
-    /// This version sets separate absolute tolerances for states and Lagrange multipliers.
+    /// Set the absolute tolerances for states and Lagrange multipliers.
+    /// These tolerances are used in the Newton convergence test. See the documentation of each derived integrator
+    /// class for the quantities they are applied to.
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {
         abstolS = abs_tolS;
         abstolL = abs_tolL;
     }
 
-    /// Set the absolute tolerances.
-    /// These tolerances are used in the Newton convergence test (optionally used by derived integrator classes).
-    ///  This version sets equal absolute tolerances for states and Lagrange multipliers.
+    /// Set the same absolute tolerance for states and Lagrange multipliers.
+    /// See SetAbsTolerances(double, double).
     void SetAbsTolerances(double abs_tol) {
         abstolS = abs_tol;
         abstolL = abs_tol;
@@ -146,6 +146,12 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     /// This base class manages the Newton iteration counters and defers the integrator implementation to OnAdvance.
     virtual void Advance(double dt) override final;
 
+    /// Save the step size control state (internal step size and number of successive successful steps).
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the step size control state.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
   public:
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) override {
@@ -202,7 +208,19 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     virtual void FinalizeStep() {}
 
     /// Check convergence of Newton process.
+    /// Used only if no override of OnAdvance is provided.
     bool CheckConvergence(int iteration);
+
+    /// Return a description of the last convergence check (norms, tolerances, and failed tests).
+    std::string GetConvergenceReport() const;
+
+    /// Return a description of the residual test at the last convergence check.
+    std::string GetResidualTestReport() const;
+
+    /// Handle a Newton solve that did not converge within the maximum number of iterations.
+    /// Throws an exception with the given report if terminated steps are not accepted; otherwise, counts the
+    /// terminated solve and prints the report in verbose mode.
+    void ProcessTerminatedSolve(const std::string& report);
 
     /// Calculate error weights based on the given state and tolerances.
     void CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt);
@@ -234,6 +252,13 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
     ChVectorDynamic<> R;   ///< residual of nonlinear system (dynamics portion)
     ChVectorDynamic<> Qc;  ///< residual of nonlinear system (constraints portion)
 
+    double Qc_scale;  ///< factor converting the constraint residual Qc to a position-level constraint violation
+
+    double R_nrm;   ///< norm of the dynamics residual at the last convergence check
+    double C_nrm;   ///< norm of the position-level constraint violation at the last convergence check
+    double Ds_nrm;  ///< WRMS norm of the state update at the last convergence check
+    double Dl_nrm;  ///< WRMS norm of the Lagrange multiplier update at the last convergence check
+
     std::array<double, 3> Ds_nrm_hist;  ///< last 3 update norms
     std::array<double, 3> Dl_nrm_hist;  ///< last 3 update norms
 
@@ -253,6 +278,16 @@ class ChApi ChTimestepperImplicit : public ChTimestepper {
 };
 
 /// Euler implicit for II order systems.
+///
+/// The Newton iteration stops when both the dynamics residual R and the constraint violation C satisfy
+/// |R| < abstolS and |C| < abstolS (infinity norms), where
+/// - R is the momentum-level residual dt*f + M*(v_old - v_new) + dt*Cq'*l;
+/// - C is the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by dt.
+///
+/// The relative tolerance and the Lagrange multiplier tolerance are not used. If Newton does not converge within the
+/// maximum number of iterations, the step is accepted, or an exception is thrown if AcceptTerminatedStep(false) was
+/// called; in both cases, the norms at the last iteration are reported (in the exception message or in verbose mode).
 class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperEulerImplicit(ChIntegrableIIorder* intgr = nullptr);
@@ -299,9 +334,6 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 
   protected:
     ChStateDelta Vold;
-    ChVectorDynamic<> Dl;
-    ChVectorDynamic<> R;
-    ChVectorDynamic<> Qc;
 };
 
 /// Euler implicit for II order systems, with projection.
@@ -328,15 +360,22 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 
   protected:
     ChStateDelta Vold;
-    ChVectorDynamic<> Dl;
-    ChVectorDynamic<> R;
-    ChVectorDynamic<> Qc;
 };
 
 /// Trapezoidal implicit for II order systems.
 /// NOTE: this is a modified version of the trapezoidal for DAE: the original derivation would lead to a scheme that
 /// produces oscillatory reactions in constraints, so this is a modified version that is first order in constraint
 /// reactions. Use damped HHT or damped Newmark for more advanced options.
+///
+/// The Newton iteration stops when both the dynamics residual R and the constraint violation C satisfy
+/// |R| < abstolS and |C| < abstolS (infinity norms), where
+/// - R is the momentum-level residual M*(v_old - v_new) + dt/2*(f_old + f_new + Cq'*l_new);
+/// - C is the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by dt.
+///
+/// The relative tolerance and the Lagrange multiplier tolerance are not used. If Newton does not converge within the
+/// maximum number of iterations, the step is accepted, or an exception is thrown if AcceptTerminatedStep(false) was
+/// called; in both cases, the norms at the last iteration are reported (in the exception message or in verbose mode).
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperTrapezoidal(ChIntegrableIIorder* intgr = nullptr);
@@ -387,6 +426,16 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 };
 
 /// Newmark constrained implicit for II order DAE systems.
+///
+/// The Newton iteration stops when both the dynamics residual R and the constraint violation C satisfy
+/// |R| < abstolS and |C| < abstolS (infinity norms), where
+/// - R is the force-level residual f + Cq'*l - M*a;
+/// - C is the constraint violation, at the position level. For constraints imposed at the velocity level, C is the
+///   velocity violation multiplied by (beta/gamma)*dt.
+///
+/// The relative tolerance and the Lagrange multiplier tolerance are not used. If Newton does not converge within the
+/// maximum number of iterations, the step is accepted, or an exception is thrown if AcceptTerminatedStep(false) was
+/// called; in both cases, the norms at the last iteration are reported (in the exception message or in verbose mode).
 class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChTimestepperImplicit {
   public:
     ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr);

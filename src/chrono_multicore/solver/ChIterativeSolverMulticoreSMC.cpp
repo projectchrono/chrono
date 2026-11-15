@@ -29,6 +29,7 @@
 //// case. Is there a solution?
 
 #include <algorithm>
+#include <iostream>
 #include <stdexcept>
 
 #include "chrono/physics/ChSystemSMC.h"
@@ -84,6 +85,7 @@ void function_CalcContactForces(int index,                                      
                                 real3* shear_disp,                                    // accumulated shear displacement for each neighbor (per body)
                                 real* contact_relvel_init,                            // initial relative normal velocity per contact pair
                                 real* contact_duration,                               // duration of persistent contact between contact pairs
+                                uint* shear_overflows,                                // [output] number of contacts with no free history slot
                                 int* ct_bid,                                          // [output] body IDs (two per contact)
                                 real3* ct_force,                                      // [output] body force (two per contact)
                                 real3* ct_torque                                      // [output] body torque (two per contact)
@@ -226,25 +228,33 @@ void function_CalcContactForces(int index,                                      
             }
         }
 
-        // Record that these two bodies are really in contact at this time.
-        int ctSaveId = max_shear * shear_body1 + contact_id;
-        shear_touch[ctSaveId] = true;
-
-        // Increment stored contact history tangential (shear) displacement vector and project it onto the current
-        // contact plane.
-        if (shear_body1 == b1) {
-            shear_disp[ctSaveId] += delta_t;
-            shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
-            delta_t = shear_disp[ctSaveId];
+        if (contact_id < 0) {
+            // All history slots of shear_body1 are taken. Process this contact without stored history in this step,
+            // as with the OneStep model, and count it.
+#pragma omp atomic
+            (*shear_overflows)++;
+            relvel_init = char_vel;
         } else {
-            shear_disp[ctSaveId] -= delta_t;
-            shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
-            delta_t = -shear_disp[ctSaveId];
-        }
+            // Record that these two bodies are really in contact at this time.
+            int ctSaveId = max_shear * shear_body1 + contact_id;
+            shear_touch[ctSaveId] = true;
 
-        // Load the initial collision velocity and accumulated contact duration from the contact history.
-        relvel_init = (contact_relvel_init[ctSaveId] < char_vel) ? char_vel : contact_relvel_init[ctSaveId];
-        t_contact = contact_duration[ctSaveId];
+            // Increment stored contact history tangential (shear) displacement vector and project it onto the current
+            // contact plane.
+            if (shear_body1 == b1) {
+                shear_disp[ctSaveId] += delta_t;
+                shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+                delta_t = shear_disp[ctSaveId];
+            } else {
+                shear_disp[ctSaveId] -= delta_t;
+                shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+                delta_t = -shear_disp[ctSaveId];
+            }
+
+            // Load the initial collision velocity and accumulated contact duration from the contact history.
+            relvel_init = (contact_relvel_init[ctSaveId] < char_vel) ? char_vel : contact_relvel_init[ctSaveId];
+            t_contact = contact_duration[ctSaveId];
+        }
     }
 
     auto eps = std::numeric_limits<double>::epsilon();
@@ -454,7 +464,7 @@ void function_CalcContactForces(int index,                                      
         if (delta_t_mag > eps) {
             real ratio = forceT_slide / forceT_mag;
             forceT *= ratio;
-            if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+            if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep && contact_id >= 0) {
                 delta_t = (forceT - forceT_damp) / kt;
                 if (shear_body1 == b1) {
                     shear_disp[max_shear * shear_body1 + contact_id] = delta_t;
@@ -554,6 +564,8 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
                                                            custom_vector<real3>& ct_torque,
                                                            custom_vector<vec2>& shape_pairs,
                                                            custom_vector<char>& shear_touch) {
+    uint shear_overflows = 0;
+
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->cd_data->num_rigid_contacts; index++) {
         function_CalcContactForces(index,                                                  // index of this contact pair
@@ -587,11 +599,14 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
                                    data_manager->host_data.shear_disp.data(),              // accumulated shear displacement for each neighbor (per body)
                                    data_manager->host_data.contact_relvel_init.data(),     // initial relative normal velocity per contact pair
                                    data_manager->host_data.contact_duration.data(),        // duration of persistent contact between contact pairs
+                                   &shear_overflows,                                       // [output] number of contacts with no free history slot
                                    ct_bid.data(),                                          // [output] body IDs (two per contact)
                                    ct_force.data(),                                        // [output] body force (two per contact)
                                    ct_torque.data()                                        // [output] body torque (two per contact)
         );
     }
+
+    data_manager->num_shear_overflows = shear_overflows;
 }
 
 // -----------------------------------------------------------------------------
@@ -668,6 +683,17 @@ void ChIterativeSolverMulticoreSMC::ProcessContacts() {
     }
 
     host_CalcContactForces(ct_bid, ct_force, ct_torque, shape_pairs, shear_touch);
+
+    // Warn the first time that contacts find no free history slot, and accumulate their number.
+    if (data_manager->num_shear_overflows > 0) {
+        if (data_manager->total_shear_overflows == 0) {
+            std::cerr << "WARNING: " << data_manager->num_shear_overflows << " contacts found no free contact history slot (" << max_shear
+                      << " per body) and were processed without stored tangential displacement.\n"
+                      << "         This warning is printed once. ChSystemMulticoreSMC::GetNumContactHistoryOverflows"
+                      << " reports the count at every step." << std::endl;
+        }
+        data_manager->total_shear_overflows += data_manager->num_shear_overflows;
+    }
 
     data_manager->host_data.ct_force.resize(2 * num_rigid_contacts);
     data_manager->host_data.ct_torque.resize(2 * num_rigid_contacts);
@@ -783,11 +809,15 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
     // Calculate contact forces (impulses) and append them to the body forces
     data_manager->host_data.ct_body_map.resize(data_manager->num_rigid_bodies);
     Thrust_Fill(data_manager->host_data.ct_body_map, -1);
+    data_manager->num_shear_overflows = 0;
 
     if (data_manager->cd_data && data_manager->cd_data->num_rigid_contacts > 0) {
         data_manager->system_timer.start("ChIterativeSolverMulticoreSMC_ProcessContact");
         ProcessContacts();
         data_manager->system_timer.stop("ChIterativeSolverMulticoreSMC_ProcessContact");
+    } else if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+        // No contact persists through a step without contacts: free all contact history slots.
+        Thrust_Fill(data_manager->host_data.shear_neigh, vec3(-1, -1, -1));
     }
 
     // Generate the mass matrix and compute M_inv_k

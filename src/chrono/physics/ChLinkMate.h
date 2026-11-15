@@ -692,6 +692,9 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     /// Get rack position in absolute reference.
     ChVector3d GetAbsRackPos();
 
+    /// Return false: the contact frames, which depend on the previous update, are not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

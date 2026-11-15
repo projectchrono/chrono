@@ -44,6 +44,10 @@ class ViperRigWheel : public chrono::vehicle::ChWheelTestRig::WheelAssembly {
         m_wheel->SetFixed(fixed_wheel);
     }
 
+    virtual chrono::vehicle::TerrainForce ReportForces(chrono::vehicle::ChTerrain& terrain) const override {
+        return chrono::vehicle::ChWheelTestRig::CalculateTerrainForce({m_wheel}, terrain, m_wheel->GetPos());
+    }
+
     virtual void RemoveFromSystem() override {
         if (m_wheel->GetSystem())
             m_wheel->GetSystem()->Remove(m_wheel);
@@ -119,8 +123,10 @@ ViperRigWheel::ViperRigWheel(chrono::ChSystem& system)
 #ifdef CHRONO_CRM
 
 void ViperRigWheel::AddFSIBodies(chrono::vehicle::CRMTerrain& terrain, double spacing) {
+    // Register the wheel with the CRM terrain (not directly with the underlying FSI system), so that the terrain can
+    // report the FSI forces on the wheel and associate an active domain with it
     auto bce = CreateBCE(spacing);
-    terrain.GetFsiSystemSPH()->AddRigidBody(m_wheel, bce, chrono::ChFramed(), false);
+    terrain.AddRigidBody(m_wheel, bce, chrono::ChFramed(), false);
 }
 
 std::vector<chrono::ChVector3d> ViperRigWheel::CreateBCE(double spacing, bool cartesian) const {

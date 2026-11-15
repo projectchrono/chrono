@@ -300,10 +300,13 @@ void ChFsiFluidSystemSPH::SetInitPressure(const double height) {
 }
 
 void ChFsiFluidSystemSPH::SetGravitationalAcceleration(const ChVector3d& gravity) {
-    ChAssertAlways(!m_is_initialized);
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
+
+    // On an initialized system, upload the new value to the device
+    if (m_is_initialized)
+        CopyParametersToDevice(m_paramsH, m_data_mgr->countersH);
 }
 
 void ChFsiFluidSystemSPH::SetBodyForce(const ChVector3d& force) {
@@ -337,6 +340,11 @@ void ChFsiFluidSystemSPH::SetDensity(double rho0) {
     m_paramsH->rho0 = rho0;
     m_paramsH->invrho0 = 1 / m_paramsH->rho0;
     m_paramsH->markerMass = m_paramsH->volume0 * m_paramsH->rho0;
+}
+
+void ChFsiFluidSystemSPH::SetBasePressure(double base_pressure) {
+    ChAssertAlways(!m_is_initialized);
+    m_paramsH->base_pressure = base_pressure;
 }
 
 void ChFsiFluidSystemSPH::SetShiftingPPSTParameters(double push, double pull) {
@@ -763,8 +771,10 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
         m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
         m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
         m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
-        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+        // The angular velocity and acceleration in FsiBodyState are expressed in the global frame, but the SPH solver
+        // uses them expressed in the body frame
+        m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_vel));
+        m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_acc));
     }
 
     if (num_bodies > 0)
@@ -798,8 +808,10 @@ void ChFsiFluidSystemSPH::LoadSolidStates(const std::vector<FsiBodyState>& body_
             m_data_mgr->fsiBodyState_H->lin_vel[i] = ToReal3(body_states[i].lin_vel);
             m_data_mgr->fsiBodyState_H->lin_acc[i] = ToReal3(body_states[i].lin_acc);
             m_data_mgr->fsiBodyState_H->rot[i] = ToReal4(body_states[i].rot);
-            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].ang_vel);
-            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].ang_acc);
+            // The angular velocity and acceleration in FsiBodyState are expressed in the global frame, but the SPH
+            // solver uses them expressed in the body frame
+            m_data_mgr->fsiBodyState_H->ang_vel[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_vel));
+            m_data_mgr->fsiBodyState_H->ang_acc[i] = ToReal3(body_states[i].rot.RotateBack(body_states[i].ang_acc));
         }
 
         if (num_bodies > 0)
@@ -1245,7 +1257,7 @@ void ChFsiFluidSystemSPH::OnAddFeaMesh2D(std::shared_ptr<FsiMesh2D> fsi_mesh, bo
     m.check_embedded = check_embedded;
 
     CreateFeaMesh2DBce(fsi_mesh, m_pattern2D, m_remove_center2D, m.bce_ids, m.bce_coords, m.bce);
-    m_num_flex1D_meshes++;
+    m_num_flex2D_meshes++;
     m_num_flex2D_nodes += fsi_mesh->GetNumNodes();
     m_num_flex2D_elements += fsi_mesh->GetNumElements();
 
@@ -1261,6 +1273,28 @@ void GetOrthogonalAxes(const ChVector3d& x, ChVector3d& y, ChVector3d& z) {
     }
     z = Vcross(x, y_tmp).GetNormalized();
     y = Vcross(z, x);
+}
+
+// Host counterpart of get_projected_axes (see SphCustomMath.cuh).
+void GetProjectedAxes(const ChVector3d& x, const ChVector3d& n, ChVector3d& y, ChVector3d& z) {
+    ChVector3d n_perp = n - Vdot(n, x) * x;
+    double len = n_perp.Length();
+    if (len < 1e-3) {
+        GetOrthogonalAxes(x, y, z);
+        return;
+    }
+    y = n_perp / len;
+    z = Vcross(x, y);
+}
+
+// Initial reference normal for a 1-D segment with given end points.
+// The cross-section frames of all BCE markers on the segment are derived from this normal, which is then carried over
+// to the current segment configuration at each update of the BCE marker states (see SphBceManager).
+ChVector3d GetSegmentNormal(const ChVector3d& P0, const ChVector3d& P1) {
+    ChVector3d y;
+    ChVector3d z;
+    GetOrthogonalAxes((P1 - P0).GetNormalized(), y, z);
+    return y;
 }
 
 void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh,
@@ -1319,6 +1353,7 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
         ////cout << segID << "  " << P0 << "  |  " << P1 << endl;
 
         auto len = (P1 - P0).Length();          // segment length
+        auto normal = GetSegmentNormal(P0, P1);  // segment reference normal
         int n = (int)std::ceil(len / spacing);  // required divisions on segment
 
         for (int i = 0; i <= n; i++) {
@@ -1332,6 +1367,11 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
             ChVector3d P;
             ChVector3d D;
             if (use_node_directions) {
+                // Cubic Hermite interpolation; the Hermite tangents are the unit node directions scaled by the segment
+                // length (as in the device BCE marker update)
+                auto T0 = dir[i0] * len;
+                auto T1 = dir[i1] * len;
+
                 auto t2 = t * t;
                 auto t3 = t2 * t;
 
@@ -1339,23 +1379,23 @@ void ChFsiFluidSystemSPH::CreateFeaMesh1DBce(std::shared_ptr<FsiMesh1D> fsi_mesh
                 auto a1 = -2 * t3 + 3 * t2;
                 auto b0 = t3 - 2 * t2 + t;
                 auto b1 = t3 - t2;
-                P = P0 * a0 + P1 * a1 + dir[i0] * b0 + dir[i1] * b1;
+                P = P0 * a0 + P1 * a1 + T0 * b0 + T1 * b1;
 
                 auto a0d = 6 * t2 - 6 * t;
                 auto a1d = -6 * t2 + 6 * t;
                 auto b0d = 3 * t2 - 4 * t + 1;
                 auto b1d = 3 * t2 - 2 * t;
-                D = P0 * a0d + P1 * a1d + dir[i0] * b0d + dir[i1] * b1d;
+                D = P0 * a0d + P1 * a1d + T0 * b0d + T1 * b1d;
             } else {
                 P = P0 * (1 - t) + P1 * t;
                 D = P1 - P0;
             }
 
-            // Create local frame
+            // Create local frame (from the segment reference normal, for continuity along the segment)
             ChVector3d x_dir = D.GetNormalized();
             ChVector3d y_dir;
             ChVector3d z_dir;
-            GetOrthogonalAxes(x_dir, y_dir, z_dir);
+            GetProjectedAxes(x_dir, normal, y_dir, z_dir);
 
             for (int j = -num_layers + 1; j <= num_layers - 1; j += 2) {
                 for (int k = -num_layers + 1; k <= num_layers - 1; k += 2) {
@@ -1783,7 +1823,7 @@ void ChFsiFluidSystemSPH::Initialize(const std::vector<FsiBodyState>& body_state
 
     for (const auto& m : m_meshes2D) {
         AddFeaMesh2DBce(m);
-        m_num_flex1D_meshes++;
+        m_num_flex2D_meshes++;
         m_num_flex2D_nodes += m.fsi_mesh->GetNumNodes();
         m_num_flex2D_elements += m.fsi_mesh->GetNumElements();
     }
@@ -1972,6 +2012,7 @@ void ChFsiFluidSystemSPH::AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh) {
         auto node0_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(0));
         auto node1_index = m_num_flex1D_nodes + fsi_mesh->ptr2ind_map.at(seg->GetNode(1));
         m_data_mgr->flex1D_Nodes_H.push_back(mI2(node0_index, node1_index));
+        m_data_mgr->flex1D_Normals_H.push_back(ToReal3(GetSegmentNormal(seg->GetNode(0)->GetPos(), seg->GetNode(1)->GetPos())));
     }
 
     // Add BCE markers and load their local coordinates and mesh associations
@@ -1993,7 +2034,7 @@ void ChFsiFluidSystemSPH::AddFeaMesh1DBce(const FsiSphMesh1D& fsisph_mesh) {
 void ChFsiFluidSystemSPH::AddFeaMesh2DBce(const FsiSphMesh2D& fsisph_mesh) {
     const auto& fsi_mesh = fsisph_mesh.fsi_mesh;
 
-    // Load index-based mesh connectivity (append to global list of 1-D flex segments)
+    // Load index-based mesh connectivity (append to global list of 2-D flex faces)
     for (const auto& tri : fsi_mesh->contact_surface->GetTrianglesXYZ()) {
         auto node0_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(0));
         auto node1_index = m_num_flex2D_nodes + fsi_mesh->ptr2ind_map.at(tri->GetNode(1));
@@ -2639,13 +2680,9 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
 
     // Use polar coordinates
     if (polar) {
-        double rad_max = rad + num_layers * spacing;
-        double rad_min = rad_max - num_layers * spacing;
-        int np_r = (int)std::round((rad_max - rad_min) / spacing);
-        double delta_r = (rad_max - rad_min) / np_r;
-
-        for (int ir = 0; ir <= np_r; ir++) {
-            double r = rad_min + ir * delta_r;
+        // Side wall: num_layers layers, the first one on the cylinder surface
+        for (int ir = 0; ir < num_layers; ir++) {
+            double r = rad + ir * spacing;
             int np_th = (int)std::round(2 * pi * r / spacing);
             double delta_th = (np_th > 0) ? (2 * pi) / np_th : 1;
             for (int it = 0; it < np_th; it++) {
@@ -2660,8 +2697,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
         }
 
         // Add cylinder caps
-        np_r = (int)std::round(rad_min / spacing);
-        delta_r = rad_min / np_r;
+        int np_r = (int)std::round(rad / spacing);
+        double delta_r = rad / np_r;
 
         for (int ir = 0; ir < np_r; ir++) {
             double r = ir * delta_r;
@@ -2682,14 +2719,15 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsCylinderExterior(double
         return bce;
     }
 
-    // Inflate cylinder and accept/reject points on a Cartesian grid
+    // Inflate cylinder and accept/reject points on a Cartesian grid.
+    // Side wall points are those with rad <= r < rad + num_layers * delta_r (with a small tolerance).
     int np_r = (int)std::round(rad / spacing);
     double delta_r = rad / np_r;
     np_r += num_layers;
-    rad += num_layers * delta_r;
 
-    double rad_max = rad;
-    double rad_min = std::max(rad - num_layers * delta_r, 0.0);
+    double tol = 1e-6 * delta_r;
+    double rad_min = rad - tol;
+    double rad_max = rad + num_layers * delta_r - tol;
     double r_max2 = rad_max * rad_max;
     double r_min2 = rad_min * rad_min;
     for (int ix = -np_r; ix <= np_r; ix++) {
@@ -2803,72 +2841,96 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::CreatePointsTruncatedConeExterior(d
     double spacing = m_paramsH->d0;
     int num_layers = m_paramsH->num_bce_layers;
 
-    // Calculate actual spacing
+    // Calculate actual spacing in the axial direction
     int np_h = (int)std::round(height / spacing);
     double delta_h = height / np_h;
 
-    // Inflate cone
-    np_h += 2 * num_layers;
-    height += 2 * num_layers * delta_h;
+    // The cone base is at z = 0 and its tip at z = height; the side surface is r(z) = rad - k * z.
+    // Side wall layer i is the side surface offset by i * spacing along its outward normal, i.e., the cone with radius
+    // r(z) + i * dr. The base and tip caps have layers at z = -i * delta_h and z = height + i * delta_h, respectively.
+    // A true cone (rad_tip = 0) has no tip cap; its side wall layers extend up to their apex.
+    double k = (rad - rad_tip) / height;
+    double sk = std::sqrt(1 + k * k);
+    double dr = spacing * sk;
+    bool tip_cap = rad_tip > 0;
+    double z_ext = (num_layers - 1) * delta_h;
+
+    // Top of the side wall layer with given index
+    auto z_top = [&](int il) { return tip_cap ? height + z_ext : height + il * dr / k; };
 
     // Use polar coordinates
     if (polar) {
-        for (int iz = 0; iz < np_h; iz++) {
-            double z = iz * delta_h;
-            // Interpolate between rad_tip and rad based on the height
-            double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
-            double rad_out = rz + num_layers * spacing;
-            double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
-            if (iz >= np_h - num_layers)
-                rad_in = 0;
-            int np_r = (int)std::round((rad_out - rad_in) / spacing);
-            double delta_r = (rad_out - rad_in) / np_r;
-            for (int ir = 0; ir <= np_r; ir++) {
-                double r = rad_in + ir * delta_r;
-                int np_th = (int)std::round(2 * pi * r / spacing);
+        // Side wall layers, sampled along the cone generator and extended over the caps
+        for (int il = 0; il < num_layers; il++) {
+            double z_bot = -z_ext;
+            double z_max = z_top(il);
+            int np_g = std::max((int)std::round((z_max - z_bot) * sk / spacing), 1);
+            double delta_z = (z_max - z_bot) / np_g;
+            for (int iz = 0; iz <= np_g; iz++) {
+                double z = z_bot + iz * delta_z;
+                double r = std::max(rad - k * z + il * dr, 0.0);
+                int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
                 double delta_th = (2 * pi) / np_th;
                 for (int it = 0; it < np_th; it++) {
                     double theta = it * delta_th;
-                    double x = r * cos(theta);
-                    double y = r * sin(theta);
-                    bce.push_back({x, y, z});
+                    bce.push_back({r * cos(theta), r * sin(theta), z});
                 }
             }
         }
 
-        // Add tip point only for a true cone (rad_tip = 0)
-        if (rad_tip < std::numeric_limits<double>::epsilon()) {
-            bce.push_back({0.0, 0.0, height});
+        // Cap layers (disks up to the innermost side wall layer)
+        auto add_cap_layer = [&](double z) {
+            double r_cap = rad - k * z;
+            if (r_cap <= 0)
+                return;
+            int np_r = std::max((int)std::round(r_cap / spacing), 1);
+            double delta_r = r_cap / np_r;
+            for (int ir = 0; ir < np_r; ir++) {
+                double r = ir * delta_r;
+                int np_th = std::max((int)std::round(2 * pi * r / spacing), 1);
+                double delta_th = (2 * pi) / np_th;
+                for (int it = 0; it < np_th; it++) {
+                    double theta = it * delta_th;
+                    bce.push_back({r * cos(theta), r * sin(theta), z});
+                }
+            }
+        };
+        for (int il = 0; il < num_layers; il++) {
+            add_cap_layer(-il * delta_h);
+            if (tip_cap)
+                add_cap_layer(height + il * delta_h);
         }
-
-        //// TODO: add cap
 
         return bce;
     }
 
-    // Use a regular grid and accept/reject points
+    // Use a regular grid and accept/reject points.
+    // A point is a BCE point if it is outside the cone, its distance from the side surface (measured along the normal) is
+    // less than num_layers * spacing, and it lies on one of the first num_layers grid levels beyond each cap plane.
     int np_r = (int)std::round(rad / spacing);
     double delta_r = rad / np_r;
+    double r_ext = std::max(rad + k * z_ext, rad_tip - k * z_ext) + num_layers * dr;
+    np_r = (int)std::ceil(r_ext / delta_r) + 1;
 
-    for (int iz = 0; iz <= np_h; iz++) {
+    double tol = 1e-6 * spacing;
+    double d_max = num_layers * spacing - tol;
+    int iz_min = -(num_layers - 1);
+    int iz_max = (int)std::floor(z_top(num_layers - 1) / delta_h + 1e-6);
+
+    for (int iz = iz_min; iz <= iz_max; iz++) {
         double z = iz * delta_h;
-        // Interpolate between rad_tip and rad based on the height
-        double rz = rad_tip + (rad - rad_tip) * (height - z) / height;
-        double rad_out = rz + num_layers * spacing;
-        double rad_in = std::max(rad_out - num_layers * spacing, 0.0);
-        double r_out2 = rad_out * rad_out;
-        double r_in2 = rad_in * rad_in;
         for (int ix = -np_r; ix <= np_r; ix++) {
             double x = ix * delta_r;
             for (int iy = -np_r; iy <= np_r; iy++) {
                 double y = iy * delta_r;
-                double r2 = x * x + y * y;
-                if (r2 >= r_in2 && r2 <= r_out2) {
+                double r = std::sqrt(x * x + y * y);
+                double d_side = (r - (rad - k * z)) / sk;
+                double d_base = -z;
+                double d_tip = tip_cap ? z - height : -1;
+                bool outside = std::max({d_side, d_base, d_tip}) >= -tol;
+                if (outside && d_side < d_max && d_base <= z_ext + tol && d_tip <= z_ext + tol)
                     bce.push_back({x, y, z});
-                }
             }
-
-            //// TODO: add cap
         }
     }
 

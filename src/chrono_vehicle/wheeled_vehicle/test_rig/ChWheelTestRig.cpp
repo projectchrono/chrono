@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 
 #include "chrono/assets/ChVisualShapeBox.h"
@@ -23,6 +25,9 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/physics/ChLoadContainer.h"
+#include "chrono/physics/ChLinkMate.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
@@ -47,10 +52,10 @@ class DummyChassis : public ChChassis {
 
     virtual std::string GetTemplateName() const override { return "dummy_template"; }
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
-    virtual ChFrame<> GetBodyCOMFrame() const { return ChFrame<>(); }
-    virtual double GetBodyMass() const { return chassis_body->GetMass(); }
-    virtual ChMatrix33<> GetBodyInertia() const { return chassis_body->GetInertia(); }
-    virtual void EnableCollision(bool state) {}
+    virtual ChFrame<> GetBodyCOMFrame() const override { return ChFrame<>(); }
+    virtual double GetBodyMass() const override { return chassis_body->GetMass(); }
+    virtual ChMatrix33<> GetBodyInertia() const override { return chassis_body->GetInertia(); }
+    virtual void EnableCollision(bool state) override {}
     virtual void OnInitialize(ChVehicle* vehicle, const ChCoordsys<>& chassisPos, double chassisFwdVel, int collision_family) override {
         m_body = chassis_body;  // set the underlying ChChassis body
 
@@ -74,6 +79,27 @@ class DummyChassis : public ChChassis {
     std::shared_ptr<ChBodyAuxRef> chassis_body;
 };
 
+// Stand-in steering subsystem for a VehicleWheelAssembly.
+// Wraps the rig steering rack, so that the tierods of a steerable suspension are attached to it.
+class DummySteering : public ChSteering {
+  public:
+    DummySteering(std::shared_ptr<ChBody> link) : ChSteering("dummy_steering"), link(link) {}
+    virtual std::string GetTemplateName() const override { return "dummy_template"; }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs) override {}
+    virtual void InitializeInertiaProperties() override {
+        m_mass = link->GetMass();
+        m_inertia = link->GetInertia();
+        m_com = ChFrame<>();
+    }
+    virtual void UpdateInertiaProperties() override { m_xform = m_parent->GetTransform().TransformLocalToParent(m_rel_xform); }
+
+  private:
+    // The rig owns the rack body, so ~ChSteering finds it already removed from the system.
+    virtual void Construct(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, const ChQuaternion<>& rotation) override { m_link = link; }
+
+    std::shared_ptr<ChBody> link;
+};
+
 // ChWheelTestRig::WheelAssembly that wraps a Chrono::Vehicle tire and wheel assembly and, optionally, a Chrono::vehicle suspension.
 class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
   public:
@@ -81,6 +107,7 @@ class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
     VehicleWheelAssembly(ChSystem& system, std::shared_ptr<ChSuspension> suspension, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire);
 
     virtual bool HasSuspension() const override { return suspension ? true : false; }
+    virtual std::shared_ptr<ChWheelTestRig::SteeringActuator> GetSteeringActuator() const override { return actuator; }
 
     virtual double GetMass() const override;
     virtual double GetWheelMass() const override { return wheel->GetMass(); }
@@ -105,6 +132,11 @@ class VehicleWheelAssembly : public ChWheelTestRig::WheelAssembly {
   private:
     std::shared_ptr<DummyChassis> chassis;
     std::shared_ptr<ChSuspension> suspension;
+    std::shared_ptr<ChBody> rack;
+    std::shared_ptr<ChLinkMotorLinearPosition> rack_motor;
+    std::shared_ptr<ChWheelTestRig::SteeringActuator> actuator;
+    std::shared_ptr<DummySteering> steering;
+    std::shared_ptr<ChLinkMateGeneric> other_lock;
     std::shared_ptr<ChSpindle> spindle;
     std::shared_ptr<ChWheel> wheel;
     std::shared_ptr<ChTire> tire;
@@ -121,6 +153,17 @@ void VehicleWheelAssembly::RemoveFromSystem() {
     if (chassis)
         chassis->RemoveContainers();
 
+    // Suspension case: travel lock on the other side of an independent suspension
+    if (other_lock && other_lock->GetSystem())
+        other_lock->GetSystem()->Remove(other_lock);
+
+    // Steerable suspension case: steering rack and its actuator
+    // (the rack is removed here, so ~ChSteering finds it already removed from the system)
+    if (rack_motor && rack_motor->GetSystem())
+        rack_motor->GetSystem()->Remove(rack_motor);
+    if (rack && rack->GetSystem())
+        rack->GetSystem()->Remove(rack);
+
     // No-suspension case: the spindle body was created here (a suspension spindle is removed by the suspension itself)
     if (!suspension && spindle && spindle->GetSystem())
         spindle->GetSystem()->Remove(spindle);
@@ -130,6 +173,8 @@ double VehicleWheelAssembly::GetMass() const {
     double mass = wheel->GetMass() + tire->GetTireMass();
     if (suspension)
         mass += suspension->GetMass();
+    if (rack)
+        mass += rack->GetMass();
     return mass;
 }
 
@@ -137,9 +182,17 @@ double VehicleWheelAssembly::GetMass() const {
 
 void VehicleWheelAssembly::AddFSIBodies(CRMTerrain& terrain, double spacing) {
     #ifdef CHRONO_FEA
-    if (auto fea_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
-        auto mesh = fea_tire->GetMesh();
-        terrain.AddFeaMesh(mesh, false);
+    if (auto def_tire = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+        // CRM couples only triangles with XYZ nodes (e.g., not Reissner shell tires)
+        auto surface = def_tire->GetSurfaceMesh();
+        if (!surface || surface->GetTrianglesXYZ().empty()) {
+            std::cerr << "ERROR: Tire model " << tire->GetTemplateName() << " cannot be used with CRM terrain." << std::endl;
+            throw std::runtime_error("ERROR: Tire model " + tire->GetTemplateName() + " cannot be used with CRM terrain.");
+        }
+        // Place the BCE markers inside the tire (surface normals point outward), so that the soil interacts with the
+        // actual tire surface
+        terrain.SetBcePattern2D(BcePatternMesh2D::INWARD, false);
+        terrain.AddFeaSurface(surface, false);
         return;
     }
     #endif
@@ -167,7 +220,44 @@ void VehicleWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body
         chassis->Initialize(nullptr, ChCoordsysd(chassis_body->GetPos(), QUNIT), 0.0);
         chassis->SetVisualizationType(vis_type);
 
-        suspension->Initialize(chassis, nullptr, nullptr, frame.GetPos());
+        // For a steerable suspension, create a steering rack to which the suspension tierods are attached (through a
+        // stand-in steering subsystem). The rack translates laterally relative to the chassis, actuated by a position
+        // motor which also acts as a prismatic guide (motor frame Z axis along the rig Y axis).
+        if (suspension->IsSteerable()) {
+            const auto& rack_pos = frame.GetPos();
+
+            rack = chrono_types::make_shared<ChBody>();
+            rack->SetName("rig_rack");
+            rack->SetPos(rack_pos);
+            system.AddBody(rack);
+            {
+                auto mat = chrono_types::make_shared<ChVisualMaterial>();
+                mat->SetDiffuseColor({0.35f, 0.32f, 0.29f});
+                mat->SetRoughness(0.6f);
+                utils::ChBodyGeometry::AddVisualizationCylinder(rack, rack_pos + ChVector3d(0, -0.2, 0), rack_pos + ChVector3d(0, +0.2, 0), 0.025, mat);
+            }
+
+            rack_motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+            rack_motor->SetName("rig_rack_motor");
+            rack_motor->Initialize(rack, chassis_body, ChFrame<>(rack_pos, QuatFromAngleX(-CH_PI_2)));
+            rack_motor->SetMotionFunction(chrono_types::make_shared<ChFunctionConst>(0));
+            system.AddLink(rack_motor);
+
+            actuator = chrono_types::make_shared<ChWheelTestRig::SteeringActuatorLinear>(rack_motor);
+
+            steering = chrono_types::make_shared<DummySteering>(rack);
+            steering->Initialize(chassis, rack->GetPos() - chassis_body->GetPos(), QUNIT);
+        }
+
+        suspension->Initialize(chassis, nullptr, steering, frame.GetPos());
+
+        // For an independent suspension, lock the vertical travel of the other side, which is not supported by the terrain
+        if (suspension->IsIndependent()) {
+            auto other_spindle = suspension->GetSpindle(VehicleSide::RIGHT);
+            other_lock = chrono_types::make_shared<ChLinkMateGeneric>(false, false, true, false, false, false);
+            other_lock->Initialize(other_spindle, chassis_body, ChFramed(other_spindle->GetPos(), QUNIT));
+            system.Add(other_lock);
+        }
         suspension->SetVisualizationType(vis_type);
 
         spindle = suspension->GetSpindle(VehicleSide::LEFT);
@@ -188,9 +278,15 @@ void VehicleWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis_body
     wheel->SetTire(tire);
 
     tire->Initialize(wheel);
-    tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
     tire->SetStepsize(step_size);
     tire->SetVisualizationType(vis_type);
+
+    // Steering rack mass and inertia commensurate with those of the wheel (the tire radius is available only now)
+    if (rack) {
+        double mass = wheel->GetMass();
+        rack->SetMass(mass);
+        rack->SetInertia(0.25 * mass * ChSphere::CalcGyration(tire->GetRadius()));
+    }
 }
 
 void VehicleWheelAssembly::Synchronize(double time, const ChTerrain& terrain) {
@@ -227,10 +323,18 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<WheelAssembly> 
       m_camber_angle(0),
       m_output(false),
       m_time_delay(0),
+      m_settling_time(-1),
       m_ls_actuated(false),
       m_rs_actuated(false),
       m_long_slip_constant(false),
       m_sa_fun(chrono_types::make_shared<ChFunctionConst>(0)),
+      m_steer_input(SteeringInput::NONE),
+      m_steer_feedback(false),
+      m_steer_tau(0.05),
+      m_steer_yaw0(0),
+      m_steer_offset(0),
+      m_drop_force_reported(false),
+      m_hub_offset0(0),
       m_terrain_type(TerrainType::NONE),
       m_terrain_offset(0),
       m_terrain_height(0),
@@ -241,7 +345,11 @@ ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<ChWheel> wheel,
     : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, wheel, tire)) {}
 
 ChWheelTestRig::ChWheelTestRig(ChSystem& system, std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChTire> tire, std::shared_ptr<ChSuspension> suspension)
-    : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, suspension, wheel, tire)) {}
+    : ChWheelTestRig(system, chrono_types::make_shared<VehicleWheelAssembly>(system, suspension, wheel, tire)) {
+    // Calculate the suspension mass (outside a vehicle, this is not done automatically), so that it is included in the
+    // wheel assembly mass used to enforce the specified normal load
+    suspension->InitializeInertiaProperties();
+}
 
 ChWheelTestRig::~ChWheelTestRig() {
     // Let the wheel assembly remove the items it created, then remove all rig items (in reverse order of creation)
@@ -260,6 +368,21 @@ void ChWheelTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {
 void ChWheelTestRig::SetAngSpeedFunction(std::shared_ptr<ChFunction> funct) {
     m_rs_fun = funct;
     m_rs_actuated = true;
+}
+
+void ChWheelTestRig::SetSteeringAngleFunction(std::shared_ptr<ChFunction> funct) {
+    m_steer_fun = funct;
+    m_steer_input = SteeringInput::ANGLE;
+}
+
+void ChWheelTestRig::SetSteeringActuatorFunction(std::shared_ptr<ChFunction> funct) {
+    m_steer_fun = funct;
+    m_steer_input = SteeringInput::ACTUATOR;
+}
+
+void ChWheelTestRig::EnableSteeringFeedback(bool enable, double time_constant) {
+    m_steer_feedback = enable;
+    m_steer_tau = time_constant;
 }
 
 void ChWheelTestRig::SetConstantLongitudinalSlip(double long_slip, double base_speed) {
@@ -386,19 +509,77 @@ class DelayedFun : public ChFunction {
     double m_delay;
 };
 
+// Steering actuator function.
+// Evaluates the steering input after the given delay and, for a steering angle input, converts it to an actuator
+// coordinate through the inverse kinematic steering map. A feedback correction (if any) is added and the result is
+// clamped to the range of the map.
+class SteeringFun : public ChFunction {
+  public:
+    SteeringFun(std::shared_ptr<ChFunction> fun, double delay, const ChFunctionInterp* map_inv, const double* offset)
+        : m_fun(fun), m_delay(delay), m_map_inv(map_inv), m_offset(offset) {}
+    virtual SteeringFun* Clone() const override { return new SteeringFun(*this); }
+    virtual double GetVal(double x) const override {
+        if (x < m_delay)
+            return 0;
+        double val = m_fun->GetVal(x - m_delay);
+        if (!m_map_inv)
+            return val;
+        double coord = m_map_inv->GetVal(val) + *m_offset;
+        const auto& table = m_map_inv->GetTable();
+        double coord_min = std::min(table.begin()->second, table.rbegin()->second);
+        double coord_max = std::max(table.begin()->second, table.rbegin()->second);
+        return std::clamp(coord, coord_min, coord_max);
+    }
+    std::shared_ptr<ChFunction> m_fun;
+    double m_delay;
+    const ChFunctionInterp* m_map_inv;
+    const double* m_offset;
+};
+
 void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
     m_mode = mode;
 
     CreateMechanism();
+
+    // For a wheel assembly with a suspension, set the suspension travel at static equilibrium under the normal load and
+    // place the terrain relative to the resulting wheel position
+    if (m_travel_motor) {
+        ComputeLoadedTravel();
+        SetTerrainLocation();
+    }
+
+    // Record the initial hub yaw angle and, for a steering angle input, compute the kinematic steering map
+    m_steer_yaw0 = CalcHubYaw();
+    if (m_steer_actuator && m_steer_input == SteeringInput::ANGLE)
+        ComputeSteeringMap();
+
+    // The assembly analyses above (suspension equilibrium, steering map) initialize the system, which binds only the
+    // collision models existing at that time; bind those of the bodies created with the terrain
+    bool sys_initialized = m_system.IsInitialized();
+    size_t num_bodies = m_system.GetBodies().size();
+
     CreateTerrain();
+
+    if (sys_initialized && m_system.GetCollisionSystem()) {
+        const auto& bodies = m_system.GetBodies();
+        for (size_t i = num_bodies; i < bodies.size(); i++)
+            m_system.GetCollisionSystem()->BindItem(bodies[i]);
+    }
 
     std::cout << "Wheel radius: " << m_wheel_assembly->GetRadius() << std::endl;
 
     if (m_mode != Mode::TEST)
         return;
 
-    // Set the drop speed
-    m_drop_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(drop_speed));
+    // Set the drop speed; the wheel is held in place during the terrain settling phase
+    double settling_time = GetSettlingTime();
+    auto drop_fun = chrono_types::make_shared<ChFunctionConst>(drop_speed);
+    if (settling_time > 0) {
+        m_drop_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(drop_fun, settling_time));
+        std::cout << "  terrain settling until t = " << settling_time << std::endl;
+    } else {
+        m_drop_motor->SetSpeedFunction(drop_fun);
+    }
 
     // Override motion functions to enforce specified constant longitudinal slip
     if (m_long_slip_constant) {
@@ -410,15 +591,42 @@ void ChWheelTestRig::Initialize(Mode mode, double drop_speed) {
 void ChWheelTestRig::Advance(double step) {
     double time = m_system.GetChTime();
 
-    // Check end of dropping phase
-    if (m_mode == Mode::TEST &&                                                                      // in TEST mode
-        !m_drop_motor->IsDisabled() &&                                                               // dropping is ongoing
-        m_wheel_assembly->GetHub()->GetPos().z() < m_terrain_height + m_wheel_assembly->GetRadius()  // wheel bottom reached terrain
-    ) {
+    // Check end of dropping phase.
+    // Without a suspension, the drop phase ends when the wheel reaches the terrain. With a suspension (held at its
+    // equilibrium travel under the normal load), lowering continues until the tire carries the normal load, so that
+    // releasing the suspension travel does not change the load on the wheel.
+    bool drop_done = false;
+    if (m_mode == Mode::TEST && !m_drop_motor->IsDisabled()) {
+        double radius = m_wheel_assembly->GetRadius();
+        double depth = m_terrain_height + radius - m_wheel_assembly->GetHub()->GetPos().z();  // below nominal contact
+        bool contact = depth > 0;
+        if (m_travel_motor) {
+            double load = m_wheel_assembly->ReportForces(*m_terrain).force.z();
+            drop_done = load >= m_normal_load;
+            if (load > 0)
+                m_drop_force_reported = true;
+
+            // An assembly that reports no terrain force would never end the drop phase. The actual wheel geometry may
+            // first touch the terrain below the nominal contact height (e.g., between grousers) and deformable terrain
+            // may need some sinkage to develop a force, so allow lowering by a fraction of the wheel radius before
+            // concluding that no force is reported. Once a force was reported, lowering continues until the normal
+            // load is reached, regardless of isolated zero-force steps (e.g., with intermittent contacts).
+            if (!drop_done && !m_drop_force_reported && depth > 0.1 * radius) {
+                std::cout << "\nWARNING!  Wheel assembly reports no terrain force. Drop phase ended below terrain contact.\n" << std::endl;
+                drop_done = true;
+            }
+        } else {
+            drop_done = contact;
+        }
+    }
+
+    if (drop_done) {
         std::cout << "\n  time : " << time << " - end drop phase" << std::endl;
 
-        // Disable the actuator for wheel drop
+        // Disable the actuator for wheel drop and release the suspension travel (if any)
         m_drop_motor->SetDisabled(true);
+        if (m_travel_motor)
+            m_travel_motor->SetDisabled(true);
 
         // Set motor functions with a delay measured from current time
         m_time_delay += time;
@@ -432,6 +640,19 @@ void ChWheelTestRig::Advance(double step) {
 
         if (m_slip_lock)
             m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
+
+        if (m_steer_actuator && m_steer_input != SteeringInput::NONE) {
+            const ChFunctionInterp* map_inv = (m_steer_input == SteeringInput::ANGLE) ? &m_steer_map_inv : nullptr;
+            m_steer_actuator->SetFunction(chrono_types::make_shared<SteeringFun>(m_steer_fun, m_time_delay, map_inv, &m_steer_offset));
+        }
+    }
+
+    // Steering feedback: integral correction of the actuator coordinate, normalized by the local slope of the steering map
+    if (m_steer_actuator && m_steer_input == SteeringInput::ANGLE && m_steer_feedback && m_drop_motor->IsDisabled() && time > m_time_delay) {
+        double error = m_steer_fun->GetVal(time - m_time_delay) - (CalcHubYaw() - m_steer_yaw0);
+        double slope = m_steer_map.GetDer(m_steer_actuator->GetCoordinate());
+        if (std::abs(slope) > 1e-6)
+            m_steer_offset += step * error / (m_steer_tau * slope);
     }
 
     // Turn on calculation of measured quantities
@@ -451,14 +672,24 @@ void ChWheelTestRig::Advance(double step) {
         std::static_pointer_cast<CRMTerrain>(m_terrain)->GetFsiSystemSPH()->DoStepDynamics(step);
 #endif
     } else {
-        // Synchronize subsystems
-        m_terrain->Synchronize(time);
-        m_wheel_assembly->Synchronize(time, *m_terrain.get());
+        // Advance over the given interval with the multibody step size
+        double t = 0;
+        while (t < step) {
+            double h = std::min(m_step_size, step - t);
+            if (h <= 1e-6 * m_step_size)
+                break;
 
-        // Advance state
-        m_terrain->Advance(step);
-        m_wheel_assembly->Advance(step);
-        m_system.DoStepDynamics(step);
+            // Synchronize subsystems
+            m_terrain->Synchronize(time + t);
+            m_wheel_assembly->Synchronize(time + t, *m_terrain.get());
+
+            // Advance state
+            m_terrain->Advance(h);
+            m_wheel_assembly->Advance(h);
+            m_system.DoStepDynamics(h);
+
+            t += h;
+        }
     }
 }
 
@@ -549,8 +780,10 @@ void ChWheelTestRig::CreateMechanism() {
     prismatic->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
 
     if (m_mode == Mode::TEST) {
+        // The carrier-chassis prismatic joint already constrains the other relative degrees of freedom
         m_drop_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         AddItem(m_drop_motor);
+        m_drop_motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
         m_drop_motor->Initialize(m_carrier_body, m_chassis_body, ChFrame<>(VNULL, QUNIT));
     }
 
@@ -587,8 +820,7 @@ void ChWheelTestRig::CreateMechanism() {
 
     // ---- Set terrain offset (based on wheel center) and terrain height (below wheel)
 
-    m_terrain_offset = m_wheel_assembly->GetHub()->GetPos().y();
-    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - 0.1;
+    SetTerrainLocation();
 
     // ---- Update chassis mass to satisfy requested normal load
     if (m_grav > 0) {
@@ -604,6 +836,11 @@ void ChWheelTestRig::CreateMechanism() {
 }
 
 void ChWheelTestRig::CreateWheelMechanism(double dim) {
+    if (m_steer_input != SteeringInput::NONE) {
+        std::cout << "\nWARNING!  Steering requires a steerable suspension. Steering input ignored (use a slip angle function).\n" << std::endl;
+        m_steer_input = SteeringInput::NONE;
+    }
+
     // Create the slip body
     m_slip_body = chrono_types::make_shared<ChBody>();
     AddItem(m_slip_body);
@@ -624,7 +861,8 @@ void ChWheelTestRig::CreateWheelMechanism(double dim) {
     qc.SetFromAngleX(-m_camber_angle);
     m_wheel_assembly->Initialize(nullptr, ChFramed(ChVector3d(0, 3 * dim, -4 * dim), qc), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
-    // Adjust rig body mass and inertia commensurate with those of the wheel
+    // Adjust rig body mass and inertia commensurate with those of the wheel.
+    // Note that this must be done after initialization of the wheel assembly (the tire radius may not be available before).
     double mass = m_wheel_assembly->GetWheelMass();
     const double radius = m_wheel_assembly->GetRadius();
     ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
@@ -638,10 +876,12 @@ void ChWheelTestRig::CreateWheelMechanism(double dim) {
     m_slip_body->SetMass(mass);
     m_slip_body->SetInertia(inertia);
 
-    // Create chassis to slip body connection which allows controlling slip angle
+    // Create chassis to slip body connection which allows controlling slip angle.
+    // The slip angle is imposed as a rotation about the vertical axis through the wheel center, so that it does not
+    // move the wheel center relative to the rig chassis.
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
     AddItem(m_slip_lock);
-    m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
+    m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(ChVector3d(0, 3 * dim, -4 * dim), QUNIT));
     m_slip_lock->SetMotionAxis(ChVector3d(0, 0, 1));
 
     // Connect wheel to slip body
@@ -666,7 +906,21 @@ void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
     // Initialize the suspension and wheel assembly
     m_wheel_assembly->Initialize(m_chassis_body, ChFramed(ChVector3d(0, 0, -4 * dim), QUNIT), (m_mode == Mode::SUSPEND), m_step_size, m_vis_type);
 
-    // Adjust rig body mass and inertia commensurate with those of the wheel
+    // Record the hub height relative to the chassis in the design configuration (reference for suspension travel)
+    m_hub_offset0 = m_wheel_assembly->GetHub()->GetPos().z() - m_chassis_body->GetPos().z();
+
+    // Steering actuator (if any), held at zero unless a steering input is specified (TEST mode only)
+    m_steer_actuator = m_wheel_assembly->GetSteeringActuator();
+    if (m_steer_actuator)
+        m_steer_actuator->SetFunction(chrono_types::make_shared<ChFunctionConst>(0));
+    if (m_steer_input != SteeringInput::NONE && (!m_steer_actuator || m_mode != Mode::TEST)) {
+        if (!m_steer_actuator)
+            std::cout << "\nWARNING!  Wheel assembly has no steering actuator. Steering input ignored.\n" << std::endl;
+        m_steer_input = SteeringInput::NONE;
+    }
+
+    // Adjust rig body mass and inertia commensurate with those of the wheel.
+    // Note that this must be done after initialization of the wheel assembly (the tire radius may not be available before).
     double mass = m_wheel_assembly->GetWheelMass();
     const double radius = m_wheel_assembly->GetRadius();
     ChMatrix33d inertia = 0.25 * mass * ChSphere::CalcGyration(radius);
@@ -676,6 +930,18 @@ void ChWheelTestRig::CreateWheelSuspensionMechanism(double dim) {
 
     m_chassis_body->SetMass(mass);
     m_chassis_body->SetInertia(inertia);
+
+    // In TEST mode, hold the vertical travel of the suspension during the drop phase, so that the wheel is lowered onto the
+    // terrain at the prescribed drop speed instead of drooping under its own weight (released at the end of the drop phase).
+    // The travel actuator constrains only the vertical displacement of the hub relative to the chassis.
+    if (m_mode == Mode::TEST) {
+        auto hub = m_wheel_assembly->GetHub();
+        m_travel_motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
+        AddItem(m_travel_motor);
+        m_travel_motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
+        m_travel_motor->Initialize(hub, m_chassis_body, ChFramed(hub->GetPos(), QUNIT));
+        m_travel_motor->SetMotionFunction(chrono_types::make_shared<ChFunctionConst>(0));
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -701,8 +967,27 @@ void ChWheelTestRig::CreateTerrain() {
     }
 }
 
+// Fixed terrain patches extend from 2 wheel radii behind the initial wheel location.
+double ChWheelTestRig::GetPatchCenterX() const {
+    return m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius();
+}
+
+bool ChWheelTestRig::PatchEndReached() const {
+    switch (m_terrain_type) {
+        case TerrainType::RIGID:
+        case TerrainType::SCM:
+        case TerrainType::CRM:
+            break;
+        default:
+            return false;
+    }
+
+    double x = GetWheelPos().x() - GetPatchCenterX();
+    return std::abs(x) + m_wheel_assembly->GetRadius() >= m_terrain_size.length / 2;
+}
+
 void ChWheelTestRig::CreateTerrainSCM() {
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, m_terrain_height);
+    ChVector3d location(GetPatchCenterX(), m_terrain_offset, m_terrain_height);
 
     double E_elastic = 2e8;  // Elastic stiffness (Pa/m), before plastic yeld
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
@@ -715,13 +1000,15 @@ void ChWheelTestRig::CreateTerrainSCM() {
         E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.05);
     terrain->Initialize(m_terrain_size.length, m_terrain_size.width, m_params_SCM.grid_spacing);
-    terrain->AddActiveDomain(m_chassis_body, ChVector3d(0, 0, 0), ChVector3d(2 * m_wheel_assembly->GetRadius(), 1.0, 2 * m_wheel_assembly->GetRadius()));
+    // Center the active domain on the wheel; with a suspension, the wheel may be laterally offset from the rig chassis
+    auto domain_center = m_chassis_body->TransformPointParentToLocal(m_wheel_assembly->GetHub()->GetPos());
+    terrain->AddActiveDomain(m_chassis_body, domain_center, ChVector3d(2 * m_wheel_assembly->GetRadius(), 1.0, 2 * m_wheel_assembly->GetRadius()));
 
     m_terrain = terrain;
 }
 
 void ChWheelTestRig::CreateTerrainRigid() {
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, m_terrain_height);
+    ChVector3d location(GetPatchCenterX(), m_terrain_offset, m_terrain_height);
 
     auto terrain = chrono_types::make_shared<vehicle::RigidTerrain>(&m_system);
 
@@ -753,7 +1040,7 @@ void ChWheelTestRig::CreateTerrainGranular() {
             auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();
             mat_g->SetFriction(static_cast<float>(m_params_granular.friction));
             mat_g->SetRestitution(0.0f);
-            mat_g->SetYoungModulus(8e5f);
+            mat_g->SetYoungModulus(static_cast<float>(m_params_granular.Young_modulus));
             mat_g->SetPoissonRatio(0.3f);
             mat_g->SetAdhesion(static_cast<float>(coh_force));
             mat_g->SetKn(1.0e6f);
@@ -789,7 +1076,7 @@ void ChWheelTestRig::CreateTerrainGranular() {
 
 #ifdef CHRONO_CRM
 
-ChWheelTestRig::TerrainParamsCRM::TerrainParamsCRM() {
+ChWheelTestRig::TerrainParamsCRM::TerrainParamsCRM() : step_cfd(0), sides(BoxSide::ALL & ~BoxSide::Z_POS), depth_based_pressure(false) {
     sph_params.integration_scheme = IntegrationScheme::RK2;
     sph_params.initial_spacing = 0.02;
     sph_params.d0_multiplier = 1.2;
@@ -845,7 +1132,7 @@ void ChWheelTestRig::CreateTerrainCRM() {
     terrain->SetOutputLevel(OutputLevel::STATE);
     terrain->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
-    terrain->SetStepSizeCFD(m_step_size);
+    terrain->SetStepSizeCFD(m_params_crm.step_cfd > 0 ? m_params_crm.step_cfd : m_step_size);
 
     terrain->SetStepsizeMBD(m_step_size);
 
@@ -853,8 +1140,12 @@ void ChWheelTestRig::CreateTerrainCRM() {
     terrain->SetSPHParameters(m_params_crm.sph_params);
 
     double loc_z = m_terrain_height - m_terrain_size.depth;
-    ChVector3d location(m_terrain_size.length / 2 - 2 * m_wheel_assembly->GetRadius(), m_terrain_offset, loc_z);
-    terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, BoxSide::ALL & ~BoxSide::Z_POS);
+    ChVector3d location(GetPatchCenterX(), m_terrain_offset, loc_z);
+    terrain->Construct({m_terrain_size.length, m_terrain_size.width, m_terrain_size.depth}, location, m_params_crm.sides);
+
+    // Initialize particle pressures from their depth below the patch surface, if requested
+    if (m_params_crm.depth_based_pressure)
+        terrain->RegisterParticlePropertiesCallback(chrono_types::make_shared<DepthPressurePropertiesCallback>(m_terrain_height));
 
     // Add wheel FSI bodies
     m_wheel_assembly->AddFSIBodies(*terrain, m_params_crm.sph_params.initial_spacing);
@@ -866,6 +1157,10 @@ void ChWheelTestRig::CreateTerrainCRM() {
             terrain->AddRigidBody(m_wheel_assembly->GetHub(), nullptr, false);
         terrain->SetActiveDomainBody(m_wheel_assembly->GetHub(), m_wheel_AABB);
     }
+
+    // Disable the FSI active domains during the terrain settling phase, so that all SPH particles settle
+    if (m_mode == Mode::TEST && GetSettlingTime() > 0)
+        terrain->SetFreeFlowDuration(GetSettlingTime());
 
     terrain->Initialize();
     const auto& aabb = terrain->GetSPHBoundingBox();
@@ -918,7 +1213,7 @@ TerrainForce ChWheelTestRig::ReportWheelForce() const {
 }
 
 double ChWheelTestRig::GetDBP() const {
-    if (!m_output)
+    if (!m_output || !m_lin_motor)
         return 0;
 
     return -m_lin_motor->GetMotorForce();
@@ -945,6 +1240,303 @@ double ChWheelTestRig::GetSlipAngle() const {
     auto dir = m_wheel_assembly->GetHub()->GetRotMat().GetAxisY();
     double slip_angle = std::atan(dir.x() / dir.y());
     return slip_angle;
+}
+
+double ChWheelTestRig::GetSteeringAngle() const {
+    if (!m_output)
+        return 0;
+
+    return CalcHubYaw() - m_steer_yaw0;
+}
+
+double ChWheelTestRig::GetSteeringActuatorCoordinate() const {
+    return m_steer_actuator ? m_steer_actuator->GetCoordinate() : 0;
+}
+
+std::vector<ChOutput::Channel> ChWheelTestRig::GetOutputChannels() const {
+    auto hub = m_wheel_assembly->GetHub();
+    const auto& hub_pos = hub->GetPos();
+    auto tforce = ReportWheelForce();
+    double drive_torque = (m_output && m_rot_motor) ? m_rot_motor->GetMotorLoad() : 0;
+
+    std::vector<ChOutput::Channel> channels = {
+        {"measuring", "-", m_output ? 1.0 : 0.0},                                           //
+        {"long_slip", "-", GetLongitudinalSlip()},                                          //
+        {"slip_angle", "rad", GetSlipAngle()},                                              //
+        {"camber_angle", "rad", GetCamberAngle()},                                          //
+        {"steering_angle", "rad", GetSteeringAngle()},                                      //
+        {"steering_actuator", "actuator", GetSteeringActuatorCoordinate()},                 //
+        {"wheel_force_x", "N", tforce.force.x()},                                           //
+        {"wheel_force_y", "N", tforce.force.y()},                                           //
+        {"wheel_force_z", "N", tforce.force.z()},                                           //
+        {"wheel_moment_x", "N.m", tforce.moment.x()},                                       //
+        {"wheel_moment_y", "N.m", tforce.moment.y()},                                       //
+        {"wheel_moment_z", "N.m", tforce.moment.z()},                                       //
+        {"drawbar_pull", "N", GetDBP()},                                                    //
+        {"drive_torque", "N.m", drive_torque},                                              //
+        {"wheel_angular_speed", "rad/s", hub->GetAngVelLocal().y()},                        //
+        {"carrier_speed", "m/s", m_carrier_body->GetPosDt().x()},                           //
+        {"carrier_position", "m", m_carrier_body->GetPos().x()},                            //
+        {"hub_position_x", "m", hub_pos.x()},                                               //
+        {"hub_position_y", "m", hub_pos.y()},                                               //
+        {"hub_position_z", "m", hub_pos.z()},                                               //
+        {"sinkage", "m", m_terrain_height - (hub_pos.z() - m_wheel_assembly->GetRadius())}  //
+    };
+
+    // Suspension travel: hub height relative to the chassis, measured from the design configuration
+    if (m_wheel_assembly->HasSuspension())
+        channels.push_back({"suspension_travel", "m", hub_pos.z() - m_chassis_body->GetPos().z() - m_hub_offset0});
+
+    // Wheel assembly specific channels
+    m_wheel_assembly->AddOutputChannels(channels);
+
+    return channels;
+}
+
+TerrainForce ChWheelTestRig::CalculateTerrainForce(const std::vector<std::shared_ptr<ChBody>>& bodies, ChTerrain& terrain, const ChVector3d& point) {
+    auto scm = dynamic_cast<SCMTerrain*>(&terrain);
+#ifdef CHRONO_CRM
+    auto crm = dynamic_cast<CRMTerrain*>(&terrain);
+#endif
+
+    // Accumulate the interaction forces on all bodies; all forces and torques are reported in the global frame,
+    // with torques relative to the body COM, and are shifted to the specified point.
+    TerrainForce tforce;
+    tforce.point = point;
+    tforce.force = VNULL;
+    tforce.moment = VNULL;
+    for (const auto& body : bodies) {
+        ChVector3d force = VNULL;
+        ChVector3d torque = VNULL;
+        if (scm) {
+            scm->GetContactForceBody(body, force, torque);
+        }
+#ifdef CHRONO_CRM
+        else if (crm) {
+            if (crm->IsFsiSolid(body)) {
+                force = crm->GetFsiBodyForce(body);
+                torque = crm->GetFsiBodyTorque(body);
+            }
+        }
+#endif
+        else {
+            force = body->GetContactForce();
+            torque = body->GetContactTorque();
+        }
+        tforce.force += force;
+        tforce.moment += torque + Vcross(body->GetPos() - point, force);
+    }
+
+    return tforce;
+}
+
+double ChWheelTestRig::CalcHubYaw() const {
+    // Hub rotation axis, expressed in the frame of the body carrying the wheel assembly (the slip body for a wheel without
+    // a suspension, the rig chassis otherwise); yaw is positive for a rotation about the vertical axis.
+    // Measuring relative to the slip body excludes the imposed slip angle from the steering angle.
+    const ChBody* mount = m_slip_body ? m_slip_body.get() : m_chassis_body.get();
+    auto dir = mount->TransformDirectionParentToLocal(m_wheel_assembly->GetHub()->GetRotMat().GetAxisY());
+    return std::atan2(-dir.x(), dir.y());
+}
+
+double ChWheelTestRig::GetSettlingTime() const {
+    if (m_settling_time >= 0)
+        return m_settling_time;
+    // Default: only deformable terrains with a particle representation (CRM, granular) need to settle
+    return (m_terrain_type == TerrainType::CRM || m_terrain_type == TerrainType::GRANULAR) ? 0.5 : 0.0;
+}
+
+void ChWheelTestRig::SetTerrainLocation() {
+    m_terrain_offset = m_wheel_assembly->GetHub()->GetPos().y();
+    // Start the wheel close above the terrain. For CRM terrain, keep the wheel outside the SPH kernel support of the
+    // terrain particles, so that it does not interact with the terrain during settling.
+    double gap = 0.01;
+#ifdef CHRONO_CRM
+    if (m_terrain_type == TerrainType::CRM)
+        gap = std::max(gap, 2 * m_params_crm.sph_params.d0_multiplier * m_params_crm.sph_params.initial_spacing);
+#endif
+    m_terrain_height = m_wheel_assembly->GetHub()->GetPos().z() - m_wheel_assembly->GetRadius() - gap;
+}
+
+void ChWheelTestRig::ComputeLoadedTravel() {
+    // Find the suspension travel (vertical displacement of the hub relative to the chassis) at which the travel actuator
+    // supports the hub with a force equal to the normal load, i.e., the static equilibrium configuration of the suspension
+    // with the wheel on the terrain. Each evaluation performs a position- and acceleration-level assembly (at zero
+    // velocity) to obtain the static actuator force. The equilibrium travel is bracketed by stepping from the design
+    // configuration and then refined by bisection.
+    const double travel_step = 0.01;
+    const double max_travel = 0.5;
+    const double tolerance = 1e-5;
+
+    ChTimer timer;
+    timer.start();
+
+    auto travel_fun = chrono_types::make_shared<ChFunctionConst>(0);
+    m_travel_motor->SetMotionFunction(travel_fun);
+
+    // Use a direct linear solver for the assemblies, independent of the solver used for dynamics
+    auto solver = m_system.GetSolver();
+    auto assembly_solver = chrono_types::make_shared<ChSolverSparseQR>();
+    assembly_solver->LockSparsityPattern(true);
+    m_system.SetSolver(assembly_solver);
+
+    int num_assemblies = 0;
+    auto eval = [&](double travel, double& force) {
+        travel_fun->SetConstant(travel);
+        auto flag = m_system.DoAssembly(AssemblyAnalysis::Level::POSITION | AssemblyAnalysis::Level::ACCELERATION);
+        num_assemblies++;
+        force = m_travel_motor->GetMotorForce();
+        return flag != AssemblyAnalysis::ExitFlag::NOT_CONVERGED && std::isfinite(force);
+    };
+
+    // The hub requires an upward support in the design configuration (spring preload and weight of the wheel assembly);
+    // use it to orient the actuator force so that a positive value supports the hub.
+    double force0;
+    if (!eval(0, force0)) {
+        std::cout << "\nWARNING!  Assembly failed in the design configuration. Suspension travel not adjusted.\n" << std::endl;
+        m_system.SetSolver(solver);
+        return;
+    }
+    double sign = (force0 >= 0) ? +1 : -1;
+    auto residual = [&](double force) { return sign * force - m_normal_load; };
+
+    // Extend the suspension if the support exceeds the normal load, compress it otherwise
+    double dir = (residual(force0) > 0) ? -1 : +1;
+    double travel_a = 0;
+    double res_a = residual(force0);
+    double travel_b = 0;
+    double res_b = res_a;
+    bool bracketed = (res_a == 0);
+    for (int k = 1; !bracketed && k * travel_step <= max_travel; k++) {
+        double travel = dir * k * travel_step;
+        double force;
+        if (!eval(travel, force))
+            break;
+        travel_a = travel_b;
+        res_a = res_b;
+        travel_b = travel;
+        res_b = residual(force);
+        bracketed = (res_a * res_b <= 0);
+    }
+
+    if (bracketed) {
+        while (std::abs(travel_b - travel_a) > tolerance) {
+            double travel = 0.5 * (travel_a + travel_b);
+            double force;
+            if (!eval(travel, force))
+                break;
+            double res = residual(force);
+            if (res_a * res <= 0) {
+                travel_b = travel;
+                res_b = res;
+            } else {
+                travel_a = travel;
+                res_a = res;
+            }
+        }
+    } else {
+        std::cout << "\nWARNING!  Normal load outside the range of the suspension travel. Using closest configuration.\n" << std::endl;
+    }
+
+    // Leave the system assembled at the equilibrium travel
+    double travel_eq = (std::abs(res_a) < std::abs(res_b)) ? travel_a : travel_b;
+    double force_eq;
+    eval(travel_eq, force_eq);
+    m_system.SetSolver(solver);
+
+    timer.stop();
+
+    std::cout << "Suspension travel at normal load: " << travel_eq << " (support force: " << sign * force_eq << ", design: " << sign * force0 << ") - " << num_assemblies
+              << " assemblies in " << 1e3 * timer() << " ms" << std::endl;
+}
+
+void ChWheelTestRig::ComputeSteeringMap() {
+    // Sweep the steering actuator coordinate in both directions from the initial configuration, performing a
+    // position-level assembly at each step and recording the resulting hub yaw angle. The step is selected from the
+    // initial steering ratio, for steering angle increments of about 1 deg. A sweep direction ends when the assembly
+    // fails, the steering angle stops increasing in magnitude, or a maximum steering angle is reached.
+    const double max_angle = 45 * CH_DEG_TO_RAD;
+    const double angle_step = 1.0 * CH_DEG_TO_RAD;
+    const double probe = 1e-3;
+    const int max_steps = 400;
+
+    ChTimer timer;
+    timer.start();
+
+    auto coord_fun = chrono_types::make_shared<ChFunctionConst>(0);
+    m_steer_actuator->SetFunction(coord_fun);
+
+    // Use a direct linear solver for the position-level assemblies, independent of the solver used for dynamics
+    auto solver = m_system.GetSolver();
+    auto sweep_solver = chrono_types::make_shared<ChSolverSparseQR>();
+    sweep_solver->LockSparsityPattern(true);
+    m_system.SetSolver(sweep_solver);
+
+    // Assemble at the design configuration and save the system state
+    int num_assemblies = 1;
+    m_system.DoAssembly(AssemblyAnalysis::Level::POSITION);
+    ChState x0(m_system.GetNumCoordsPosLevel(), &m_system);
+    ChStateDelta v0(m_system.GetNumCoordsVelLevel(), &m_system);
+    double t0;
+    m_system.StateGather(x0, v0, t0);
+
+    m_steer_yaw0 = CalcHubYaw();
+    m_steer_map.Reset();
+    m_steer_map_inv.Reset();
+    m_steer_map.AddPoint(0, 0);
+    m_steer_map_inv.AddPoint(0, 0);
+
+    // Probe the steering ratio and select the actuator step
+    coord_fun->SetConstant(probe);
+    m_system.DoAssembly(AssemblyAnalysis::Level::POSITION);
+    num_assemblies++;
+    double probe_angle = CalcHubYaw() - m_steer_yaw0;
+    m_system.StateScatter(x0, v0, t0, UpdateFlags::UPDATE_ALL);
+    if (!std::isfinite(probe_angle) || std::abs(probe_angle) < 1e-9) {
+        std::cout << "\nWARNING!  The steering actuator does not steer the wheel. Steering input ignored.\n" << std::endl;
+        m_steer_input = SteeringInput::NONE;
+        coord_fun->SetConstant(0);
+        m_system.SetSolver(solver);
+        return;
+    }
+    const double coord_step = angle_step * probe / std::abs(probe_angle);
+
+    double slope_sign = 0;
+    for (int dir : {+1, -1}) {
+        m_system.StateScatter(x0, v0, t0, UpdateFlags::UPDATE_ALL);
+        double angle_prev = 0;
+        for (int k = 1; k <= max_steps; k++) {
+            double coord = dir * k * coord_step;
+            coord_fun->SetConstant(coord);
+            auto flag = m_system.DoAssembly(AssemblyAnalysis::Level::POSITION);
+            num_assemblies++;
+            if (flag == AssemblyAnalysis::ExitFlag::NOT_CONVERGED)
+                break;
+            double angle = CalcHubYaw() - m_steer_yaw0;
+            if (!std::isfinite(angle))
+                break;
+            if (slope_sign == 0)
+                slope_sign = (angle > 0) ? +1 : -1;
+            if ((angle - angle_prev) * slope_sign * dir < 1e-6)
+                break;
+            m_steer_map.AddPoint(coord, angle);
+            m_steer_map_inv.AddPoint(angle, coord);
+            if (std::abs(angle) > max_angle)
+                break;
+            angle_prev = angle;
+        }
+    }
+
+    // Restore the design configuration and the system solver
+    coord_fun->SetConstant(0);
+    m_system.StateScatter(x0, v0, t0, UpdateFlags::UPDATE_ALL);
+    m_system.SetSolver(solver);
+
+    timer.stop();
+
+    std::cout << "Steering map: " << m_steer_map.GetTable().size() << " points (" << num_assemblies << " assemblies) in " << 1e3 * timer() << " ms" << std::endl;
+    std::cout << "  actuator coordinate: [" << m_steer_map.GetStart() << ", " << m_steer_map.GetEnd() << "]" << std::endl;
+    std::cout << "  steering angle:      [" << m_steer_map_inv.GetStart() * CH_RAD_TO_DEG << ", " << m_steer_map_inv.GetEnd() * CH_RAD_TO_DEG << "] deg" << std::endl;
 }
 
 double ChWheelTestRig::GetCamberAngle() const {

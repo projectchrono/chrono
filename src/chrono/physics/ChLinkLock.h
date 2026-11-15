@@ -164,6 +164,10 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// If lock = false, the joint reverts to its original degrees of freedom.
     virtual void Lock(bool lock) {}
 
+    /// Return true, unless a joint limit is active.
+    /// The multipliers of the limit constraints are not part of the state vectors, so they are not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

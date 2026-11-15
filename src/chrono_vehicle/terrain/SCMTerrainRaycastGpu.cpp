@@ -1,4 +1,5 @@
-// SCMTerrainRaycastGpu.cpp — SCMLoader::ComputeRayCastGpuHip (HIP ray-cast backend host packing).
+// SCMTerrainRaycastGpu.cpp -- SCMLoader::ComputeRayCastGpu (GPU ray-cast backend host packing). Compiled in every
+// build; without GPU support (CHRONO_VEHICLE_SCM_GPU undefined) ComputeRayCastGpu declines and the CPU path runs.
 //
 // Same I/O contract as ComputeRayCastGpuReference (SCMTerrain.cpp): produces a vector<RaycastHit>,
 // consumed identically by ComputeInternalForces() regardless of which backend produced it. This does
@@ -9,25 +10,29 @@
 // envelope is 0 for these models, so the margin is just the 5 mm mesh thickness; zeroing it moves
 // sinkage 4.7 mm, not 12), and kernel precision (FP32 vs FP64 is 3 um).
 
-#ifdef CHRONO_VEHICLE_SCM_GPU
+#include <vector>
 
+#include "chrono_vehicle/terrain/SCMTerrain.h"
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
     #include <algorithm>
-    #include <cstdlib>
     #include <iostream>
     #include <limits>
-    #include <string>
+    #include <mutex>
     #include <unordered_map>
-    #include <vector>
 
     #include "chrono/physics/ChBody.h"
     #include "chrono/collision/ChCollisionShapeTriangleMesh.h"
     #include "chrono/geometry/ChTriangleMeshConnected.h"
-    #include "chrono_vehicle/terrain/SCMTerrain.h"
 
+    #include "chrono_vehicle/terrain/SCMGpu.h"
     #include "chrono_vehicle/terrain/SCMRaycastGpu.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
+
+#ifdef CHRONO_VEHICLE_SCM_GPU
 
 namespace {
 
@@ -44,49 +49,36 @@ struct LocalBox {
     double x0, y0, z0, x1, y1, z1;
 };
 
-// FP32 on every platform, so a model produces the same trajectory on AMD and NVIDIA. The kernels can
-// run in FP64 -- and MI300X-class parts have the throughput for it, unlike consumer NVIDIA cards where
-// FP64 is deliberately throttled -- but making the default depend on the vendor would mean the same
-// build of the same model diverging by hardware, which is worse than the precision itself. FP32 was
-// validated against the CPU reference on AMD at zero hit difference and 0-0.12% per-wheel force error,
-// and the ray cast feeds a soil model whose parameters are empirical to well under that. Override with
-// env SCM_RAYCAST_GPU_PRECISION=fp32|fp64. Read once and cached for the process.
-ScmRaycastGpuPrecision DesiredRaycastGpuPrecision() {
-    static ScmRaycastGpuPrecision precision = [] {
-        ScmRaycastGpuPrecision p = ScmRaycastGpuPrecision::kFP32;
-        if (const char* e = std::getenv("SCM_RAYCAST_GPU_PRECISION")) {
-            std::string mode = e;
-            if (mode == "fp32")
-                p = ScmRaycastGpuPrecision::kFP32;
-            else if (mode == "fp64")
-                p = ScmRaycastGpuPrecision::kFP64;
-        }
-        return p;
-    }();
-    return precision;
-}
+// FP32 by default on every platform, so a model produces the same trajectory on AMD and NVIDIA. The kernels
+// can run in FP64 -- and MI300X-class parts have the throughput for it, unlike consumer NVIDIA cards where
+// FP64 is deliberately throttled -- but making the default depend on the vendor would mean the same build of
+// the same model diverging by hardware, which is worse than the precision itself. FP32 was validated against
+// the CPU reference on AMD at zero hit difference and 0-0.12% per-wheel force error, and the ray cast feeds a
+// soil model whose parameters are empirical to well under that. FP64 is selected per terrain with
+// SCMTerrain::GpuSettings::raycast_fp64.
+//
+// GPU state for one precision, shared by all terrains in the process. A step uses the context's device
+// buffers from upload through readback, so whole steps are serialized on the mutex.
+struct RaycastGpuState {
+    std::mutex mtx;
+    bool created = false;
+    ScmRaycastGpuContext* ctx = nullptr;  // null when no usable device is present; callers then use the CPU path
 
-ScmRaycastGpuContext* RaycastGpuContext() {
-    static ScmRaycastGpuContext* ctx = scm_raycast_gpu_create(0, DesiredRaycastGpuPrecision());
-    return ctx;
-}
+    // Mesh geometry (vertices/faces/margins) only changes when the candidate body SET changes -- which,
+    // in the common case (a fixed set of wheels tracked by explicit active domains), never happens after
+    // the first step. Cache the last-uploaded candidate set (by body pointer, order-sensitive since it
+    // determines body_slot) and skip the mesh re-upload -- and the CPU-side re-extraction that would
+    // otherwise precede it -- whenever it's unchanged. Only the small per-body transform is genuinely
+    // per-step data. Kept per context: a set uploaded to one precision's context is not on the other's.
+    std::vector<ChBody*> last_candidates;
 
-// Mesh geometry (vertices/faces/margins) only changes when the candidate body SET changes -- which,
-// in the common case (a fixed set of wheels tracked by explicit active domains), never happens after
-// the first step. Cache the last-uploaded candidate set (by body pointer, order-sensitive since it
-// determines body_slot) and skip the mesh re-upload -- and the CPU-side re-extraction that would
-// otherwise precede it -- whenever it's unchanged. Only the small per-body transform is genuinely
-// per-step data.
-std::vector<ChBody*>& LastUploadedCandidates() {
-    static std::vector<ChBody*> last;
-    return last;
-}
+    // Cached alongside the candidate set: each body's local AABB, fixed until the candidate set changes.
+    std::vector<LocalBox> boxes;
+};
 
-// Cached alongside the candidate set: each body's local AABB and its face range, both fixed until
-// the candidate set changes.
-std::vector<LocalBox>& CachedLocalBoxes() {
-    static std::vector<LocalBox> boxes;
-    return boxes;
+RaycastGpuState& GpuState(bool fp64) {
+    static RaycastGpuState states[2];
+    return states[fp64 ? 1 : 0];
 }
 
 // Local-space (body-relative) mesh extraction, appended into shared buffers with this body's vertex
@@ -193,20 +185,34 @@ RaycastBodyTransform BuildTransform(ChBody* body, const LocalBox& box) {
 
 }  // namespace
 
-bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num_ray_casts) {
+bool SCMLoader::ComputeRayCastGpu(std::vector<RaycastHit>& out_hits, int& num_ray_casts) {
     num_ray_casts = 0;
+
+    // No usable device: decline, so the caller runs the CPU path and does not count a GPU step.
+    if (!scm_gpu_device_available())
+        return false;
+
+    const bool fp64 = m_gpu_settings.raycast_fp64;
+    RaycastGpuState& state = GpuState(fp64);
+    std::lock_guard<std::mutex> lock(state.mtx);
+
+    if (!state.created) {
+        state.ctx = scm_raycast_gpu_create(0, fp64 ? ScmRaycastGpuPrecision::kFP64 : ScmRaycastGpuPrecision::kFP32);
+        state.created = true;
+    }
+    ScmRaycastGpuContext* ctx = state.ctx;
+    if (!ctx)
+        return false;
 
     std::vector<ChBody*> candidates;
     DiscoverRaycastCandidates(candidates);
     if (candidates.empty())
         return false;
 
-    ScmRaycastGpuContext* ctx = RaycastGpuContext();
-
     // Mesh (vertices/faces/margins) only re-extracted and re-uploaded when the candidate set actually
-    // changed since last step -- see LastUploadedCandidates(). Common case: identical set every step,
+    // changed since last step -- see RaycastGpuState::last_candidates. Common case: identical set every step,
     // so this CPU-side extraction and the associated H2D copy are skipped entirely after the first call.
-    if (candidates != LastUploadedCandidates()) {
+    if (candidates != state.last_candidates) {
         std::vector<RaycastVertex> verts;
         std::vector<RaycastFace> faces;
         std::vector<RaycastBodyMargin> margins;
@@ -239,17 +245,22 @@ bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
                                                   static_cast<int>(faces.size()),
                                                   margins.data(),
                                                   static_cast<int>(candidates.size()));
-        if (mesh_rc != 0)
+        if (mesh_rc != 0) {
+            // A failed upload can leave the device buffers partly overwritten or freed. Forget the cached
+            // candidate set so the next step re-uploads the mesh instead of trusting what is on the device.
+            state.last_candidates.clear();
+            state.boxes.clear();
             return false;
+        }
 
-        LastUploadedCandidates() = candidates;
-        CachedLocalBoxes() = boxes;
+        state.last_candidates = candidates;
+        state.boxes = boxes;
     }
 
     // Per-body transform: genuinely per-step data, always rebuilt and uploaded.
     std::vector<RaycastBodyTransform> xforms;
     xforms.reserve(candidates.size());
-    const auto& boxes = CachedLocalBoxes();
+    const auto& boxes = state.boxes;
     if (boxes.size() != candidates.size())
         return false;
     for (std::size_t i = 0; i < candidates.size(); ++i)
@@ -340,7 +351,14 @@ bool SCMLoader::ComputeRayCastGpuHip(std::vector<RaycastHit>& out_hits, int& num
     return true;
 }
 
-}  // namespace vehicle
-}  // namespace chrono
+#else  // CHRONO_VEHICLE_SCM_GPU
+
+bool SCMLoader::ComputeRayCastGpu(std::vector<RaycastHit>&, int& num_ray_casts) {
+    num_ray_casts = 0;
+    return false;
+}
 
 #endif  // CHRONO_VEHICLE_SCM_GPU
+
+}  // namespace vehicle
+}  // namespace chrono

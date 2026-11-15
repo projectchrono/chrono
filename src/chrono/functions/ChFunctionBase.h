@@ -91,7 +91,7 @@ class ChApi ChFunction {
     virtual double GetDerN(double x, int der_order) const;
 
     /// Return the weight of the function.
-    /// (useful for applications where you need to mix different weighted ChFunctions)
+    /// Useful for applications where you need to mix different weighted ChFunctions.
     virtual double GetWeight(double x) const { return 1.0; }
 
     /// Update the function at the provided value of its argument.

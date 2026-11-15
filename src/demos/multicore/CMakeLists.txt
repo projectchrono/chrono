@@ -10,7 +10,7 @@ SET(LIBRARIES
 )
 
 IF(CH_ENABLE_MODULE_VSG)
-    SET(LIBRARIES ${LIBRARIES} Chrono_vsg)
+    SET(LIBRARIES ${LIBRARIES} Chrono_vsg Chrono_multicore_vsg)
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -38,6 +38,7 @@ if(CH_ENABLE_MODULE_VSG)
         demo_MCORE_mesh_contact
         demo_MCORE_callbackSMC
         demo_MCORE_callbackNSC
+        demo_MCORE_force_network
     )
 endif()
 

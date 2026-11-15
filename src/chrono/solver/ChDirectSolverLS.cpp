@@ -36,7 +36,9 @@ ChDirectSolverLS::ChDirectSolverLS()
       m_dim(0),
       m_sparsity(-1),
       m_solve_call(0),
-      m_setup_call(0) {}
+      m_setup_call(0),
+      m_analyzed_dim(-1),
+      m_analyzed_nnz(-1) {}
 
 void ChDirectSolverLS::ResetTimers() {
     m_timer_setup_assembly.reset();
@@ -51,6 +53,10 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     // Calculate problem size.
     // Note that ChSystemDescriptor::UpdateCountsAndOffsets was already called at the beginning of the step.
     m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
+
+    // Force a full analysis if the problem size changed since the last analysis (or if there is no valid analysis)
+    if (m_dim != m_analyzed_dim)
+        analyze = true;
 
     // If the sparsity pattern learner is enabled and a full setup is required (analyze=true), call the learner if:
     //  (a) an explicit update was requested (by default this is true at the first call), or
@@ -82,6 +88,11 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
 
     m_timer_setup_assembly.stop();
 
+    // Unless its sparsity pattern was rebuilt above, the matrix keeps its existing entries and can only gain new ones.
+    // A change in the number of nonzeros therefore indicates a change in the sparsity pattern.
+    if (m_mat.nonZeros() != m_analyzed_nnz)
+        analyze = true;
+
     if (write_matrix)
         WriteMatrix(output_dir + "/LS_" + frame_id + "_A.dat", m_mat);
 
@@ -89,6 +100,9 @@ bool ChDirectSolverLS::Setup(ChSystemDescriptor& sysd, bool analyze) {
     m_timer_setup_solvercall.start();
     bool result = FactorizeMatrix(analyze);
     m_timer_setup_solvercall.stop();
+
+    if (analyze)
+        RecordAnalysis(result);
 
     if (write_matrix)
         WriteMatrix(output_dir + "/LS_" + frame_id + "_F.dat", m_mat);
@@ -156,7 +170,7 @@ double ChDirectSolverLS::Solve(ChSystemDescriptor& sysd) {
     return result;
 }
 
-bool ChDirectSolverLS::SetupCurrent() {
+bool ChDirectSolverLS::SetupCurrent(bool analyze) {
     m_timer_setup_assembly.start();
 
     // Allow the matrix to be compressed, if not yet compressed
@@ -164,10 +178,17 @@ bool ChDirectSolverLS::SetupCurrent() {
 
     m_timer_setup_assembly.stop();
 
+    // Force a full analysis if the matrix size or number of nonzeros changed since the last analysis
+    if (m_mat.rows() != m_analyzed_dim || m_mat.nonZeros() != m_analyzed_nnz)
+        analyze = true;
+
     // Let the concrete solver perform the factorization
     m_timer_setup_solvercall.start();
-    bool result = FactorizeMatrix(true);
+    bool result = FactorizeMatrix(analyze);
     m_timer_setup_solvercall.stop();
+
+    if (analyze)
+        RecordAnalysis(result);
 
     if (verbose) {
         cout << "  Solver setup [" << m_setup_call << "] n = " << m_dim << "  nnz = " << (int)m_mat.nonZeros() << endl;
@@ -184,6 +205,12 @@ bool ChDirectSolverLS::SetupCurrent() {
     }
 
     return result;
+}
+
+void ChDirectSolverLS::RecordAnalysis(bool success) {
+    // After a failed analysis or factorization, there is no valid analysis to reuse
+    m_analyzed_dim = success ? static_cast<int>(m_mat.rows()) : -1;
+    m_analyzed_nnz = success ? static_cast<int>(m_mat.nonZeros()) : -1;
 }
 
 double ChDirectSolverLS::SolveCurrent() {

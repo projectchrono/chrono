@@ -1237,16 +1237,16 @@ bool ChNarrowphase::PRIMSCollision(const ConvexBase* shapeA,  // first candidate
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::CYLINDER && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (cylinder_sphere(shapeA->A(), shapeA->R(), shapeA->Box().x, shapeA->Box().y, shapeB->A(), shapeB->Radius(),
-                            separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+        if (cylinder_sphere(shapeA->A(), shapeA->R(), shapeA->Box().x, shapeA->Box().z, shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2,
+                            *ct_eff_rad)) {
             nC = 1;
         }
         return true;
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::CYLINDER) {
-        if (cylinder_sphere(shapeB->A(), shapeB->R(), shapeB->Box().x, shapeB->Box().y, shapeA->A(), shapeA->Radius(),
-                            separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+        if (cylinder_sphere(shapeB->A(), shapeB->R(), shapeB->Box().x, shapeB->Box().z, shapeA->A(), shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1,
+                            *ct_eff_rad)) {
             *ct_norm = -(*ct_norm);
             nC = 1;
         }

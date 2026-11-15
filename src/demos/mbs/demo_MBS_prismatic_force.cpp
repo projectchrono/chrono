@@ -15,9 +15,6 @@
 // Demonstration of actuating a translational joint with a ChLinkForce.
 // The model is built with gravity acting in the negative Y direction.
 //
-// Recall that Irrlicht uses a left-hand frame, so everything is rendered with
-// left and right flipped.
-//
 // =============================================================================
 
 #include <cmath>
@@ -100,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // Actuate second slider using a body force
     auto frc2 = chrono_types::make_shared<ChForce>();
-    frc2->SetF_x(mod);
+    frc2->SetForceModulationX(mod);
     slider2->AddForce(frc2);
 
     // Create the Irrlicht visualization sys

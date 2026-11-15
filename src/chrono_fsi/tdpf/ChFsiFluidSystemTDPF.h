@@ -44,6 +44,14 @@ class CH_FSI_API ChFsiFluidSystemTDPF : public ChFsiFluidSystem {
     /// Set input file name with hydro data (HDF5 format).
     void SetHydroFilename(const std::string& filename);
 
+    /// Set the points about which the hydro data coefficients are given (default: body reference frame origins).
+    /// One point must be provided for each body in the hydro data file, in the order of the bodies in that file, expressed
+    /// in the body reference frame. Hydro data files do not record the point about which their coefficients were computed,
+    /// so these points must be provided if they are not the origins of the body reference frames. The infinite-frequency
+    /// added mass is shifted from these points to the body reference frame origins at initialization (see
+    /// ChLoadHydrodynamics). This function must be called before initialization.
+    void SetHydroReferencePoints(const std::vector<ChVector3d>& points);
+
     /// Set gravity for the FSI system.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
@@ -183,6 +191,7 @@ public:
     unsigned int m_num_flex2D_elements;  ///< number of 2-D flexible faces (across all meshes)
 
     std::string m_hydro_filename;                       ///< input hydro file name (HDF5 format)
+    std::vector<ChVector3d> m_hydro_ref_points;         ///< points of hydro coefficients (body reference frames)
     std::unique_ptr<ChFsiFluidSystemTDPF_impl> m_impl;  ///< private implementation
 
     /// True if new solid states were loaded since the last force evaluation.

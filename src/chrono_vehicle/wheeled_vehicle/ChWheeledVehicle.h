@@ -89,6 +89,9 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineWV> GetDriveline() const { return m_driveline; }
 
+    /// Get all vehicle subchassis subsystems (typically empty).
+    const ChSubchassisList& GetSubchassisList() const { return m_subchassis; }
+
     /// Get the subchassis system (if none present, returns an empty pointer).
     std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
 

@@ -62,7 +62,6 @@ using namespace chrono;
 using namespace chrono::curiosity;
 using namespace chrono::sensor;
 
-
 bool output = false;
 const std::string out_dir = GetChronoOutputPath() + "SCM_DEF_SOIL";
 
@@ -197,8 +196,7 @@ int main(int argc, char* argv[]) {
 
         rock1_Body->SetFixed(false);
 
-        auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh,
-                                                                                      false, false, 0.005);
+        auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false, false, 0.005);
         rock1_Body->AddCollisionShape(rock1_ct_shape);
         rock1_Body->EnableCollision(true);
 
@@ -252,8 +250,7 @@ int main(int argc, char* argv[]) {
 
         rock2_Body->SetFixed(false);
 
-        auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
-                                                                                      false, false, 0.005);
+        auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh, false, false, 0.005);
         rock2_Body->AddCollisionShape(rock2_ct_shape);
         rock2_Body->EnableCollision(true);
 
@@ -307,8 +304,7 @@ int main(int argc, char* argv[]) {
 
         rock3_Body->SetFixed(false);
 
-        auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
-                                                                                      false, false, 0.005);
+        auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh, false, false, 0.005);
         rock3_Body->AddCollisionShape(rock3_ct_shape);
         rock3_Body->EnableCollision(true);
 
@@ -362,12 +358,11 @@ int main(int argc, char* argv[]) {
 
     // Set up bulldozing factors
     if (enable_bulldozing) {
-        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        terrain.SetBulldozingParameters(
-            55,  // angle of friction for erosion of displaced material at the border of the rut
-            1,   // displaced material vs downward pressed material.
-            5,   // number of erosion refinements per timestep
-            6);  // number of concentric vertex selections subject to erosion
+        terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(55,  // angle of friction for erosion of displaced material at the border of the rut
+                                        1,   // displaced material vs downward pressed material.
+                                        5,   // number of erosion refinements per timestep
+                                        6);  // number of concentric vertex selections subject to erosion
     }
 
     // Add active domains for each wheel
@@ -375,18 +370,12 @@ int main(int argc, char* argv[]) {
     if (enable_active_domains) {
         // add moving patch for the SCM terrain
         // the bodies were retrieved from the rover instance
-        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LF)->GetBody(), ChVector3d(0, 0, 0),
-                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RF)->GetBody(), ChVector3d(0, 0, 0),
-                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LM)->GetBody(), ChVector3d(0, 0, 0),
-                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RM)->GetBody(), ChVector3d(0, 0, 0),
-                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LB)->GetBody(), ChVector3d(0, 0, 0),
-                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RB)->GetBody(), ChVector3d(0, 0, 0),
-                                ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LF)->GetBody(), ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RF)->GetBody(), ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LM)->GetBody(), ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RM)->GetBody(), ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_LB)->GetBody(), ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddActiveDomain(rover.GetWheel(CuriosityWheelID::C_RB)->GetBody(), ChVector3d(0, 0, 0), ChVector3d(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add moving patch for all obstacles
         terrain.AddActiveDomain(rock_1, VNULL, ChVector3d(2.0, 2.0, 2.0));
@@ -425,8 +414,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector3d(-1.0, 1.0, 3.0), ChVector3d(-5.0, 0.0, 0.0));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(-5.0, 8.0, -0.5), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
-                                        ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->AddLightWithShadow(ChVector3d(-5.0, 8.0, -0.5), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512, ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;
@@ -465,9 +453,9 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(rover.GetChassis()->GetBody(),  // body lidar is attached to
                                                           25,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          480,                 // number of horizontal samples
-                                                          300,                 // number of vertical channels
-                                                          (float)(2 * CH_PI),  // horizontal field of view
+                                                          480,                            // number of horizontal samples
+                                                          300,                            // number of vertical channels
+                                                          (float)(2 * CH_PI),             // horizontal field of view
                                                           (float)CH_PI / 12, (float)-CH_PI / 6,
                                                           120.0f  // vertical field of view
     );
@@ -486,8 +474,7 @@ int main(int argc, char* argv[]) {
     // cloud data
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     // Render the point cloud
-    lidar->PushFilter(
-        chrono_types::make_shared<ChFilterVisualizePointCloud>(960, 600, 0.2, "Bottom Lidar Point Cloud"));
+    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(960, 600, 0.2, "Bottom Lidar Point Cloud"));
     // Access the lidar data as an XYZI buffer
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterLidarNoiseXYZI>(0.01f, 0.001f, 0.001f, 0.01f));
@@ -496,8 +483,7 @@ int main(int argc, char* argv[]) {
     auto offset_pose_1 = chrono::ChFrame<double>({-0.5, 0, 0.4}, QuatFromAngleZ(0));
 
     // Create a radar and attach to rover chassis
-    auto radar = chrono_types::make_shared<ChRadarSensor>(rover.GetChassis()->GetBody(), 25, offset_pose_1, 300, 200,
-                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
+    auto radar = chrono_types::make_shared<ChRadarSensor>(rover.GetChassis()->GetBody(), 25, offset_pose_1, 300, 200, (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.04f);
@@ -509,19 +495,29 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(lidar);
     manager->AddSensor(radar);
 
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+#endif
+
     // Simulation loop
     while (vis->Run()) {
 #if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
-        vis->BeginScene();
-        vis->Render();
-        vis->EndScene();
+        if (sys.GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 #endif
 
         if (output) {
             // write drive torques of all six wheels into file
-            csv << sys.GetChTime() << rover.GetWheelTracTorque(CuriosityWheelID::C_LF)
-                << rover.GetWheelTracTorque(CuriosityWheelID::C_RF) << rover.GetWheelTracTorque(CuriosityWheelID::C_LM)
-                << rover.GetWheelTracTorque(CuriosityWheelID::C_RM) << rover.GetWheelTracTorque(CuriosityWheelID::C_LB)
+            csv << sys.GetChTime() << rover.GetWheelTracTorque(CuriosityWheelID::C_LF) << rover.GetWheelTracTorque(CuriosityWheelID::C_RF)
+                << rover.GetWheelTracTorque(CuriosityWheelID::C_LM) << rover.GetWheelTracTorque(CuriosityWheelID::C_RM) << rover.GetWheelTracTorque(CuriosityWheelID::C_LB)
                 << rover.GetWheelTracTorque(CuriosityWheelID::C_RB) << std::endl;
         }
         rover.Update();

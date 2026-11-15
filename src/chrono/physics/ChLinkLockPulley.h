@@ -148,6 +148,13 @@ class ChApi ChLinkLockPulley : public ChLinkLockLock {
     /// Return distance between the two axes.
     double GetShaftsDistance() const { return shaft_dist; }
 
+    /// Save the internal state of this pulley: the total rotations of the two pulleys (including full turns) and the
+    /// data set at the last update of visual assets (marker positions, imposed belt length, belt end points).
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of this pulley, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

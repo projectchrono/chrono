@@ -164,6 +164,10 @@ static ChPreciceAdapter::CouplingDataType ReadCouplingDataType(const YAML::Node&
         return ChPreciceAdapter::CouplingDataType::LINEAR_VELOCITIES;
     if (type == "ANGULAR_VELOCITIES")
         return ChPreciceAdapter::CouplingDataType::ANGULAR_VELOCITIES;
+    if (type == "LINEAR_ACCELERATIONS")
+        return ChPreciceAdapter::CouplingDataType::LINEAR_ACCELERATIONS;
+    if (type == "ANGULAR_ACCELERATIONS")
+        return ChPreciceAdapter::CouplingDataType::ANGULAR_ACCELERATIONS;
     if (type == "FORCES")
         return ChPreciceAdapter::CouplingDataType::FORCES;
     if (type == "TORQUES")
@@ -393,6 +397,10 @@ std::string ChPreciceAdapter::GetCouplingDataTypeAsString(CouplingDataType type)
             return "LINEAR_VELOCITIES";
         case CouplingDataType::ANGULAR_VELOCITIES:
             return "ANGULAR_VELOCITIES";
+        case CouplingDataType::LINEAR_ACCELERATIONS:
+            return "LINEAR_ACCELERATIONS";
+        case CouplingDataType::ANGULAR_ACCELERATIONS:
+            return "ANGULAR_ACCELERATIONS";
         case CouplingDataType::FORCES:
             return "FORCES";
         case CouplingDataType::TORQUES:
@@ -436,12 +444,18 @@ std::vector<std::string> ChPreciceAdapter::GetCouplingMeshNames() const {
 
 std::vector<std::string> ChPreciceAdapter::GetReadDataNamesOnMesh(const std::string& mesh_name) const {
     assert(m_participant_created);
-    return m_data_read.at(mesh_name);
+    auto it = m_data_read.find(mesh_name);
+    if (it == m_data_read.end())
+        return {};  // no read data on this mesh
+    return it->second;
 }
 
 std::vector<std::string> ChPreciceAdapter::GetWriteDataNamesOnMesh(const std::string& mesh_name) const {
     assert(m_participant_created);
-    return m_data_write.at(mesh_name);
+    auto it = m_data_write.find(mesh_name);
+    if (it == m_data_write.end())
+        return {};  // no write data on this mesh
+    return it->second;
 }
 
 size_t ChPreciceAdapter::GetNumVertices(const std::string& mesh_name) {

@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChVehicleDataPath.h"
 #include "chrono_vehicle/utils/ChVehicleUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/terrain/SCMTerrain.h"
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 
     // Create the tire
     auto tire = ReadTireJSON(GetVehicleDataFile(tire_json));
-    auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire);
+    auto tire_def = std::dynamic_pointer_cast<ChFEATire>(tire);
     if (!tire_def) {
         cerr << "ERROR: Incorrect tire specification JSON file" << endl;
         return 1;
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
             terrain_crm->SetSPHParameters(sph_params);
 
             terrain_crm->SetBcePattern2D(BcePatternMesh2D::INWARD, false);
-            terrain_crm->AddFeaMesh(tire_def->GetMesh(), false);
+            terrain_crm->AddFeaSurface(tire_def->GetSurfaceMesh(), false);
 
             terrain_crm->Construct({4 * radius, 4 * radius, 0.25},            // length X width X height
                                    ChVector3d(0, 0, -radius - 0.25 - 0.075),  // patch center

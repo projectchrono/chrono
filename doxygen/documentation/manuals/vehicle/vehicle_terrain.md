@@ -110,6 +110,35 @@ Some other features of the Chrono SCM implementation are:
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles; [handling tires](@ref vehicle_tire_empirical) cannot be used.
 
+### SCM storage options
+
+SCM defaults to **single precision storage** for soil-node state and the dense base-height field,
+and **16 x 16 tiled storage** for deformed nodes. Both choices can be changed independently when
+building Chrono:
+
+| CMake option | Default | Alternative |
+|---|---|---|
+| `CH_USE_SCM_DOUBLE` | `OFF` (single precision) | `ON` uses double precision storage |
+| `CH_USE_SCM_TILED_NODES` | `ON` (tiled nodes) | `OFF` uses the original flat hash map |
+
+For example, to use double precision and a flat node map:
+
+```bash
+cmake -S . -B build -DCH_ENABLE_MODULE_VEHICLE=ON \
+  -DCH_USE_SCM_DOUBLE=ON \
+  -DCH_USE_SCM_TILED_NODES=OFF
+cmake --build build
+```
+
+These are build options; rebuild Chrono and applications or bindings that use it after changing
+them. Public terrain APIs continue to use doubles in either storage mode. The choices apply to
+SCM storage for both CPU and GPU execution; computations are carried out in double precision and
+only the stored node state is rounded. With `CH_USE_SCM_DOUBLE=ON`, results are identical to those
+of the original double-precision implementation, with either node map.
+
+Whether SCM runs on the CPU or the GPU is selected at run time, independently of these options;
+see [SCM GPU acceleration](@ref vehicle_terrain_scm_gpu).
+
 ## Deformable DEM (granular dynamics) {#vehicle_terrain_granular}
 
 [GranularTerrain](@ref chrono::vehicle::GranularTerrain) implements a rectangular patch of granular material and leverages Chrono's extensive support for so-called Discrete Element Method (DEM) simulations. Currently, this terrain model is limited to monodisperse spherical granular material.
@@ -141,9 +170,9 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/terrain/FEA_terrain.png" width="600" />
 
-## Deformable CRM (SPH-based Continuous Representation Model) {#vehicle_terrain_crm}
+## Deformable CRM (SPH-based Continuum Representation Model) {#vehicle_terrain_crm}
 
-[CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuous Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
+[CRMTerrain](@ref chrono::vehicle::CRMTerrain) provides a deformable terrain model based on the so-called Continuum Representation Model (CRM) approach which involves solving a set of PDEs describing soil dynamics. These PDEs are solved using the [Chrono::FSI-SPH](group__fsisph.html) module with the appropriate underlying dynamics.
 
 CRMTerrain provides a very attractive alternative to granular dynamics as it gives similar accuracy and fidelity of soil dynamics with much better computational performance.
 

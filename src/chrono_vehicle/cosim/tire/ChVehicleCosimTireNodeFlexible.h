@@ -28,7 +28,7 @@
 #include "chrono/input_output/ChWriterCSV.h"
 #include "chrono/assets/ChVisualSystem.h"
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
 #ifdef CHRONO_VSG
     #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -110,7 +110,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Print current contact forces.
     void PrintContactData(const std::vector<ChVector3d>& forces, const std::vector<int>& indices);
 
-    std::shared_ptr<ChDeformableTire> m_tire_def;                   ///< deformable tire
+    std::shared_ptr<ChFEATire> m_tire_def;                          ///< FEA tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
     std::vector<std::vector<unsigned int>> m_adjElements;           ///< list of neighboring elements for each mesh vertex
     std::vector<std::vector<unsigned int>> m_adjVertices;           ///< list of vertex indices for each mesh element

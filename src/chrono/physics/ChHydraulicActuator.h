@@ -68,9 +68,9 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     /// piston).
     void SetInitialLoad(double initial_load);
 
-    /// Initialize the hydraulic actuator stand-alone.
-    /// In this case, actuator position and rate are supposed to be provided from the outside.
-    virtual void Initialize() override;
+    /// Deprecated: a stand-alone hydraulic actuator (with actuator position and rate provided from the outside) no
+    /// longer requires a call to Initialize(), as the containing system initializes it automatically.
+    using ChExternalDynamicsODE::Initialize;
 
     /// Initialize this hydraulic actuator by connecting it between the two specified bodies.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first connected body
@@ -99,17 +99,24 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamicsODE {
     void SetActuatorLength(double len, double vel);
 
     /// Get the current actuator force.
-    /// Can be used in a co-simulation interface.
+    /// Can be used in a co-simulation interface. If called before the system is initialized (i.e., before the first
+    /// step), the actuator is initialized and the force corresponding to its initial conditions is returned.
     double GetActuatorForce();
 
     /// Get the current cylinder pressures.
+    /// If called before the system is initialized, the initial pressures are returned.
     std::array<double, 2> GetCylinderPressures();
 
     /// Get the current directional valve position.
+    /// If called before the system is initialized, the initial valve position is returned.
     double GetValvePosition();
 
   protected:
     ChHydraulicActuatorBase();
+
+    /// Initialization phase 2: process the initial cylinder pressures and valve displacement (see OnInitialize), then
+    /// load the initial conditions.
+    virtual void SetupInitialState() override;
 
     /// Process initial cylinder pressures and initial valve displacement.
     /// Optionally, if the initial load F0 is provided, a derived class may calculate consistent initial conditions

@@ -1,0 +1,259 @@
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+    class           dictionary;
+    object          blockMeshDict;
+}
+
+scale 1;
+
+// Vertices
+X1 -0.2; // pre rigid body 
+X2  0.0; // begin rigid body
+X3  0.2; // end rigid body
+X4  0.6; // wake
+
+Y1 -0.13; // distance to bottom
+Y2 -0.01; // half body height
+Y3  0.01; // half body height
+Y4  0.12; // distance to top
+
+Z1 -0.16; // distance to back
+Z2 -0.10; // half plate span
+Z3  0.10; // half plate span
+Z4  0.14; // distance to front
+
+// Blocks
+NX1 12; 
+NX2 14;
+NX3 20;
+
+NY1 12;
+NY2 2;
+NY3 11;
+
+NZ1 6;
+NZ2 16;
+NZ3 4;
+
+G3 4; // wake grading
+
+vertices
+(
+	// X1
+		($X1 $Y1 $Z1)  // 0
+		($X1 $Y2 $Z1)
+		($X1 $Y3 $Z1)
+		($X1 $Y4 $Z1)
+        ($X1 $Y1 $Z2)  // 4
+        ($X1 $Y2 $Z2)
+        ($X1 $Y3 $Z2)
+        ($X1 $Y4 $Z2)
+        ($X1 $Y1 $Z3)  // 8
+        ($X1 $Y2 $Z3)
+        ($X1 $Y3 $Z3)
+        ($X1 $Y4 $Z3)
+        ($X1 $Y1 $Z4)  // 12
+        ($X1 $Y2 $Z4)
+        ($X1 $Y3 $Z4)
+        ($X1 $Y4 $Z4)
+    // X2
+        ($X2 $Y1 $Z1)  // 16
+        ($X2 $Y2 $Z1)
+        ($X2 $Y3 $Z1)
+        ($X2 $Y4 $Z1)
+        ($X2 $Y1 $Z2)  // 20
+        ($X2 $Y2 $Z2)
+        ($X2 $Y3 $Z2)
+        ($X2 $Y4 $Z2)
+        ($X2 $Y1 $Z3)  // 24
+        ($X2 $Y2 $Z3)
+        ($X2 $Y3 $Z3)
+        ($X2 $Y4 $Z3)
+        ($X2 $Y1 $Z4)  // 28
+        ($X2 $Y2 $Z4)
+        ($X2 $Y3 $Z4)
+        ($X2 $Y4 $Z4)
+    // X3
+        ($X3 $Y1 $Z1)  // 32
+        ($X3 $Y2 $Z1)
+        ($X3 $Y3 $Z1)
+        ($X3 $Y4 $Z1)
+        ($X3 $Y1 $Z2)  // 36
+        ($X3 $Y2 $Z2)
+        ($X3 $Y3 $Z2)
+        ($X3 $Y4 $Z2)
+        ($X3 $Y1 $Z3)  // 40
+        ($X3 $Y2 $Z3)
+        ($X3 $Y3 $Z3)
+        ($X3 $Y4 $Z3)
+        ($X3 $Y1 $Z4)  // 44
+        ($X3 $Y2 $Z4)
+        ($X3 $Y3 $Z4)
+        ($X3 $Y4 $Z4)
+    // X4
+        ($X4 $Y1 $Z1)  // 48
+        ($X4 $Y2 $Z1)
+        ($X4 $Y3 $Z1)
+        ($X4 $Y4 $Z1)
+        ($X4 $Y1 $Z2)  // 52
+        ($X4 $Y2 $Z2)
+        ($X4 $Y3 $Z2)
+        ($X4 $Y4 $Z2)
+        ($X4 $Y1 $Z3)  // 56
+        ($X4 $Y2 $Z3)
+        ($X4 $Y3 $Z3)
+        ($X4 $Y4 $Z3)
+        ($X4 $Y1 $Z4)  // 60
+        ($X4 $Y2 $Z4)
+        ($X4 $Y3 $Z4)
+        ($X4 $Y4 $Z4)
+);
+
+blocks
+(
+
+	hex ( 0 16 17 1 4 20 21 5 ) ( $NX1 $NY1 $NZ1 ) simpleGrading ( 1 1 1 )
+	hex ( 1 17 18 2 5 21 22 6 ) ( $NX1 $NY2 $NZ1 ) simpleGrading ( 1 1 1 )
+	hex ( 2 18 19 3 6 22 23 7 ) ( $NX1 $NY3 $NZ1 ) simpleGrading ( 1 1 1 )
+	hex ( 4 20 21 5 8 24 25 9 ) ( $NX1 $NY1 $NZ2 ) simpleGrading ( 1 1 1 )
+	hex ( 5 21 22 6 9 25 26 10 ) ( $NX1 $NY2 $NZ2 ) simpleGrading ( 1 1 1 )
+	hex ( 6 22 23 7 10 26 27 11 ) ( $NX1 $NY3 $NZ2 ) simpleGrading ( 1 1 1 )
+	hex ( 8 24 25 9 12 28 29 13 ) ( $NX1 $NY1 $NZ3 ) simpleGrading ( 1 1 1 )
+	hex ( 9 25 26 10 13 29 30 14 ) ( $NX1 $NY2 $NZ3 ) simpleGrading ( 1 1 1 )
+	hex ( 10 26 27 11 14 30 31 15 ) ( $NX1 $NY3 $NZ3 ) simpleGrading ( 1 1 1 )
+	hex ( 16 32 33 17 20 36 37 21 ) ( $NX2 $NY1 $NZ1 ) simpleGrading ( 1 1 1 )
+	hex ( 17 33 34 18 21 37 38 22 ) ( $NX2 $NY2 $NZ1 ) simpleGrading ( 1 1 1 )
+	hex ( 18 34 35 19 22 38 39 23 ) ( $NX2 $NY3 $NZ1 ) simpleGrading ( 1 1 1 )
+	hex ( 20 36 37 21 24 40 41 25 ) ( $NX2 $NY1 $NZ2 ) simpleGrading ( 1 1 1 )
+
+	hex ( 22 38 39 23 26 42 43 27 ) ( $NX2 $NY3 $NZ2 ) simpleGrading ( 1 1 1 )
+	hex ( 24 40 41 25 28 44 45 29 ) ( $NX2 $NY1 $NZ3 ) simpleGrading ( 1 1 1 )
+	hex ( 25 41 42 26 29 45 46 30 ) ( $NX2 $NY2 $NZ3 ) simpleGrading ( 1 1 1 )
+	hex ( 26 42 43 27 30 46 47 31 ) ( $NX2 $NY3 $NZ3 ) simpleGrading ( 1 1 1 )
+	hex ( 32 48 49 33 36 52 53 37 ) ( $NX3 $NY1 $NZ1 ) simpleGrading ( $G3 1 1 )
+	hex ( 33 49 50 34 37 53 54 38 ) ( $NX3 $NY2 $NZ1 ) simpleGrading ( $G3 1 1 )
+	hex ( 34 50 51 35 38 54 55 39 ) ( $NX3 $NY3 $NZ1 ) simpleGrading ( $G3 1 1 )
+	hex ( 36 52 53 37 40 56 57 41 ) ( $NX3 $NY1 $NZ2 ) simpleGrading ( $G3 1 1 )
+	hex ( 37 53 54 38 41 57 58 42 ) ( $NX3 $NY2 $NZ2 ) simpleGrading ( $G3 1 1 )
+	hex ( 38 54 55 39 42 58 59 43 ) ( $NX3 $NY3 $NZ2 ) simpleGrading ( $G3 1 1 )
+	hex ( 40 56 57 41 44 60 61 45 ) ( $NX3 $NY1 $NZ3 ) simpleGrading ( $G3 1 1 )
+	hex ( 41 57 58 42 45 61 62 46 ) ( $NX3 $NY2 $NZ3 ) simpleGrading ( $G3 1 1 )
+	hex ( 42 58 59 43 46 62 63 47 ) ( $NX3 $NY3 $NZ3 ) simpleGrading ( $G3 1 1 )
+
+);
+
+
+boundary
+(
+	inlet
+		{
+			type patch;
+			faces
+				(
+					( 0 1 5 4 )
+					( 1 2 6 5 )
+					( 2 3 7 6 )
+					( 4 5 9 8 )
+					( 5 6 10 9 )
+					( 6 7 11 10 )
+					( 8 9 13 12 )
+					( 9 10 14 13 )
+					( 10 11 15 14 )
+				);
+		}
+	outlet
+		{
+			type patch;
+			faces
+				(
+					( 48 49 53 52 )
+					( 49 50 54 53 )
+					( 50 51 55 54 )
+					( 52 53 57 56 )
+					( 53 54 58 57 )
+					( 54 55 59 58 )
+					( 56 57 61 60 )
+					( 57 58 62 61 )
+					( 58 59 63 62 )
+				);
+		}
+	back
+		{
+			type wall;
+			faces
+				(
+					( 0 1 17 16 )
+					( 1 2 18 17 )
+					( 2 3 19 18 )
+					( 16 17 33 32 )
+					( 17 18 34 33 )
+					( 18 19 35 34 )
+					( 32 33 49 48 )
+					( 33 34 50 49 )
+					( 34 35 51 50 )
+				);
+		}
+	bottom
+		{
+			type wall;
+			faces
+				(
+					( 0 4 20 16 )
+					( 4 8 24 20 )
+					( 8 12 28 24 )
+					( 16 20 36 32 )
+					( 20 24 40 36 )
+					( 24 28 44 40 )
+					( 32 36 52 48 )
+					( 36 40 56 52 )
+					( 40 44 60 56 )
+				);
+		}
+	front
+		{
+			type wall;
+			faces
+				(
+					( 12 13 29 28 )
+					( 13 14 30 29 )
+					( 14 15 31 30 )
+					( 28 29 45 44 )
+					( 29 30 46 45 )
+					( 30 31 47 46 )
+					( 44 45 61 60 )
+					( 45 46 62 61 )
+					( 46 47 63 62 )
+				);
+		}
+	top
+		{
+			type wall;
+			faces
+				(
+					( 3 7 23 19 )
+					( 7 11 27 23 )
+					( 11 15 31 27 )
+					( 19 23 39 35 )
+					( 23 27 43 39 )
+					( 27 31 47 43 )
+					( 35 39 55 51 )
+					( 39 43 59 55 )
+					( 43 47 63 59 )
+				);
+		}
+	flap
+		{
+			type wall;
+			faces
+				(
+					( 21 22 26 25 )
+					( 37 38 42 41 )
+					( 21 37 41 25 )
+					( 22 38 42 26 )
+					( 21 37 38 22 )
+					( 25 41 42 26 )
+				);
+		}
+);

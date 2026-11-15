@@ -64,3 +64,34 @@ foreach(PROGRAM ${DEMOS})
 
     install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
 endforeach()
+
+#--------------------------------------------------------------
+# Demos that also use Chrono::Vehicle
+
+if(CH_ENABLE_MODULE_VEHICLE)
+    set(PROGRAM demo_FSI-SPH_TankTrailer)
+
+    set(VEH_LIBS ${LIBS} Chrono_vehicle)
+    if(CH_ENABLE_MODULE_VSG)
+        list(APPEND VEH_LIBS Chrono_vehicle_vsg)
+    endif()
+    if(CH_ENABLE_MODULE_POSTPROCESS)
+        list(APPEND VEH_LIBS Chrono_postprocess)
+    endif()
+
+    add_executable(${PROGRAM} ${PROGRAM}.cpp)
+    source_group("" FILES ${PROGRAM}.cpp)
+
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
+
+    if(MSVC)
+      set_target_properties(${PROGRAM} PROPERTIES MSVC_RUNTIME_LIBRARY ${CH_MSVC_RUNTIME_LIBRARY})
+    endif()
+
+    set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
+    target_link_libraries(${PROGRAM} ${VEH_LIBS})
+
+    install(TARGETS ${PROGRAM} CONFIGURATIONS Release DESTINATION ${CH_INSTALL_DEMO})
+endif()

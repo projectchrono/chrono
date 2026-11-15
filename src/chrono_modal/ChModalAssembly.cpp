@@ -1360,7 +1360,7 @@ void ChModalAssembly::AddInternalBody(std::shared_ptr<ChBody> body) {
     body->SetSystem(system);
     internal_bodylist.push_back(body);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChBody::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1380,7 +1380,7 @@ void ChModalAssembly::AddInternalLink(std::shared_ptr<ChLinkBase> link) {
     link->SetSystem(system);
     internal_linklist.push_back(link);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChLink::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1401,7 +1401,7 @@ void ChModalAssembly::AddInternalMesh(std::shared_ptr<fea::ChMesh> mesh) {
     mesh->SetSystem(system);
     internal_meshlist.push_back(mesh);
 
-    system->is_initialized = false;
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1428,7 +1428,7 @@ void ChModalAssembly::AddInternalOtherPhysicsItem(std::shared_ptr<ChPhysicsItem>
     item->SetSystem(system);
     internal_otherphysicslist.push_back(item);
 
-    ////system->is_initialized = false;  // Not needed, unless/until ChPhysicsItem::SetupInitial does something
+    system->m_items_pending = true;
     system->is_updated = false;
 }
 
@@ -1583,7 +1583,7 @@ const std::vector<std::shared_ptr<ChPhysicsItem>>& ChModalAssembly::GetOtherPhys
 // -----------------------------------------------------------------------------
 
 void ChModalAssembly::GetSubassemblyMatrices(ChSparseMatrix* K, ChSparseMatrix* R, ChSparseMatrix* M, ChSparseMatrix* Cq) {
-    SetupInitial();
+    InitializeItems();
     Setup();
     Update(ChTime, UpdateFlags::UPDATE_ALL_NO_VISUAL);
 
@@ -1721,23 +1721,66 @@ void ChModalAssembly::SyncCollisionModels() {
 // -----------------------------------------------------------------------------
 // UPDATING ROUTINES
 
-void ChModalAssembly::SetupInitial() {
-    ChAssembly::SetupInitial();  // parent
+void ChModalAssembly::InitializeChildren(InitPhase phase) {
+    ChAssembly::InitializeChildren(phase);  // parent
 
-    for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-        internal_bodylist[ip]->SetupInitial();
+    for (auto& body : internal_bodylist) {
+        body->InitializePhase(phase);
     }
-    for (unsigned int ip = 0; ip < internal_linklist.size(); ++ip) {
-        internal_linklist[ip]->SetupInitial();
+    for (auto& link : internal_linklist) {
+        link->InitializePhase(phase);
     }
 #ifdef CHRONO_FEA
-    for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
-        internal_meshlist[ip]->SetupInitial();
+    for (auto& mesh : internal_meshlist) {
+        mesh->InitializePhase(phase);
     }
 #endif
-    for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
-        internal_otherphysicslist[ip]->SetupInitial();
+    for (auto& item : internal_otherphysicslist) {
+        item->InitializePhase(phase);
     }
+}
+
+void ChModalAssembly::ResetInitialization() {
+    ChAssembly::ResetInitialization();  // parent
+
+    for (auto& body : internal_bodylist) {
+        body->ResetInitialization();
+    }
+    for (auto& link : internal_linklist) {
+        link->ResetInitialization();
+    }
+#ifdef CHRONO_FEA
+    for (auto& mesh : internal_meshlist) {
+        mesh->ResetInitialization();
+    }
+#endif
+    for (auto& item : internal_otherphysicslist) {
+        item->ResetInitialization();
+    }
+}
+
+void ChModalAssembly::CollectItems(std::vector<ChPhysicsItem*>& items) const {
+    ChAssembly::CollectItems(items);  // parent
+
+    for (const auto& body : internal_bodylist)
+        items.push_back(body.get());
+    for (const auto& link : internal_linklist)
+        items.push_back(link.get());
+#ifdef CHRONO_FEA
+    for (const auto& mesh : internal_meshlist)
+        items.push_back(mesh.get());
+#endif
+    for (const auto& item : internal_otherphysicslist)
+        items.push_back(item.get());
+}
+
+bool ChModalAssembly::SupportsCheckpoint() const {
+    return !m_is_model_reduced && ChAssembly::SupportsCheckpoint();
+}
+
+void ChModalAssembly::InitializeItems() {
+    InitializePhase(InitPhase::STRUCTURE);
+    InitializePhase(InitPhase::STATE);
 }
 
 // Count all bodies, links, meshes, and other physics items.
@@ -2497,35 +2540,34 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  // offset in R 
             R.segment(off, m_num_coords_vel_boundary + m_num_coords_modal) -= c * g_quadvel;
         }
 
-        // 3. update the external forces imposed on the internal nodes.
-        // Note: the below code requires that the internal bodies and internal nodes are inserted in sequence.
+        // 3. update the external forces imposed on the internal items.
+        // Each internal item loads its own applied loads (without gravity and gyroscopic terms, which are accounted
+        // for separately) at its offset relative to the start of the internal coordinates.
         {
+            m_full_forces_internal.setZero(m_num_coords_vel_internal);
+            unsigned int offset_internal = offset_w + m_num_coords_vel_boundary;
+
             std::unordered_map<ChBody*, unsigned int> body_to_offset;
 
-            unsigned int offset_loc = 0;
-            for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
-                body_to_offset[internal_bodylist[ip].get()] = offset_loc;
-                const auto& wrench = internal_bodylist[ip]->GetAccumulatorWrench();
-                m_full_forces_internal.segment(offset_loc, 3) = wrench.force.eigen();
-                m_full_forces_internal.segment(offset_loc + 3, 3) = wrench.torque.eigen();
-                offset_loc += internal_bodylist[ip]->GetNumCoordsVelLevel();
-            }
-
-#ifdef CHRONO_FEA
-            for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
-                for (auto& node : internal_meshlist[ip]->GetNodes()) {
-                    if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
-                        m_full_forces_internal.segment(offset_loc, 3) = xyz->GetForce().eigen();
-                        offset_loc += xyz->GetNumCoordsVelLevel();
-                    }
-                    if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
-                        m_full_forces_internal.segment(offset_loc, 3) = xyzrot->GetForce().eigen();
-                        m_full_forces_internal.segment(offset_loc + 3, 3) = xyzrot->GetTorque().eigen();
-                        offset_loc += xyzrot->GetNumCoordsVelLevel();
-                    }
+            for (auto& body : internal_bodylist) {
+                if (body->IsActive()) {
+                    body_to_offset[body.get()] = body->GetOffset_w() - offset_internal;
+                    body->IntLoadResidual_F_applied(body->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
                 }
             }
+            for (auto& link : internal_linklist) {
+                if (link->IsActive())
+                    link->IntLoadResidual_F_applied(link->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
+            }
+#ifdef CHRONO_FEA
+            for (auto& mesh : internal_meshlist) {
+                mesh->IntLoadResidual_F_applied(mesh->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
+            }
 #endif
+            for (auto& item : internal_otherphysicslist) {
+                if (item->IsActive())
+                    item->IntLoadResidual_F_applied(item->GetOffset_w() - offset_internal, m_full_forces_internal, 1.0);
+            }
 
             for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
                 const auto& physicsitem = internal_otherphysicslist[ip];

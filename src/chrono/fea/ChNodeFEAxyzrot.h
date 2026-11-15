@@ -29,6 +29,8 @@ namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
+/// Force and torque accumulators (see ChBodyFrame) are applied in addition to the force and torque set with SetForce
+/// and SetTorque.
 class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
                               public ChBodyFrame,
                               public ChLoadableUVW {
@@ -97,6 +99,17 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
     virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
+    /// Save the rotation velocity and acceleration as stored (quaternion derivatives).
+    /// The coordinates hold the angular velocity and acceleration, which do not convert back to the same quaternion
+    /// derivatives exactly; saving these makes a restart reproduce a continuous run.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the rotation velocity and acceleration (quaternion derivatives).
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
+    /// Return true: the internal state of this node is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Get a symbolic 'center' of the node (the position). 
     virtual ChVector3d GetCenter() const override { return this->m_csys.pos; }
 
@@ -134,6 +147,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
                                           const unsigned int off_v,
                                           ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void NodeIntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
                                         const ChVectorDynamic<>& w,

@@ -92,6 +92,9 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
         ChVector3d& dir                      ///< the direction of the shaft on 3D body (applied on COM: pure torque)
     );
 
+    /// Return true: the internal state of this gearbox is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

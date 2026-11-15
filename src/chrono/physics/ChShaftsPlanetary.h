@@ -130,6 +130,9 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Get the reaction torque considered as applied to the 3rd axis.
     double GetTorqueReactionOn3() const { return (m_r3 * m_torque_react); }
 
+    /// Return true: the internal state of this planetary gear is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

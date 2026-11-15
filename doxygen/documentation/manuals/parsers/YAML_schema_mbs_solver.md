@@ -55,7 +55,7 @@ The `PARDISO` and `MUMPS` solvers require the corresponding optional Chrono modu
 | `max_iterations`| Maximum number of iterations | integer | -- | No | 100 |
 | `overrelaxation_factor` | Overrelaxation factor for improved convergence | double | -- | No | 1.0 |
 | `sharpness_factor` | Sharpness factor for solver response tuning | double | -- | No | 1.0 |
-| `enable_diagonal_preconditioner` | Enable diagonal preconditioner to accelerate convergence | boolean | -- | No | false |
+| `enable_diagonal_preconditioner` | Enable diagonal preconditioner to accelerate convergence | boolean | -- | No | true |
 | `warm_start` | Warm start the solver from the previous solution | boolean | -- | No | false |
 
 #### Iterative Krylov Linear Solvers (BICGSTAB, MINRES, GMRES)
@@ -64,7 +64,7 @@ The `PARDISO` and `MUMPS` solvers require the corresponding optional Chrono modu
 |----------|-------------|------|------------------|----------|---------|
 | `max_iterations` | Maximum number of iterations | integer | -- | No | 100 |
 | `tolerance` | Residual tolerance for convergence | double | -- | No | 0.0 |
-| `enable_diagonal_preconditioner` | Enable diagonal preconditioner to accelerate convergence | boolean | -- | No | false |
+| `enable_diagonal_preconditioner` | Enable diagonal preconditioner to accelerate convergence | boolean | -- | No | true |
 | `warm_start` | Warm start the solver from the previous solution | boolean | -- | No | false |
 
 #### Direct Sparse Linear Solvers (SPARSE_LU, SPARSE_QR, PARDISO, MUMPS)
@@ -78,7 +78,7 @@ The `PARDISO` and `MUMPS` solvers require the corresponding optional Chrono modu
 
 Below is an example of an MBS solver configuration:
 
-\include data/yaml/mbs/solver_mbs.yaml
+\include data/yaml/mbs/solver_nonstiff.yaml
 
 ## YAML schema
 

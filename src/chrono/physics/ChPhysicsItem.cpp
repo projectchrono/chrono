@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
@@ -25,6 +26,8 @@ ChPhysicsItem::ChPhysicsItem(const ChPhysicsItem& other) : ChObj(other) {
     offset_x = other.offset_x;
     offset_w = other.offset_w;
     offset_L = other.offset_L;
+    // A copy is not initialized; it records its own reference configuration
+    m_init_stage = InitPhase::NONE;
 }
 
 ChPhysicsItem::~ChPhysicsItem() {
@@ -44,6 +47,30 @@ ChVector3d ChPhysicsItem::GetCenter() const {
     return (bbox.min + bbox.max) * 0.5;
 }
 
+void ChPhysicsItem::InitializePhase(InitPhase phase) {
+    if (phase == InitPhase::STATE && m_init_stage == InitPhase::NONE)
+        InitializePhase(InitPhase::STRUCTURE);
+
+    if (m_init_stage < phase) {
+        if (phase == InitPhase::STRUCTURE)
+            SetupInitial();
+        else if (phase == InitPhase::STATE)
+            SetupInitialState();
+        m_init_stage = phase;
+    }
+
+    InitializeChildren(phase);
+}
+
+void ChPhysicsItem::ResetInitialization() {
+    m_init_stage = InitPhase::NONE;
+    SetInitializationPending();
+}
+
+void ChPhysicsItem::SetInitializationPending() {
+    if (system)
+        system->m_items_pending = true;
+}
 
 /// Takes the F force term, scale by c and scale by i-th weight in Wd at node offset, and adds to R at given offset:
 ///    R += c*F* Wi
@@ -127,6 +154,9 @@ void ChPhysicsItem::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize parent class
     ChObj::ArchiveIn(archive_in);
+
+    // A deserialized item is not initialized
+    m_init_stage = InitPhase::NONE;
 
     // stream in all member data:
     // archive_in >> CHNVP(system); ***TODO***

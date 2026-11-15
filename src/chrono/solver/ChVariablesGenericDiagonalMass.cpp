@@ -47,20 +47,15 @@ void ChVariablesGenericDiagonalMass::AddMassTimesVector(ChVectorRef result, ChVe
     result += vect.cwiseProduct(MmassDiag);
 }
 
-void ChVariablesGenericDiagonalMass::AddMassTimesVectorInto(ChVectorRef result,
-                                                            ChVectorConstRef vect,
-                                                            const double ca) const {
+void ChVariablesGenericDiagonalMass::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, double ca) const {
     result.segment(offset, ndof) += ca * MmassDiag.cwiseProduct(vect.segment(offset, ndof));
 }
 
-void ChVariablesGenericDiagonalMass::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+void ChVariablesGenericDiagonalMass::AddMassDiagonalInto(ChVectorRef result, double ca) const {
     result.segment(offset, ndof) += ca * MmassDiag;
 }
 
-void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& mat,
-                                                   unsigned int start_row,
-                                                   unsigned int start_col,
-                                                   const double ca) const {
+void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col, double ca) const {
     for (int i = 0; i < MmassDiag.size(); ++i) {
         mat.SetElement(offset + start_row + i, offset + start_col + i, ca * MmassDiag(i));
     }

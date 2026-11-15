@@ -37,14 +37,13 @@ class ChApi ChFunctionConstJerk : public ChFunction {
     /// - acceleration: [+lin, const, -lin, zero, -lin, const, +lin]
     ///
     /// NB: Ta = (0..1/2) * T; Tj = (0..1/2) * Ta
-    ChFunctionConstJerk(
-        double q0,  ///< start position
-        double q1,  ///< end position
-        double v0,  ///< start velocity
-        double v1,  ///< end velocity
-        double T,   ///< total motion time
-        double Ta,  ///< acceleration time (corresponds to first accel trapezoid) -> NB: Ta = (0..1/2) * T
-        double Tj   ///< jerk time (corresponds to first jerk square wave) -> NB: Tj = (0..1/2) * Ta
+    ChFunctionConstJerk(double q0,  ///< start position
+                        double q1,  ///< end position
+                        double v0,  ///< start velocity
+                        double v1,  ///< end velocity
+                        double T,   ///< total motion time
+                        double Ta,  ///< acceleration time (corresponds to first accel trapezoid) -> NB: Ta = (0..1/2) * T
+                        double Tj   ///< jerk time (corresponds to first jerk square wave) -> NB: Tj = (0..1/2) * Ta
     );
 
     /// Simplified case constant jerk.

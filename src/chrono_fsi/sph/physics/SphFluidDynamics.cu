@@ -717,7 +717,7 @@ __global__ void MidpointStep_D(Real4* posRadD,
 
 template <typename T>
 struct check_infinite {
-    __host__ __device__ bool operator()(const T& v) { return !IsFinite(v); }
+    __host__ __device__ bool operator()(const T& v) const { return !IsFinite(v); }
 };
 
 void SphFluidDynamics::EulerStep(std::shared_ptr<SphMarkerDataD> sortedMarkers, Real dT) {

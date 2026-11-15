@@ -19,22 +19,9 @@ namespace irrlicht {
 using namespace irr;
 using namespace irr::scene;
 
-RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
-                     ISceneNode* parent,
-                     ISceneManager* smgr,
-                     s32 id,
-                     f32 rs,
-                     f32 zs,
-                     f32 ts)
-    : ICameraSceneNode(parent,
-                       smgr,
-                       id,
-                       core::vector3df(1.0f, 1.0f, 1.0f),
-                       core::vector3df(0.0f, 0.0f, 0.0f),
-                       core::vector3df(1.0f, 1.0f, 1.0f)),
-      InputReceiverEnabled(true) {
+RTSCamera::RTSCamera(IrrlichtDevice* devicepointer, ISceneNode* parent, ISceneManager* smgr, s32 id, f32 rs, f32 zs, f32 ts)
+    : ICameraSceneNode(parent, smgr, id, core::vector3df(1.0f, 1.0f, 1.0f), core::vector3df(0.0f, 0.0f, 0.0f), core::vector3df(1.0f, 1.0f, 1.0f)), InputReceiverEnabled(true) {
     device = devicepointer;
-    device->grab();
     BBox.reset(0, 0, 0);
 
     UpVector.set(0.0f, 1.0f, 0.0f);
@@ -84,7 +71,6 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
 RTSCamera::~RTSCamera() {
     removeAll();
     remove();
-    device->drop();
 }
 
 bool RTSCamera::OnEvent(const SEvent& event) {
@@ -282,8 +268,7 @@ void RTSCamera::setMaxZoom(f32 amount) {
 }
 
 void RTSCamera::recalculateProjectionMatrix() {
-    Projection.buildProjectionMatrixPerspectiveFovRH(Fovy, Aspect, ZNear,
-                                                     ZFar);  // Right hand camera: use "..RH" here and in the following
+    Projection.buildProjectionMatrixPerspectiveFovRH(Fovy, Aspect, ZNear, ZFar);  // Right hand camera: use "..RH" here and in the following
 }
 
 void RTSCamera::recalculateViewArea() {

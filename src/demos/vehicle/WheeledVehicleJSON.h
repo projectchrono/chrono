@@ -260,12 +260,14 @@ class ACV_Model : public WheeledVehicleJSON {
 // Specification of a trailer model from JSON files
 // Available models:
 //    Ultra_Tow 40in x 48 in
+//    UTV utility trailer (matching the Polaris model)
 
 class Trailer_Model {
   public:
     virtual std::string ModelName() const = 0;
     virtual std::string TrailerJSON() const = 0;
     virtual std::string TireJSON() const = 0;
+    virtual VisualizationType VisType() const { return VisualizationType::PRIMITIVES; }
 };
 
 class UT_Model : public Trailer_Model {
@@ -276,6 +278,14 @@ class UT_Model : public Trailer_Model {
         ////return "ultra_tow/UT_RigidTire.json";
         return "ultra_tow/UT_TMeasyTire.json";
     }
+};
+
+class UTV_Trailer_Model : public Trailer_Model {
+  public:
+    virtual std::string ModelName() const override { return "UTV-Trailer"; }
+    virtual std::string TrailerJSON() const override { return "utv_trailer/UTV_Trailer.json"; }
+    virtual std::string TireJSON() const override { return "Polaris/Polaris_TMeasyTire.json"; }
+    virtual VisualizationType VisType() const override { return VisualizationType::MESH; }
 };
 
 // =============================================================================

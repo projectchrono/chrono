@@ -110,8 +110,8 @@ TEST(ChLinkLockGear, cylindrical) {
     auto mtorque = chrono_types::make_shared<ChForce>();
     mtorque->SetMode(ChForce::TORQUE);
     mtorque->SetBody(mbody_gearB.get());
-    mtorque->SetDir(ChVector3d(0, 0, 1));
-    mtorque->SetMforce(torque);
+    mtorque->SetDirAbs(ChVector3d(0, 0, 1));
+    mtorque->SetForceMagnitude(torque);
     mbody_gearB->AddForce(mtorque);
 
     // Simulate few steps

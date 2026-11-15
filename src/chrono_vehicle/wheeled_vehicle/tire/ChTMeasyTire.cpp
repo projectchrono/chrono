@@ -485,46 +485,27 @@ void ChTMeasyTire::WritePlots(const std::string& plName, const std::string& plTi
     plt.close();
 }
 
-void ChTMeasyTire::GuessTruck80Par(unsigned int li,       // tire load index
-                                   double tireWidth,      // [m]
-                                   double ratio,          // [] = use 0.75 meaning 75%
-                                   double rimDia,         // rim diameter [m]
-                                   double pinfl_li,       // inflation pressure at load index
-                                   double pinfl_use,      // inflation pressure in this configuration
-                                   double damping_ratio)  // damping ratio
-{
-    double tireLoad = GetTireMaxLoad(li);
-    GuessTruck80Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use, damping_ratio);
+void ChTMeasyTire::GuessTruck80Par(unsigned int li, double tire_width, double ratio, double rim_diameter, double pinfl_li, double pinfl_use, double damping_ratio) {
+    GuessTruck80Par(GetTireMaxLoad(li), tire_width, ratio, rim_diameter, pinfl_li, pinfl_use, damping_ratio);
 }
 
-// truck tire pattern  with ratio = 80%
-void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
-                                   double tireWidth,      // [m]
-                                   double ratio,          // [] = use 0.75 meaning 75%
-                                   double rimDia,         // rim diameter [m]
-                                   double pinfl_li,       // inflation pressure at load index
-                                   double pinfl_use,      // inflation pressure in this configuration
-                                   double damping_ratio)  // damping ratio
-{
-    double secth = tireWidth * ratio;  // tire section height
-    double defl_max = 0.16 * secth;    // deflection at tire payload
+// Truck tire pattern with aspect ratio 80%
+void ChTMeasyTire::GuessTruck80Par(double tire_load, double tire_width, double ratio, double rim_diameter, double pinfl_li, double pinfl_use, double damping_ratio) {
+    double section_height = tire_width * ratio;
+    double defl_max = 0.16 * section_height;  // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
+    m_width = tire_width;
+    m_rim_radius = 0.5 * rim_diameter;
+    m_unloaded_radius = m_rim_radius + section_height;
+
+    m_par.pn = 0.5 * tire_load * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
-    double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
-
-    SetVerticalStiffness(CZ);
+    double stiffness = tire_load / defl_max;
+    SetVerticalStiffness(stiffness);
+    m_par.dz = 2.0 * damping_ratio * std::sqrt(stiffness * GetTireMass());
 
     SetRollingResistanceCoefficient(0.015);
-
-    m_par.dz = DZ;
-
-    m_rim_radius = 0.5 * rimDia;
-
-    m_width = tireWidth;
-    m_unloaded_radius = secth + rimDia / 2.0;
     m_par.mu_0 = 0.8;
 
     // Normalized Parameters gained from data set containing original data from Pacejka book
@@ -556,47 +537,28 @@ void ChTMeasyTire::GuessTruck80Par(double tireLoad,       // tire load force [N]
     m_par.sqe_p2n = 1.0296;
 }
 
-void ChTMeasyTire::GuessPassCar70Par(unsigned int li,       // tire load index
-                                     double tireWidth,      // [m]
-                                     double ratio,          // [] = use 0.75 meaning 75%
-                                     double rimDia,         // rim diameter [m]
-                                     double pinfl_li,       // inflation pressure at load index
-                                     double pinfl_use,      // inflation pressure in this configuration
-                                     double damping_ratio)  // damping ratio
-{
-    double tireLoad = GetTireMaxLoad(li);
-    GuessPassCar70Par(tireLoad, tireWidth, ratio, rimDia, pinfl_li, pinfl_use, damping_ratio);
+void ChTMeasyTire::GuessPassCar70Par(unsigned int li, double tire_width, double ratio, double rim_diameter, double pinfl_li, double pinfl_use, double damping_ratio) {
+    GuessPassCar70Par(GetTireMaxLoad(li), tire_width, ratio, rim_diameter, pinfl_li, pinfl_use, damping_ratio);
 }
 
-// tire pattern for passenger car with ratio = 70%
-void ChTMeasyTire::GuessPassCar70Par(double tireLoad,       // tire load force [N]
-                                     double tireWidth,      // [m]
-                                     double ratio,          // [] = use 0.75 meaning 75%
-                                     double rimDia,         // rim diameter [m]
-                                     double pinfl_li,       // inflation pressure at load index
-                                     double pinfl_use,      // inflation pressure in this configuration
-                                     double damping_ratio)  // damping ratio
-{
-    double secth = tireWidth * ratio;  // tire section height
-    double defl_max = 0.16 * secth;    // deflection at tire payload
+// Passenger car tire pattern with aspect ratio 70%
+void ChTMeasyTire::GuessPassCar70Par(double tire_load, double tire_width, double ratio, double rim_diameter, double pinfl_li, double pinfl_use, double damping_ratio) {
+    double section_height = tire_width * ratio;
+    double defl_max = 0.16 * section_height;  // deflection at tire payload
 
-    m_par.pn = 0.5 * tireLoad * std::pow(pinfl_use / pinfl_li, 0.8);
+    m_width = tire_width;
+    m_rim_radius = 0.5 * rim_diameter;
+    m_unloaded_radius = m_rim_radius + section_height;
+
+    m_par.pn = 0.5 * tire_load * std::pow(pinfl_use / pinfl_li, 0.8);
     m_par.pn_max = 3.5 * m_par.pn;
 
-    m_width = tireWidth;
-    m_unloaded_radius = secth + rimDia / 2.0;
-    m_par.mu_0 = 0.8;
-
-    double CZ = tireLoad / defl_max;
-    double DZ = 2.0 * damping_ratio * std::sqrt(CZ * GetTireMass());
-
-    SetVerticalStiffness(CZ);
+    double stiffness = tire_load / defl_max;
+    SetVerticalStiffness(stiffness);
+    m_par.dz = 2.0 * damping_ratio * std::sqrt(stiffness * GetTireMass());
 
     SetRollingResistanceCoefficient(0.015);
-
-    m_par.dz = DZ;
-
-    m_rim_radius = 0.5 * rimDia;
+    m_par.mu_0 = 0.8;
 
     // Normalized Parameters gained from data set containing original data from Pacejka book
     m_par.dfx0_pn = 18.3741 * m_par.pn;

@@ -156,7 +156,8 @@ void ChCollisionModelBullet::Populate() {
                 auto height = shape_capsule->GetHeight();
                 auto radius = shape_capsule->GetRadius();
                 model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height / 2)));
-                auto bt_shape = chrono_types::make_shared<cbtCapsuleShapeZ>((cbtScalar)(radius + envelope), (cbtScalar)(height + 2 * envelope));
+                // the envelope added to the radius also extends the capsule ends, so the axis length is unchanged
+                auto bt_shape = chrono_types::make_shared<cbtCapsuleShapeZ>((cbtScalar)(radius + envelope), (cbtScalar)height);
                 bt_shape->setMargin((cbtScalar)full_margin);
                 InjectShape(shape, bt_shape, frame);
                 break;
@@ -204,10 +205,20 @@ void ChCollisionModelBullet::Populate() {
                 auto shape_cone = std::static_pointer_cast<ChCollisionShapeCone>(shape);
                 auto height = shape_cone->GetHeight();
                 auto radius = shape_cone->GetRadius();
-                model->SetSafeMargin(std::min((double)safe_margin, 0.2 * std::min(radius, height)));
-                auto bt_shape = chrono_types::make_shared<cbtConeShapeZ>(radius + envelope, height + envelope);
-                bt_shape->setMargin((cbtScalar)full_margin);
-                InjectShape(shape, bt_shape, frame);
+                auto cone_margin = std::min((double)safe_margin, 0.2 * std::min(radius, height));
+                model->SetSafeMargin(cone_margin);
+                // A Bullet cone does not include the collision margin in its dimensions (unlike boxes and cylinders).
+                // Use a core cone offset inward from the cone surface by the safe margin, so that the core plus the
+                // full margin extends one envelope beyond the cone surface. The core cone has the same apex angle, a
+                // base raised by the safe margin, and an apex lowered by the safe margin divided by sin(half angle).
+                auto slant = std::sqrt(radius * radius + height * height);
+                auto core_height = height - cone_margin * (1 + slant / radius);
+                auto core_radius = radius * core_height / height;
+                auto core_offset = -cone_margin * (slant / radius - 1) / 2;
+                auto bt_shape = chrono_types::make_shared<cbtConeShapeZ>((cbtScalar)core_radius, (cbtScalar)core_height);
+                bt_shape->setMargin((cbtScalar)(envelope + cone_margin));
+                ChFrame<> core_frame(frame.TransformPointLocalToParent(ChVector3d(0, 0, core_offset)), frame.GetRot());
+                InjectShape(shape, bt_shape, core_frame);
                 break;
             }
             case ChCollisionShape::Type::POINT: {

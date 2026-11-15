@@ -304,7 +304,7 @@ For new users, this is usually the best sequence:
 6. Build particle/BCE domain with `Construct(...)`.
 7. Add interacting solids:
    - `AddRigidBody(...)` for rigid objects
-   - `AddFeaMesh(...)` for flexible structures
+   - `AddFeaMesh(...)` for flexible structures (or `AddFeaSurface(...)` for a triangle surface or segment set over FEA nodes)
 8. `Initialize()`.
 9. Simulation loop with `DoStepDynamics(step)` (and normal MBS synchronize/driver logic around it).
 

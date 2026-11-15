@@ -61,11 +61,6 @@ struct ScmGpuContextImpl {
     bool warmed_up = false;
 };
 
-chrono::vehicle::scm_gpu::Config& MutableConfig() {
-    static chrono::vehicle::scm_gpu::Config cfg;
-    return cfg;
-}
-
 void die_hip(const char* msg, hipError_t err) {
     fprintf(stderr, "SCM GPU FATAL: %s — %s\n", msg, hipGetErrorString(err));
     std::abort();
@@ -282,51 +277,54 @@ int launch_simple(ScmGpuContextImpl* impl, const SoilParams& soil, std::size_t n
 
 }  // namespace
 
-namespace chrono {
-namespace vehicle {
-namespace scm_gpu {
-
-void SetConfig(const Config& config) {
-    MutableConfig() = config;
-}
-
-Config GetConfig() {
-    return MutableConfig();
-}
-
-}  // namespace scm_gpu
-}  // namespace vehicle
-}  // namespace chrono
-
-extern "C" std::size_t scm_gpu_min_hits(void) {
-    return chrono::vehicle::scm_gpu::GetConfig().min_hits;
-}
-
-extern "C" std::size_t scm_gpu_reserve_hits(void) {
-    return chrono::vehicle::scm_gpu::GetConfig().reserve_hits;
-}
-
-extern "C" int scm_gpu_async_enabled(void) {
-    return chrono::vehicle::scm_gpu::GetConfig().async ? 1 : 0;
+// Probed once per process. A HIP build can run on a machine with no usable device (a prebuilt
+// package, a container without the device passed through, HIP_VISIBLE_DEVICES=-1); report that
+// once and let SCMTerrain use its CPU paths instead of aborting on the first runtime call.
+extern "C" int scm_gpu_device_available(void) {
+    static const int available = [] {
+        int count = 0;
+        const hipError_t err = hipGetDeviceCount(&count);
+        if (err != hipSuccess || count < 1) {
+            (void)hipGetLastError();
+            fprintf(stderr, "SCM GPU: no usable HIP device (%s); using the CPU backend.\n", err != hipSuccess ? hipGetErrorString(err) : "no devices found");
+            return 0;
+        }
+        return 1;
+    }();
+    return available;
 }
 
 extern "C" ScmGpuContext* scm_gpu_create(int device_id) {
+    if (!scm_gpu_device_available())
+        return nullptr;
+
     auto* impl = new ScmGpuContextImpl();
     impl->device = device_id;
     ensure_device(device_id);
 
-    hipError_t e1 = hipStreamCreateWithFlags(&impl->stream_copy, hipStreamNonBlocking);
-    if (e1 != hipSuccess)
-        die_hip("hipStreamCreate copy", e1);
-    hipError_t e2 = hipStreamCreateWithFlags(&impl->stream_compute, hipStreamNonBlocking);
-    if (e2 != hipSuccess)
-        die_hip("hipStreamCreate compute", e2);
-    hipError_t e3 = hipEventCreateWithFlags(&impl->event_h2d_done, hipEventDisableTiming);
-    if (e3 != hipSuccess)
-        die_hip("hipEventCreate h2d", e3);
-    hipError_t e4 = hipEventCreateWithFlags(&impl->event_compute_done, hipEventDisableTiming);
-    if (e4 != hipSuccess)
-        die_hip("hipEventCreate compute", e4);
+    const char* what = nullptr;
+    hipError_t err = hipStreamCreateWithFlags(&impl->stream_copy, hipStreamNonBlocking);
+    if (err != hipSuccess)
+        what = "hipStreamCreate copy";
+    if (!what && (err = hipStreamCreateWithFlags(&impl->stream_compute, hipStreamNonBlocking)) != hipSuccess)
+        what = "hipStreamCreate compute";
+    if (!what && (err = hipEventCreateWithFlags(&impl->event_h2d_done, hipEventDisableTiming)) != hipSuccess)
+        what = "hipEventCreate h2d";
+    if (!what && (err = hipEventCreateWithFlags(&impl->event_compute_done, hipEventDisableTiming)) != hipSuccess)
+        what = "hipEventCreate compute";
+
+    if (what) {
+        fprintf(stderr, "SCM GPU: %s failed (%s); using the CPU backend.\n", what, hipGetErrorString(err));
+        if (impl->event_h2d_done)
+            (void)hipEventDestroy(impl->event_h2d_done);
+        if (impl->stream_compute)
+            (void)hipStreamDestroy(impl->stream_compute);
+        if (impl->stream_copy)
+            (void)hipStreamDestroy(impl->stream_copy);
+        (void)hipGetLastError();
+        delete impl;
+        return nullptr;
+    }
 
     return reinterpret_cast<ScmGpuContext*>(impl);
 }
@@ -361,14 +359,14 @@ extern "C" void scm_gpu_reserve(ScmGpuContext* ctx, std::size_t n_hits) {
     ensure_hit_capacity(impl, n_hits);
 }
 
-extern "C" void scm_gpu_warmup(ScmGpuContext* ctx) {
+extern "C" void scm_gpu_warmup(ScmGpuContext* ctx, std::size_t reserve_hits, int async) {
     if (!ctx)
         return;
     auto* impl = reinterpret_cast<ScmGpuContextImpl*>(ctx);
     if (impl->warmed_up)
         return;
     ensure_device(impl->device);
-    const std::size_t reserve_n = std::max<std::size_t>(scm_gpu_reserve_hits(), 1);
+    const std::size_t reserve_n = std::max<std::size_t>(reserve_hits, 1);
     ensure_hit_capacity(impl, reserve_n);
     ensure_body_capacity(impl, 1);
     current_slot(impl).h_in[0] = {};
@@ -378,7 +376,7 @@ extern "C" void scm_gpu_warmup(ScmGpuContext* ctx) {
     soil.area = 1.0;
     soil.dt = 1e-3;
     impl->warmed_up = true;
-    if (scm_gpu_async_enabled())
+    if (async)
         (void)launch_pipelined(impl, soil, 1, 1);
     else
         (void)launch_simple(impl, soil, 1, 1);
@@ -419,10 +417,7 @@ extern "C" void scm_gpu_sync(ScmGpuContext* ctx) {
     sync_impl(impl);
 }
 
-extern "C" int scm_gpu_compute_forces_staged(ScmGpuContext* ctx,
-                                             const SoilParams& soil,
-                                             std::size_t n_hits,
-                                             std::size_t n_bodies) {
+extern "C" int scm_gpu_compute_forces_staged(ScmGpuContext* ctx, const SoilParams& soil, std::size_t n_hits, std::size_t n_bodies, int async) {
     if (!ctx)
         return -1;
     if (n_hits == 0)
@@ -431,20 +426,15 @@ extern "C" int scm_gpu_compute_forces_staged(ScmGpuContext* ctx,
     auto* impl = reinterpret_cast<ScmGpuContextImpl*>(ctx);
     ensure_device(impl->device);
     if (!impl->warmed_up)
-        scm_gpu_warmup(ctx);
+        scm_gpu_warmup(ctx, n_hits, async);
     ensure_hit_capacity(impl, n_hits);
 
-    if (scm_gpu_async_enabled())
+    if (async)
         return launch_pipelined(impl, soil, n_hits, n_bodies);
     return launch_simple(impl, soil, n_hits, n_bodies);
 }
 
-extern "C" int scm_gpu_compute_forces(ScmGpuContext* ctx,
-                                      const SoilParams& soil,
-                                      const HitInput* in,
-                                      HitOutput* out_host,
-                                      std::size_t n_hits,
-                                      std::size_t n_bodies) {
+extern "C" int scm_gpu_compute_forces(ScmGpuContext* ctx, const SoilParams& soil, const HitInput* in, HitOutput* out_host, std::size_t n_hits, std::size_t n_bodies, int async) {
     if (!ctx || !in || !out_host)
         return -1;
     if (n_hits == 0)
@@ -453,7 +443,7 @@ extern "C" int scm_gpu_compute_forces(ScmGpuContext* ctx,
     auto* impl = reinterpret_cast<ScmGpuContextImpl*>(ctx);
     ensure_device(impl->device);
     if (!impl->warmed_up)
-        scm_gpu_warmup(ctx);
+        scm_gpu_warmup(ctx, n_hits, async);
     ensure_hit_capacity(impl, n_hits);
 
     BufferSlot& slot = current_slot(impl);
@@ -462,7 +452,7 @@ extern "C" int scm_gpu_compute_forces(ScmGpuContext* ctx,
     if (in != slot.h_in)
         std::memcpy(slot.h_in, in, bytes_in);
 
-    const int err = scm_gpu_compute_forces_staged(ctx, soil, n_hits, n_bodies);
+    const int err = scm_gpu_compute_forces_staged(ctx, soil, n_hits, n_bodies, async);
     if (err != hipSuccess)
         return err;
     if (out_host != slot.h_out)

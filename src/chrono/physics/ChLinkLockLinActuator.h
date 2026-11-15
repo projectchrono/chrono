@@ -45,6 +45,9 @@ class ChApi ChLinkLockLinActuator : public ChLinkLockLock {
     /// Get the value of the distance offset.
     double GetDistanceOffset() const { return offset; }
 
+    /// Return false: the marker orientation, which depends on previous updates, is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

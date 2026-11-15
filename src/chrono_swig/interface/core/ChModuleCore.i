@@ -330,9 +330,6 @@ inline const char* ChUtils_GetFilename() {
 %feature("director") chrono::ChCollisionSystem::NarrowphaseCallback;
 %feature("director") chrono::ChCollisionSystem::VisualizationCallback;
 
-// Rename
-%rename(OutputSettings) chrono::ChOutput::Settings;
-
 //
 // B- INCLUDE HEADERS
 //
@@ -469,7 +466,7 @@ inline const char* ChUtils_GetFilename() {
 %include "ChSolver.i"
 %include "ChContactContainer.i"
 // ChOutput precedes ChSystem.i, which refers to it.
-%include "../../../chrono/input_output/ChOutput.h"
+%include "ChOutput.i"
 %include "ChSystem.i"
 %include "ChSystemNSC.i"
 %include "ChSystemSMC.i"

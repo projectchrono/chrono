@@ -56,6 +56,9 @@ class ChApi ChLoadBodyForce : public ChLoadCustom {
                     bool local_point = true        ///< application point is in body local coords
     );
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadBodyForce* Clone() const override { return new ChLoadBodyForce(*this); }
 
@@ -111,6 +114,9 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
                      bool local_torque              ///< torque is in body local coords
     );
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadBodyTorque* Clone() const override { return new ChLoadBodyTorque(*this); }
 
@@ -161,6 +167,9 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
         const ChVector3d& IXX = VNULL,  ///< added moments of inertia (in body frame, centered in body)
         const ChVector3d& IXY = VNULL   ///< added products of inertia values (in body frame, centered in body)
     );
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadBodyInertia* Clone() const override { return new ChLoadBodyInertia(*this); }
@@ -260,6 +269,9 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
                    std::shared_ptr<ChBody> bodyB,    ///< body B
                    const ChFrame<>& abs_application  ///< location of load element (in abs. coordinates)
     );
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// Compute the force between the two bodies, in local reference loc_application_B,
     /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B.
@@ -408,6 +420,9 @@ class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical
         const ChVector3d& damping,         ///< damping, along the x y z axes of the abs_application
         const ChVector3d& plastic_yield    ///< plastic yield, along the x y z axes of the abs_application
     );
+
+    /// Return false: the plastic deformation is not saved in checkpoints.
+    virtual bool SupportsCheckpoint() const override { return false; }
 
     /// Set plastic yield, forces beyond this limit will be capped.
     /// Expressed along the x y z axes of loc_application_B.

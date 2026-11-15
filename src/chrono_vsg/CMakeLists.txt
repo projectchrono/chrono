@@ -62,6 +62,10 @@ source_group("" FILES ${CE_VSG_BASE_FILES})
 set(CE_VSG_UTILS_FILES
     utils/ChDataUtilsVSG.cpp
     utils/ChDataUtilsVSG.h
+    utils/ChForceNetworkVSG.cpp
+    utils/ChForceNetworkVSG.h
+    utils/ChInstancedShapesVSG.cpp
+    utils/ChInstancedShapesVSG.h
     utils/ChShaderUtilsVSG.cpp
     utils/ChShaderUtilsVSG.h
     utils/ChShapeBuilderVSG.cpp

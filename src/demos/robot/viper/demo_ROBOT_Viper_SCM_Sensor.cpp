@@ -357,12 +357,11 @@ int main(int argc, char* argv[]) {
 
     // Set up bulldozing factors
     if (enable_bulldozing) {
-        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        terrain.SetBulldozingParameters(
-            55,  // angle of friction for erosion of displaced material at the border of the rut
-            1,   // displaced material vs downward pressed material.
-            5,   // number of erosion refinements per timestep
-            6);  // number of concentric vertex selections subject to erosion
+        terrain.EnableBulldozing(true);      // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(55,  // angle of friction for erosion of displaced material at the border of the rut
+                                        1,   // displaced material vs downward pressed material.
+                                        5,   // number of erosion refinements per timestep
+                                        6);  // number of concentric vertex selections subject to erosion
     }
 
     // Add an active domains for each wheel and for each obstacle
@@ -404,12 +403,12 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
                                                           50,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          480,                // number of horizontal samples
-                                                          300,                // number of vertical channels
-                                                          (float)(CH_2PI),    // horizontal field of view
-                                                          (float)CH_PI / 12,  // max vertical angle
-                                                          (float)-CH_PI_3,    // min verticval angle
-                                                          140.0f              // max distance
+                                                          480,                            // number of horizontal samples
+                                                          300,                            // number of vertical channels
+                                                          (float)(CH_2PI),                // horizontal field of view
+                                                          (float)CH_PI / 12,              // max vertical angle
+                                                          (float)-CH_PI_3,                // min verticval angle
+                                                          140.0f                          // max distance
     );
     lidar->SetName("Lidar Sensor 1");
     lidar->SetLag(0.f);
@@ -433,8 +432,7 @@ int main(int argc, char* argv[]) {
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
 
     // Create a radar and attach to rover chassis
-    auto radar = chrono_types::make_shared<ChRadarSensor>(viper.GetChassis()->GetBody(), 50, offset_pose, 240, 120,
-                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
+    auto radar = chrono_types::make_shared<ChRadarSensor>(viper.GetChassis()->GetBody(), 50, offset_pose, 240, 120, (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.02f);
@@ -485,8 +483,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector3d(1.0, 2.0, 1.4), ChVector3d(0, 0, wheel_diameter));
             vis_irr->AddTypicalLights();
-            vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512,
-                                        ChColor(0.8f, 0.8f, 0.8f));
+            vis_irr->AddLightWithShadow(ChVector3d(-5.0, -0.5, 8.0), ChVector3d(-1, 0, 0), 100, 1, 35, 85, 512, ChColor(0.8f, 0.8f, 0.8f));
             vis_irr->EnableShadows();
 
             vis = vis_irr;
@@ -517,22 +514,32 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // SIMULATION LOOP
+        // SIMULATION LOOP
+
+#if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
+    // Rendering rate, in frames per second of simulated time. Ungated, this loop drew one
+    // frame per integration step, which turns the on-screen RTF into a measure of the
+    // renderer rather than the solver.
+    double render_fps = 60;
+    int render_frame = 0;
+#endif
 
     while (vis->Run()) {
 #if defined(CHRONO_IRRLICHT) || defined(CHRONO_VSG)
-        vis->BeginScene();
-        vis->SetCameraTarget(Body_1->GetPos());
-        vis->Render();
-        vis->EndScene();
+        if (sys.GetChTime() >= render_frame / render_fps) {
+            vis->BeginScene();
+            vis->SetCameraTarget(Body_1->GetPos());
+            vis->Render();
+            vis->EndScene();
+            render_frame++;
+        }
 #endif
 
         manager->Update();
 
         if (output) {
             // write drive torques of all four wheels into file
-            csv << sys.GetChTime() << viper.GetWheelTracTorque(ViperWheelID::V_LF)
-                << viper.GetWheelTracTorque(ViperWheelID::V_RF) << viper.GetWheelTracTorque(ViperWheelID::V_LB)
+            csv << sys.GetChTime() << viper.GetWheelTracTorque(ViperWheelID::V_LF) << viper.GetWheelTracTorque(ViperWheelID::V_RF) << viper.GetWheelTracTorque(ViperWheelID::V_LB)
                 << viper.GetWheelTracTorque(ViperWheelID::V_RB) << std::endl;
         }
 

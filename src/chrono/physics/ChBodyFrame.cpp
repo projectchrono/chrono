@@ -25,6 +25,42 @@ ChWrenchd ChBodyFrame::AppliedForceParentToWrenchParent(const ChVector3d& force,
     return {force, Vcross(appl_point - GetPos(), force)};
 }
 
+// -----------------------------------------------------------------------------
+
+unsigned int ChBodyFrame::AddAccumulator() {
+    auto idx = accumulators.size();
+    accumulators.push_back(WrenchAccumulator());
+    return (unsigned int)idx;
+}
+
+void ChBodyFrame::EmptyAccumulator(unsigned int idx) {
+    accumulators[idx].force = VNULL;
+    accumulators[idx].torque = VNULL;
+}
+
+void ChBodyFrame::AccumulateForce(unsigned int idx, const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+    ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point) : AppliedForceParentToWrenchParent(force, appl_point);
+    accumulators[idx].force += w_abs.force;
+    accumulators[idx].torque += TransformDirectionParentToLocal(w_abs.torque);
+}
+
+void ChBodyFrame::AccumulateTorque(unsigned int idx, const ChVector3d& torque, bool local) {
+    if (local)
+        accumulators[idx].torque += torque;
+    else
+        accumulators[idx].torque += TransformDirectionParentToLocal(torque);
+}
+
+const ChVector3d& ChBodyFrame::GetAccumulatedForce(unsigned int idx) const {
+    return accumulators[idx].force;
+}
+
+const ChVector3d& ChBodyFrame::GetAccumulatedTorque(unsigned int idx) const {
+    return accumulators[idx].torque;
+}
+
+// -----------------------------------------------------------------------------
+
 void ChBodyFrame::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChBodyFrame>();

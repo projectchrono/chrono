@@ -33,6 +33,12 @@ vsg::ref_ptr<vsg::StateGroup> createPbrStateGroup(vsg::ref_ptr<const vsg::Option
                                                   bool wireframe,
                                                   float wire_width);
 
+/// Create a state group for PBR shapes drawn as GPU instances with vsg::InstanceDrawIndexed.
+/// The pipeline takes vertex positions and normals per vertex, and colors, translations, rotations, and scales per
+/// instance (from the vsg::InstanceNode above the draw command). The instance colors replace the diffuse color of the
+/// material; all other material properties apply to all instances. Back faces are culled unless double_faced is true.
+vsg::ref_ptr<vsg::StateGroup> createPbrInstancedStateGroup(vsg::ref_ptr<const vsg::Options> options, std::shared_ptr<ChVisualMaterial> material, bool double_faced = false);
+
 vsg::ref_ptr<vsg::PbrMaterialValue> createPbrMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat);
 vsg::ref_ptr<vsg::PhongMaterialValue> createPhongMaterialFromChronoMaterial(std::shared_ptr<ChVisualMaterial> chronoMat);
 

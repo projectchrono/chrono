@@ -39,14 +39,7 @@ ChSystemMulticoreSMC::ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other) : 
 void ChSystemMulticoreSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.mass_rigid.push_back(0);
 
-    if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
-        for (int i = 0; i < max_shear; i++) {
-            data_manager->host_data.shear_neigh.push_back(vec3(-1, -1, -1));
-            data_manager->host_data.shear_disp.push_back(real3(0, 0, 0));
-            data_manager->host_data.contact_relvel_init.push_back(0);
-            data_manager->host_data.contact_duration.push_back(0);
-        }
-    }
+    // The contact history slots of this body (MultiStep tangential displacement model) are allocated in Setup.
 }
 
 void ChSystemMulticoreSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
@@ -59,6 +52,23 @@ void ChSystemMulticoreSMC::Setup() {
 
     // Ensure that the collision envelope is zero.
     data_manager->settings.collision.collision_envelope = 0;
+
+    // With the MultiStep tangential displacement model, every body has max_shear contact history slots, whenever it
+    // was added. Slots added here are empty, and slots in use are never moved, since bodies are only appended.
+    // With any other model, discard the stored history, so that a later switch to MultiStep starts with no history.
+    auto& hdata = data_manager->host_data;
+    if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
+        size_t num_slots = (size_t)max_shear * data_manager->num_rigid_bodies;
+        hdata.shear_neigh.resize(num_slots, vec3(-1, -1, -1));
+        hdata.shear_disp.resize(num_slots, real3(0, 0, 0));
+        hdata.contact_relvel_init.resize(num_slots, 0);
+        hdata.contact_duration.resize(num_slots, 0);
+    } else if (!hdata.shear_neigh.empty()) {
+        hdata.shear_neigh.clear();
+        hdata.shear_disp.clear();
+        hdata.contact_relvel_init.clear();
+        hdata.contact_duration.clear();
+    }
 }
 
 void ChSystemMulticoreSMC::SetCollisionSystemType(ChCollisionSystem::Type type) {

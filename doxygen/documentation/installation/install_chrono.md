@@ -60,7 +60,7 @@ The target GPU backend can be set via the CMake variable `CHRONO_GPU_BACKEND`, w
 Chrono can be configured and built with CUDA versions 12.8 or newer. Consult the [NVIDIA website](https://developer.nvidia.com/cuda-downloads) for instructions on installing CUDA and the necessary NVIDIA drivers for your machine and operating system.
 
 If using a CMake version newer than 3.23, the Chrono configuration sets the CUDA architectures to `all-major` (this can be changed to `native` or any other specific architecture). 
-__Note__: CUDA versions older than 13.0 include architecture 5.0 in `all-major`. That architecture is automatically excluded since it does not support `atomicAdd` in double precision. CUDA version 13.0 and newer have dropped support for architecture 5.0 and do not require any special treatment.
+__Note__: Chrono supports CUDA architectures 7.5 (Turing) and newer, the range supported by CUDA 13. Older architectures (Volta, Pascal, and earlier) that CUDA 12 still includes in `all-major` are automatically excluded.
 
 For older CMake versions, it is the user's responsibility to properly set `CHRONO_CUDA_ARCHITECTURES` to a value appropriate for their GPU card (note that a compute capability of "8.9" must be entered as `89`).
 

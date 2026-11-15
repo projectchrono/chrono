@@ -33,6 +33,9 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
 
     virtual ~ChLoadBodyMesh() {}
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadBodyMesh* Clone() const override { return new ChLoadBodyMesh(*this); }
 

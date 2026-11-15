@@ -23,15 +23,15 @@
 
 using namespace chrono;
 
-static Eigen::VectorXi MassNNZ(int num_dof, int num_bodies, int num_shafts, int num_motors, int num_particles, bool full_inertia, const custom_vector<char>& active) {
+// Number of nonzeros per row of the mass matrix and its inverse. Every body has entries, active or not, so that the
+// sparsity pattern does not change when a body is fixed or released (the entries of inactive bodies are zero).
+static Eigen::VectorXi MassNNZ(int num_dof, int num_bodies, int num_shafts, int num_motors, int num_particles, bool full_inertia) {
     Eigen::VectorXi nnz(num_dof);
     nnz.setZero();
     const int k = full_inertia ? 3 : 1;
     for (int i = 0; i < num_bodies; i++) {
-        if (active[i]) {
-            nnz[i * 6 + 0] = nnz[i * 6 + 1] = nnz[i * 6 + 2] = 1;
-            nnz[i * 6 + 3] = nnz[i * 6 + 4] = nnz[i * 6 + 5] = k;
-        }
+        nnz[i * 6 + 0] = nnz[i * 6 + 1] = nnz[i * 6 + 2] = 1;
+        nnz[i * 6 + 3] = nnz[i * 6 + 4] = nnz[i * 6 + 5] = k;
     }
     const int s = num_bodies * 6, m = s + num_shafts, p = m + num_motors;
     for (int i = 0; i < num_shafts; i++)
@@ -78,35 +78,33 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
 
     if (needs_build) {
         M_inv = SparseMatrixType(num_dof, num_dof);
-        M_inv.reserve(MassNNZ(num_dof, num_bodies, num_shafts, num_motors, num_particles, full_inr, data_manager->host_data.active_rigid));
+        M_inv.reserve(MassNNZ(num_dof, num_bodies, num_shafts, num_motors, num_particles, full_inr));
 
         for (int i = 0; i < num_bodies; i++) {
-            if (active[i]) {
-                ChBody* body = body_list[i].get();
-                const real inv_mass = 1.0 / body->GetMass();
-                const ChMatrix33<>& J = body->GetInvInertia();
-                const int b = i * 6;
-                M_inv.insert(b, b) = inv_mass;
-                M_inv.insert(b + 1, b + 1) = inv_mass;
-                M_inv.insert(b + 2, b + 2) = inv_mass;
-                M_inv.insert(b + 3, b + 3) = J(0, 0);
-                if (full_inr) {
-                    M_inv.insert(b + 3, b + 4) = J(0, 1);
-                    M_inv.insert(b + 3, b + 5) = J(0, 2);
-                }
-                if (full_inr) {
-                    M_inv.insert(b + 4, b + 3) = J(1, 0);
-                }
-                M_inv.insert(b + 4, b + 4) = J(1, 1);
-                if (full_inr) {
-                    M_inv.insert(b + 4, b + 5) = J(1, 2);
-                }
-                if (full_inr) {
-                    M_inv.insert(b + 5, b + 3) = J(2, 0);
-                    M_inv.insert(b + 5, b + 4) = J(2, 1);
-                }
-                M_inv.insert(b + 5, b + 5) = J(2, 2);
+            ChBody* body = body_list[i].get();
+            const real inv_mass = active[i] ? 1.0 / body->GetMass() : 0.0;
+            const ChMatrix33<> J = active[i] ? body->GetInvInertia() : ChMatrix33<>(0.0);
+            const int b = i * 6;
+            M_inv.insert(b, b) = inv_mass;
+            M_inv.insert(b + 1, b + 1) = inv_mass;
+            M_inv.insert(b + 2, b + 2) = inv_mass;
+            M_inv.insert(b + 3, b + 3) = J(0, 0);
+            if (full_inr) {
+                M_inv.insert(b + 3, b + 4) = J(0, 1);
+                M_inv.insert(b + 3, b + 5) = J(0, 2);
             }
+            if (full_inr) {
+                M_inv.insert(b + 4, b + 3) = J(1, 0);
+            }
+            M_inv.insert(b + 4, b + 4) = J(1, 1);
+            if (full_inr) {
+                M_inv.insert(b + 4, b + 5) = J(1, 2);
+            }
+            if (full_inr) {
+                M_inv.insert(b + 5, b + 3) = J(2, 0);
+                M_inv.insert(b + 5, b + 4) = J(2, 1);
+            }
+            M_inv.insert(b + 5, b + 5) = J(2, 2);
         }
         for (int i = 0; i < num_shafts; i++)
             M_inv.insert(s + i, s + i) = shaft_inr[i];
@@ -122,29 +120,27 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
         const int* outer = M_inv.outerIndexPtr();
 
         for (int i = 0; i < num_bodies; i++) {
-            if (active[i]) {
-                ChBody* body = body_list[i].get();
-                const real inv_mass = 1.0 / body->GetMass();
-                const ChMatrix33<>& J = body->GetInvInertia();
-                const int b = i * 6;
-                vals[outer[b]] = inv_mass;
-                vals[outer[b + 1]] = inv_mass;
-                vals[outer[b + 2]] = inv_mass;
-                if (full_inr) {
-                    vals[outer[b + 3]] = J(0, 0);
-                    vals[outer[b + 3] + 1] = J(0, 1);
-                    vals[outer[b + 3] + 2] = J(0, 2);
-                    vals[outer[b + 4]] = J(1, 0);
-                    vals[outer[b + 4] + 1] = J(1, 1);
-                    vals[outer[b + 4] + 2] = J(1, 2);
-                    vals[outer[b + 5]] = J(2, 0);
-                    vals[outer[b + 5] + 1] = J(2, 1);
-                    vals[outer[b + 5] + 2] = J(2, 2);
-                } else {
-                    vals[outer[b + 3]] = J(0, 0);
-                    vals[outer[b + 4]] = J(1, 1);
-                    vals[outer[b + 5]] = J(2, 2);
-                }
+            ChBody* body = body_list[i].get();
+            const real inv_mass = active[i] ? 1.0 / body->GetMass() : 0.0;
+            const ChMatrix33<> J = active[i] ? body->GetInvInertia() : ChMatrix33<>(0.0);
+            const int b = i * 6;
+            vals[outer[b]] = inv_mass;
+            vals[outer[b + 1]] = inv_mass;
+            vals[outer[b + 2]] = inv_mass;
+            if (full_inr) {
+                vals[outer[b + 3]] = J(0, 0);
+                vals[outer[b + 3] + 1] = J(0, 1);
+                vals[outer[b + 3] + 2] = J(0, 2);
+                vals[outer[b + 4]] = J(1, 0);
+                vals[outer[b + 4] + 1] = J(1, 1);
+                vals[outer[b + 4] + 2] = J(1, 2);
+                vals[outer[b + 5]] = J(2, 0);
+                vals[outer[b + 5] + 1] = J(2, 1);
+                vals[outer[b + 5] + 2] = J(2, 2);
+            } else {
+                vals[outer[b + 3]] = J(0, 0);
+                vals[outer[b + 4]] = J(1, 1);
+                vals[outer[b + 5]] = J(2, 2);
             }
         }
         for (int i = 0; i < num_shafts; i++)
@@ -176,35 +172,33 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
 
     if (needs_build) {
         M = SparseMatrixType(num_dof, num_dof);
-        M.reserve(MassNNZ(num_dof, num_bodies, num_shafts, num_motors, num_particles, full_inr, data_manager->host_data.active_rigid));
+        M.reserve(MassNNZ(num_dof, num_bodies, num_shafts, num_motors, num_particles, full_inr));
 
         for (int i = 0; i < num_bodies; i++) {
-            if (active[i]) {
-                ChBody* body = body_list[i].get();
-                const real mass = body->GetMass();
-                const ChMatrix33<>& J = body->GetInertia();
-                const int b = i * 6;
-                M.insert(b, b) = mass;
-                M.insert(b + 1, b + 1) = mass;
-                M.insert(b + 2, b + 2) = mass;
-                M.insert(b + 3, b + 3) = J(0, 0);
-                if (full_inr) {
-                    M.insert(b + 3, b + 4) = J(0, 1);
-                    M.insert(b + 3, b + 5) = J(0, 2);
-                }
-                if (full_inr) {
-                    M.insert(b + 4, b + 3) = J(1, 0);
-                }
-                M.insert(b + 4, b + 4) = J(1, 1);
-                if (full_inr) {
-                    M.insert(b + 4, b + 5) = J(1, 2);
-                }
-                if (full_inr) {
-                    M.insert(b + 5, b + 3) = J(2, 0);
-                    M.insert(b + 5, b + 4) = J(2, 1);
-                }
-                M.insert(b + 5, b + 5) = J(2, 2);
+            ChBody* body = body_list[i].get();
+            const real mass = active[i] ? body->GetMass() : 0.0;
+            const ChMatrix33<> J = active[i] ? body->GetInertia() : ChMatrix33<>(0.0);
+            const int b = i * 6;
+            M.insert(b, b) = mass;
+            M.insert(b + 1, b + 1) = mass;
+            M.insert(b + 2, b + 2) = mass;
+            M.insert(b + 3, b + 3) = J(0, 0);
+            if (full_inr) {
+                M.insert(b + 3, b + 4) = J(0, 1);
+                M.insert(b + 3, b + 5) = J(0, 2);
             }
+            if (full_inr) {
+                M.insert(b + 4, b + 3) = J(1, 0);
+            }
+            M.insert(b + 4, b + 4) = J(1, 1);
+            if (full_inr) {
+                M.insert(b + 4, b + 5) = J(1, 2);
+            }
+            if (full_inr) {
+                M.insert(b + 5, b + 3) = J(2, 0);
+                M.insert(b + 5, b + 4) = J(2, 1);
+            }
+            M.insert(b + 5, b + 5) = J(2, 2);
         }
         for (int i = 0; i < num_shafts; i++)
             M.insert(s + i, s + i) = 1.0 / shaft_inr[i];
@@ -218,29 +212,27 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
         const int* outer = M.outerIndexPtr();
 
         for (int i = 0; i < num_bodies; i++) {
-            if (active[i]) {
-                ChBody* body = body_list[i].get();
-                const real mass = body->GetMass();
-                const ChMatrix33<>& J = body->GetInertia();
-                const int b = i * 6;
-                vals[outer[b]] = mass;
-                vals[outer[b + 1]] = mass;
-                vals[outer[b + 2]] = mass;
-                if (full_inr) {
-                    vals[outer[b + 3]] = J(0, 0);
-                    vals[outer[b + 3] + 1] = J(0, 1);
-                    vals[outer[b + 3] + 2] = J(0, 2);
-                    vals[outer[b + 4]] = J(1, 0);
-                    vals[outer[b + 4] + 1] = J(1, 1);
-                    vals[outer[b + 4] + 2] = J(1, 2);
-                    vals[outer[b + 5]] = J(2, 0);
-                    vals[outer[b + 5] + 1] = J(2, 1);
-                    vals[outer[b + 5] + 2] = J(2, 2);
-                } else {
-                    vals[outer[b + 3]] = J(0, 0);
-                    vals[outer[b + 4]] = J(1, 1);
-                    vals[outer[b + 5]] = J(2, 2);
-                }
+            ChBody* body = body_list[i].get();
+            const real mass = active[i] ? body->GetMass() : 0.0;
+            const ChMatrix33<> J = active[i] ? body->GetInertia() : ChMatrix33<>(0.0);
+            const int b = i * 6;
+            vals[outer[b]] = mass;
+            vals[outer[b + 1]] = mass;
+            vals[outer[b + 2]] = mass;
+            if (full_inr) {
+                vals[outer[b + 3]] = J(0, 0);
+                vals[outer[b + 3] + 1] = J(0, 1);
+                vals[outer[b + 3] + 2] = J(0, 2);
+                vals[outer[b + 4]] = J(1, 0);
+                vals[outer[b + 4] + 1] = J(1, 1);
+                vals[outer[b + 4] + 2] = J(1, 2);
+                vals[outer[b + 5]] = J(2, 0);
+                vals[outer[b + 5] + 1] = J(2, 1);
+                vals[outer[b + 5] + 2] = J(2, 2);
+            } else {
+                vals[outer[b + 3]] = J(0, 0);
+                vals[outer[b + 4]] = J(1, 1);
+                vals[outer[b + 5]] = J(2, 2);
             }
         }
         for (int i = 0; i < num_shafts; i++)

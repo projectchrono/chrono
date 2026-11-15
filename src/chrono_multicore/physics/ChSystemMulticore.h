@@ -249,6 +249,16 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
     virtual void PrintStepStats() override;
 
     double GetTimerProcessContact() const { return data_manager->system_timer.GetTime("ChIterativeSolverMulticoreSMC_ProcessContact"); }
+
+    /// Get the number of contacts processed without stored contact history in the last step.
+    /// With the MultiStep tangential displacement model, the history of a contact is stored on the body with the larger
+    /// index, which has room for the histories of max_shear (20) shape pairs. A contact that finds all of them taken is
+    /// processed without stored history in that step, as with the OneStep model. A nonzero count means lost history.
+    unsigned int GetNumContactHistoryOverflows() const { return data_manager->num_shear_overflows; }
+
+    /// Get the cumulative number of contacts processed without stored contact history, over all steps.
+    /// A contact is counted once for every step in which it had no history slot.
+    unsigned long long GetTotalContactHistoryOverflows() const { return data_manager->total_shear_overflows; }
 };
 
 /// @} multicore_physics

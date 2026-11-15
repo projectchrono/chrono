@@ -57,9 +57,19 @@ class ChGenerator;
 class ChMixtureIngredient;
 
 /// Encapsulation of an ingredient of one of the supported types in a mixture.
-/// Such an object defines size, mass properties and material properties for, all of which can be constant for all
+/// Such an object defines size, mass properties and material properties, all of which can be constant for all
 /// mixture components of this type or else obtained from associated truncated normal distributions. In addition, a
 /// mixture ingredient defines the ratio of this particular type in the containing mixture.
+///
+/// The components of an object size are interpreted based on the ingredient type:
+/// - SPHERE: x = radius (y and z are ignored)
+/// - ELLIPSOID: semi-axes in the x, y, and z directions
+/// - BOX: half-lengths in the x, y, and z directions
+/// - CYLINDER: x = radius, y = height (z is ignored); the cylinder axis is along z
+/// - CONE: x = base radius, z = height (y is ignored); the cone axis is along z
+/// - CAPSULE: x = radius, z = length of the cylindrical portion (y is ignored); the capsule axis is along z
+///
+/// The mass and inertia of a generated body are those of its collision shape with the ingredient density.
 class ChApi ChMixtureIngredient {
   public:
     ChMixtureIngredient(ChGenerator* generator, MixtureType type, double ratio);
@@ -67,6 +77,9 @@ class ChApi ChMixtureIngredient {
 
     void SetDefaultMaterial(std::shared_ptr<ChContactMaterial> mat);
     void SetDefaultDensity(double density);
+
+    /// Set a constant size for all objects created from this ingredient.
+    /// See the class description for the meaning of the size components for each ingredient type.
     void SetDefaultSize(const ChVector3d& size);
 
     void SetDistributionFriction(float friction_mean, float friction_stddev, float friction_min, float friction_max);
@@ -78,6 +91,11 @@ class ChApi ChMixtureIngredient {
                                     float restitution_min,
                                     float restitution_max);
     void SetDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max);
+
+    /// Draw the size of objects created from this ingredient from a truncated normal distribution.
+    /// Each size component is sampled independently from the normal distribution with given mean and standard
+    /// deviation, truncated to the range given by the corresponding components of 'size_min' and 'size_max'.
+    /// See the class description for the meaning of the size components for each ingredient type.
     void SetDistributionSize(double size_mean,
                              double size_stddev,
                              const ChVector3d& size_min,
@@ -102,7 +120,8 @@ class ChApi ChMixtureIngredient {
     ChVector3d GetSize();
     double GetDensity();
     void CalcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration);
-    double CalcMinSeparation();
+    double CalcBoundingSphereRadius();
+    ChVector3d CalcBoundingBoxSize();
 
     void SetMaterialProperties(std::shared_ptr<ChContactMaterialNSC> mat);
     void SetMaterialProperties(std::shared_ptr<ChContactMaterialSMC> mat);
@@ -143,6 +162,8 @@ class ChApi ChMixtureIngredient {
 /// Provides functionality for generating sets of bodies with positions drawn from a specified sampler and various
 /// mixture properties. Bodies can be generated in different bounding volumes (boxes or cylinders) which can be
 /// degenerate (to a rectangle or circle, respectively).
+/// For an SMC system, a sampler separation (or grid spacing) smaller than the minimum value that keeps the generated
+/// collision shapes from overlapping is increased to that minimum.
 class ChApi ChGenerator {
   public:
     typedef Types<double>::PointVector PointVector;

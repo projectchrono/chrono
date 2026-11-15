@@ -58,6 +58,7 @@ endif()
 #
 # Precedence:
 #   1. CHRONO_<SHORTNAME>_GPU_BACKEND   per-feature override  -> FATAL if unmet
+#                                       (NONE disables the feature's GPU support)
 #   2. CHRONO_GPU_BACKEND               global preference
 #   3. PREFER                           the feature's own declared preference
 #   4. the single satisfying fact
@@ -129,8 +130,13 @@ function(chrono_select_gpu_backend out_var)
     set(_override_var "CHRONO_${ARG_NAME}_GPU_BACKEND")
     if(DEFINED ${_override_var} AND NOT "${${_override_var}}" STREQUAL "AUTO")
       set(_want "${${_override_var}}")
+      # NONE builds the feature without GPU support, even if a toolchain is available.
+      if(_want STREQUAL "NONE")
+        set(${out_var} "NONE" PARENT_SCOPE)
+        return()
+      endif()
       if(NOT _want MATCHES "^(CUDA|HIP)$")
-        message(FATAL_ERROR "Invalid ${_override_var}='${_want}'. Expected AUTO, CUDA, or HIP.")
+        message(FATAL_ERROR "Invalid ${_override_var}='${_want}'. Expected AUTO, CUDA, HIP, or NONE.")
       endif()
       if(NOT "${_want}" IN_LIST _candidates)
         if(_want STREQUAL "HIP" AND _hip_blocked)

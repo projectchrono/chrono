@@ -29,6 +29,9 @@ class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
 
     virtual ~ChShaftsLoad() {}
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Compute the torque between the two shafts, given relative rotation and velocity.
     /// Torque is assumed applied to shaft B, and its opposite to A.
     /// Inherited classes MUST IMPLEMENT THIS.
@@ -108,6 +111,9 @@ class ChApi ChShaftsElasticGear : public ChLoadCustomMultiple {
         const double Ra,                  ///< primitive radius of the gear on shaft A (the radius of B is not needed)
         const double ratio = -1           ///< transmission ratio (negative for outer gear, positive for inner gears)
     );
+
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsElasticGear* Clone() const override { return new ChShaftsElasticGear(*this); }

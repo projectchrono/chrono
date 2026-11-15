@@ -60,14 +60,16 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Chrono coupling data type.
     enum class CouplingDataType {
-        GENERIC,             ///< generic data
-        POSITIONS,           ///< 3D positions (of body ref frames, body points, or FEA nodes)
-        ROTATIONS,           ///< 3D rotations (of body ref frames, expressed as rotation vectors)
-        DISPLACEMENTS,       ///< 3D displacements (relative to initial position)
-        LINEAR_VELOCITIES,   ///< 3D velocities (of body ref frames, body points, or FEA nodes)
-        ANGULAR_VELOCITIES,  ///< 3D angular velocities (of body ref frames)
-        FORCES,              ///< 3D forces (on body ref frames, body points, or FEA nodes)
-        TORQUES              ///< 3D torques (on body ref frames)
+        GENERIC,                ///< generic data
+        POSITIONS,              ///< 3D positions (of body ref frames, body points, or FEA nodes)
+        ROTATIONS,              ///< 3D rotations (of body ref frames, expressed as rotation vectors)
+        DISPLACEMENTS,          ///< 3D displacements (relative to initial position)
+        LINEAR_VELOCITIES,      ///< 3D velocities (of body ref frames, body points, or FEA nodes)
+        ANGULAR_VELOCITIES,     ///< 3D angular velocities (of body ref frames)
+        LINEAR_ACCELERATIONS,   ///< 3D accelerations (of body ref frames, body points, or FEA nodes)
+        ANGULAR_ACCELERATIONS,  ///< 3D angular accelerations (of body ref frames)
+        FORCES,                 ///< 3D forces (on body ref frames, body points, or FEA nodes)
+        TORQUES                 ///< 3D torques (on body ref frames)
     };
 
     /// Point within the coupling time window at which data from other participants is sampled.

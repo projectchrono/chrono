@@ -185,6 +185,12 @@ int main() {
     while (vis->Run()) {
         rig.Advance(step_size);
 
+        // End the simulation when the wheel reaches the end of the terrain patch
+        if (rig.PatchEndReached()) {
+            std::cout << "\nEnd of terrain patch reached at t = " << sys.GetChTime() << std::endl;
+            break;
+        }
+
         double body_x = rig.GetPos().x();
         double buffer_dist = 0;
         ChVector3d cam_loc(body_x + buffer_dist, 3, -0.5);

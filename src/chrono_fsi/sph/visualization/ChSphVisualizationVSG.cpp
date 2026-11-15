@@ -190,7 +190,8 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiSystemSPH* sysFSI)
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
-      m_sph_cloud_index(-1) {  // start with invalid cache so we rescan once the VSG clouds are bound
+      m_sph_cloud_index(-1),  // start with invalid cache so we rescan once the VSG clouds are bound
+      m_use_markers_frame(false) {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_activeBoxScene = vsg::Switch::create();
 }
@@ -209,7 +210,8 @@ ChSphVisualizationVSG::ChSphVisualizationVSG(ChFsiFluidSystemSPH* sysSPH)
       m_colormap_type(ChColormap::Type::JET),
       m_write_images(false),
       m_image_dir("."),
-      m_sph_cloud_index(-1) {  // ensure the SPH cloud lookup is re-validated on the first query
+      m_sph_cloud_index(-1),  // ensure the SPH cloud lookup is re-validated on the first query
+      m_use_markers_frame(false) {
     m_sysMBS = new ChSystemSMC("FSI_internal_system");
     m_activeBoxScene = vsg::Switch::create();
 }
@@ -373,12 +375,22 @@ void ChSphVisualizationVSG::SetActiveBoxVisibility(bool vis, int tag) {
     if (!m_vsys->IsInitialized())
         return;
 
+    bool suspended = ActiveDomainsSuspended();
     for (auto& child : m_activeBoxScene->children) {
         int c_tag;
         child.node->getValue("Tag", c_tag);
-        if (c_tag == tag || tag == -1)
-            child.mask = vis;
+        if (c_tag == tag || tag == -1) {
+            child.node->setValue("Visible", vis);
+            std::shared_ptr<ChBody> obj;
+            child.node->getValue("Object", obj);
+            child.mask = vis && !(obj && suspended);
+        }
     }
+}
+
+bool ChSphVisualizationVSG::ActiveDomainsSuspended() const {
+    // Active domains are not enforced during the initial CRM free flow phase
+    return m_sysSPH->GetSimTime() < m_sysSPH->GetParams().free_flow_duration;
 }
 
 void ChSphVisualizationVSG::BindComputationalDomain() {
@@ -394,6 +406,7 @@ void ChSphVisualizationVSG::BindComputationalDomain() {
     // Set group properties
     group->setValue("Object", nullptr);
     group->setValue("Tag", -1);
+    group->setValue("Visible", m_active_boxes);
     group->setValue("Transform", transform);
 
     // Add the group to the global holder
@@ -416,10 +429,11 @@ void ChSphVisualizationVSG::BindActiveBox(const std::shared_ptr<ChBody>& obj, co
     // Set group properties
     group->setValue("Object", obj);
     group->setValue("Tag", tag);
+    group->setValue("Visible", m_active_boxes);
     group->setValue("Transform", transform);
 
-    // Add the group to the global holder
-    vsg::Mask mask = m_active_boxes;
+    // Add the group to the global holder (hidden while active domains are suspended, see OnRender)
+    vsg::Mask mask = m_active_boxes && !ActiveDomainsSuspended();
     m_activeBoxScene->addChild(mask, group);
 }
 
@@ -753,6 +767,14 @@ void ChSphVisualizationVSG::OnRender() {
     // Copy SPH particle positions from device to host
     m_pos.clear();
     m_pos = m_sysSPH->GetPositions();
+    if (m_use_markers_frame) {
+        for (auto& p : m_pos) {
+            auto q = m_markers_frame.TransformPointLocalToParent(ChVector3d(p.x, p.y, p.z));
+            p.x = (Real)q.x();
+            p.y = (Real)q.y();
+            p.z = (Real)q.z();
+        }
+    }
     if (m_color_fun) {
         m_vel.clear();
         m_vel = m_sysSPH->GetVelocities();
@@ -825,23 +847,34 @@ void ChSphVisualizationVSG::OnRender() {
         bulkWritePositions(m_flex_bce_cloud, p, m_sysSPH->GetNumFleaMeshMarkers());
     }
 
-    // Update positions of all active boxes
-    for (const auto& child : m_activeBoxScene->children) {
+    // Update positions of all active boxes.
+    // Body active boxes are hidden during an initial CRM free flow phase, when active domains are not enforced.
+    bool suspended = ActiveDomainsSuspended();
+    for (auto& child : m_activeBoxScene->children) {
         std::shared_ptr<ChBody> obj;
         vsg::ref_ptr<vsg::MatrixTransform> transform;
         if (!child.node->getValue("Object", obj))
             continue;
         if (!child.node->getValue("Transform", transform))
             continue;
+        if (obj) {
+            bool visible = false;
+            child.node->getValue("Visible", visible);
+            child.mask = visible && !suspended;
+        }
+        ChFramed box_frame;
+        ChVector3d hsize;
         if (obj == nullptr) {
-            auto hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
-            transform->matrix = vsg::dmat4CH(ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT), hsize);
+            hsize = m_sysSPH->GetComputationalDomain().Size() / 2;
+            box_frame = ChFramed(m_sysSPH->GetComputationalDomain().Center(), QUNIT);
         } else {
             const ChAABB& aabb = m_ad_body[obj.get()];
-            auto hsize = aabb.Size() / 2;
-            auto center = aabb.Center();
-            transform->matrix = vsg::dmat4CH(ChFramed(obj->GetPos() + center, QUNIT), hsize);
+            hsize = aabb.Size() / 2;
+            box_frame = ChFramed(obj->GetPos() + aabb.Center(), QUNIT);
         }
+        if (m_use_markers_frame)
+            box_frame = m_markers_frame * box_frame;
+        transform->matrix = vsg::dmat4CH(box_frame, hsize);
     }
 }
 
@@ -875,7 +908,7 @@ bool MarkerPlanesVisibilityCallback::get(unsigned int n) const {
 ParticleHeightColorCallback::ParticleHeightColorCallback(double hmin, double hmax, const ChVector3d& up) : m_hmin(hmin), m_hmax(hmax), m_up(ToReal3(up)) {}
 
 std::string ParticleHeightColorCallback::GetTile() const {
-    return "Height (m)";
+    return "Height";
 }
 
 ChVector2d ParticleHeightColorCallback::GetDataRange() const {
@@ -890,7 +923,7 @@ ChColor ParticleHeightColorCallback::GetColor(unsigned int n) const {
 ParticleVelocityColorCallback::ParticleVelocityColorCallback(double vmin, double vmax, Component component) : m_vmin(vmin), m_vmax(vmax), m_component(component) {}
 
 std::string ParticleVelocityColorCallback::GetTile() const {
-    return "Velocity (m/s)";
+    return "Velocity";
 }
 
 ChVector2d ParticleVelocityColorCallback::GetDataRange() const {
@@ -920,7 +953,7 @@ ChColor ParticleVelocityColorCallback::GetColor(unsigned int n) const {
 ParticleDensityColorCallback::ParticleDensityColorCallback(double dmin, double dmax) : m_dmin(dmin), m_dmax(dmax) {}
 
 std::string ParticleDensityColorCallback::GetTile() const {
-    return "Density (kg/m3)";
+    return "Density";
 }
 
 ChVector2d ParticleDensityColorCallback::GetDataRange() const {
@@ -937,7 +970,7 @@ ParticlePressureColorCallback::ParticlePressureColorCallback(double pmin, double
 }
 
 std::string ParticlePressureColorCallback::GetTile() const {
-    return "Pressure (N/m2)";
+    return "Pressure";
 }
 
 ChVector2d ParticlePressureColorCallback::GetDataRange() const {

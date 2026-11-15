@@ -1,0 +1,80 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      fvSolution;
+}
+
+solvers
+{
+    p
+    {
+        solver           GAMG;
+        tolerance        1e-6;
+        relTol           1e-4;
+        smoother         DICGaussSeidel;
+    }
+
+    pFinal
+    {
+        $p;
+        tolerance       1e-07;
+        relTol          0;
+    }
+
+    pcorr
+    {
+        solver           GAMG;
+        tolerance        1e-5;
+        relTol           1e-3;
+        smoother         GaussSeidel;
+    }
+
+    pcorrFinal
+    {
+        $pcorr;
+        relTol          0;
+    }
+
+    phi
+    {
+        $p;
+    }
+
+    "(U|cellDisplacement)"
+    {
+        solver          smoothSolver;
+        smoother        symGaussSeidel;
+        tolerance       1e-7;
+        relTol          1e-5;
+    }
+
+    "(U|cellDisplacement)Final"
+    {
+        $U;
+        relTol          0;
+    }
+}
+
+PIMPLE
+{
+    nOuterCorrectors 10;
+    nCorrectors 2;
+    nNonOrthogonalCorrectors 1;
+    tolerance 1.0e-8;
+
+    correctPhi          yes;
+    relTol 1e-4;
+    pisoTol 1e-6;
+    consistent  true;
+
+}
+PISO
+{
+    nNonOrthogonalCorrectors 1;
+}
+potentialFlow
+{
+    nNonOrthogonalCorrectors 1;
+}

@@ -317,7 +317,7 @@ void FsiDataManager::SetCounters(unsigned int num_fsi_bodies,
 }
 
 struct sphTypeCompEqual {
-    __host__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
+    __host__ bool operator()(const Real4& o1, const Real4& o2) const { return o1.w == o2.w; }
 };
 
 void FsiDataManager::ConstructReferenceArray() {
@@ -929,7 +929,7 @@ std::vector<Real3> FsiDataManager::GetMesh2DForces() {
 struct in_box {
     in_box() {}
 
-    __device__ bool operator()(const Real4 v) {
+    __device__ bool operator()(const Real4 v) const {
         // Convert location in box frame
         auto d = mR3(v) - pos;
         auto w = mR3(                              //
@@ -1085,6 +1085,7 @@ size_t FsiDataManager::GetCurrentGPUMemoryUsage() const {
 
     // FSI nodes
     total_bytes += flex1D_Nodes_D.capacity() * sizeof(int2);
+    total_bytes += flex1D_Normals_D.capacity() * sizeof(Real3);
     total_bytes += flex2D_Nodes_D.capacity() * sizeof(int3);
 
     return total_bytes;

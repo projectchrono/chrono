@@ -222,6 +222,12 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set (initial) density.
     void SetDensity(double rho0);
 
+    /// Set the base pressure added to the pressure from the Tait equation of state (default: 0).
+    /// A positive base pressure keeps the pressure positive where the fluid is in tension, which prevents tensile
+    /// instability (particle clumping, particles pulled into walls) in confined flows. Use with care for flows with a
+    /// free surface, where it pushes the free-surface particles outward.
+    void SetBasePressure(double base_pressure);
+
     /// Set the PPST Shifting parameters.
     /// - `push`: coefficient for the pushing term in the PPST shifting method (upon penetration with fictitious sphere)
     /// - `pull`: coefficient for the pulling term in the PPST shifting method
@@ -239,7 +245,10 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Set prescribed initial pressure for gravity field.
     void SetInitPressure(const double fzDim);
 
-    /// Set gravity for the FSI system.
+    /// Set gravity for the SPH fluid system.
+    /// This function can also be called after initialization, for example to apply the inertial (fictitious) force of a
+    /// translating, non-inertial reference frame: in a frame with acceleration a, use an effective gravity g - a. Unlike a
+    /// body force (see SetBodyForce), gravity is also included in the extrapolation of the BCE marker pressure.
     virtual void SetGravitationalAcceleration(const ChVector3d& gravity) override;
 
     /// Set a constant force applied to the fluid.
@@ -570,26 +579,26 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     std::vector<ChVector3d> CreatePointsCylinderExterior(double rad, double height, bool polar) const;
 
     /// Create interior marker points for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// The cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created inside the cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeInterior(double rad, double height, bool polar) const;
 
     /// Create interior marker points for a truncated cone of specified radius and height.
-    /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
+    /// The truncated cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created inside the truncated cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
     std::vector<ChVector3d> CreatePointsTruncatedConeInterior(double rad, double rad_tip, double height, bool polar) const;
 
     /// Create exterior marker points for a cone of specified radius and height.
-    /// The cone is assumed centered at the origin and aligned with the Z axis.
+    /// The cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created outside the cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     std::vector<ChVector3d> CreatePointsConeExterior(double rad, double height, bool polar) const;
 
     /// Create exterior marker points for a truncated cone of specified radius and height.
-    /// The truncated cone is assumed centered at the origin and aligned with the Z axis.
+    /// The truncated cone is aligned with the Z axis, with its base centered at the origin and its tip at z = height.
     /// Markers are created outside the truncated cone, in a number of layers corresponding to system parameters.
     /// Markers are created using cylindrical coordinates (polar=true), or else on a uniform Cartesian grid.
     /// The base of the truncated cone has a radius of rad, and the tip has a radius of rad_tip.
@@ -787,7 +796,7 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     unsigned int m_num_rigid_bodies;     ///< number of rigid bodies
     unsigned int m_num_flex1D_meshes;    ///< number of 1-D flexible meshes
-    unsigned int m_num_flex2D_meshes;    ///< number of 1-D flexible meshes
+    unsigned int m_num_flex2D_meshes;    ///< number of 2-D flexible meshes
     unsigned int m_num_flex1D_nodes;     ///< number of 1-D flexible nodes (across all 1-D meshes)
     unsigned int m_num_flex2D_nodes;     ///< number of 2-D flexible nodes (across all 2-D meshes)
     unsigned int m_num_flex1D_elements;  ///< number of 1-D flexible segments (across all 1-D meshes)
@@ -836,6 +845,7 @@ class CH_FSI_API DepthPressurePropertiesCallback : public ChFsiFluidSystemSPH::P
 
         p0 = sysSPH.GetDensity() * gz * (zero_height - pos.z());
         rho0 = sysSPH.GetDensity() + p0 / c2;
+        p0 += sysSPH.GetBasePressure();
         mu0 = sysSPH.GetViscosity();
         v0 = init_vel;
 

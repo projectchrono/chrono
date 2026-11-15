@@ -57,6 +57,8 @@ If the `output` key is present, it must specify a YAML object with the following
 Note that `format` is required whenever the `output` key is present.
 `HDF5` output silently falls back to `NONE` in a build without HDF5 support.
 
+When output is enabled, it is generated for all vehicle subsystems (chassis, driveline, axles, steering mechanisms, and subchassis for a wheeled vehicle; chassis, driveline, and track assemblies for a tracked vehicle), with a separate output file for each subsystem (e.g., `<name>_chassis`, `<name>_axle_0`, `<name>_LEFT_sprocket`).
+
 #### Visualization options
 
 If the `visualization` key is present, it must specify a YAML object with the following properties:

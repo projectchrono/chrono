@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         SCM,           ///< Soil Contact Model
         GRANULAR_OMP,  ///< granular terrain (Chrono::Multicore)
         GRANULAR_DEM,  ///< granular terrain (Chrono::Dem)
-        GRANULAR_SPH,  ///< continuous representation of granular terrain (Chrono::FSI)
+        GRANULAR_SPH,  ///< Continuum Representation Model of granular terrain (Chrono::FSI)
         UNKNOWN        ///< unknown terrain type
     };
 

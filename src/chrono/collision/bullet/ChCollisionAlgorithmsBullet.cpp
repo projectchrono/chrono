@@ -77,8 +77,8 @@ void cbtCapsuleBoxCollisionAlgorithm::processCollision(const cbtCollisionObjectW
     const cbtTransform& abs_X_box = boxObjWrap->getWorldTransform();
     cbtTransform box_X_cap = abs_X_box.inverseTimes(abs_X_cap);
 
-    cbtVector3 a = box_X_cap.getBasis().getColumn(1);  // capsule axis (expressed in box frame)
-    cbtVector3 c = box_X_cap.getOrigin();              // capsule center (expressed in box frame)
+    cbtVector3 a = box_X_cap.getBasis().getColumn(cap->getUpAxis());  // capsule axis (expressed in box frame)
+    cbtVector3 c = box_X_cap.getOrigin();                             // capsule center (expressed in box frame)
 
     // Box dimensions
     cbtVector3 hdims = box->getHalfExtentsWithMargin();

@@ -23,6 +23,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 namespace fea {
@@ -1630,6 +1631,18 @@ void ChElementHexaANCF_3813::ComputeGravityForces(ChVectorDynamic<>& Fg, const C
 }
 
 // -----------------------------------------------------------------------------
+
+void ChElementHexaANCF_3813::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChElementGeneric::SaveInternalState(writer);
+
+    writer.Write(m_stock_alpha_EAS);
+}
+
+void ChElementHexaANCF_3813::LoadInternalState(ChCheckpointReader& reader) {
+    ChElementGeneric::LoadInternalState(reader);
+
+    reader.Read(m_stock_alpha_EAS);
+}
 
 void ChElementHexaANCF_3813::SetupInitial(ChSystem* system) {
     // Compute gravitational forces

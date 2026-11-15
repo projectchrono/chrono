@@ -1,9 +1,12 @@
 # Unit test to create a OpenCascade shape and verify if it's dynamics is correct.
 
+import pytest
 import pychrono.core as chrono
 import pychrono.cascade as cascade
-from OCC.Core import BRepPrimAPI
 import numpy as np
+
+# pythonocc-core is an external dependency; skip this test if it is not installed
+BRepPrimAPI = pytest.importorskip("OCC.Core.BRepPrimAPI")
 
 def test_create_cylinder():
     #  Create the simulation system and add items

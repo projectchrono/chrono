@@ -5,6 +5,12 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Newton convergence test of implicit integrators](#changed-newton-convergence-test-of-implicit-integrators)
+  - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
+  - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
+  - [\[Added\] Checkpointing of FEA meshes and internal state](#added-checkpointing-of-fea-meshes-and-internal-state)
+  - [\[Changed\] Initialization of physics items](#changed-initialization-of-physics-items)
+  - [\[Added\] Force accumulators for FEA nodes](#added-force-accumulators-for-fea-nodes)
   - [\[Changed\] Chrono::Sensor appearance of shapes with no visual material](#changed-chronosensor-appearance-of-shapes-with-no-visual-material)
   - [\[Added\] Chrono::FEA multiphysics framework](#added-chronofea-multiphysics-framework)
   - [\[Added\] Chrono::PRECICE module](#added-chronoprecice-module)
@@ -18,6 +24,7 @@ Change Log
   - [\[Added\] New geometry and collision utilities](#added-new-geometry-and-collision-utilities)
   - [\[Changed\] Chrono::Vehicle API updates](#changed-chronovehicle-api-updates)
   - [\[Added\] Extended YAML and JSON model specification support](#added-extended-yaml-and-json-model-specification-support)
+  - [\[Added\] YAML specification of single-wheel test rig simulations](#added-yaml-specification-of-single-wheel-test-rig-simulations)
   - [\[Added\] Chrono::Modal reduced model serialization and applied loads](#added-chronomodal-reduced-model-serialization-and-applied-loads)
   - [\[Changed\] Build requirements and third-party dependencies](#changed-build-requirements-and-third-party-dependencies)
   - [\[Removed\] Chrono::Matlab module](#removed-chronomatlab-module)
@@ -32,6 +39,7 @@ Change Log
   - [\[Changed\] Upgrade of 3rd-party dependencies](#changed-upgrade-of-3rd-party-dependencies)
   - [\[Added\] YAML parsers for Chrono models and simulations](#added-yaml-parsers-for-chrono-models-and-simulations) 
   - [\[Changed\] Refactoring of Chrono::FSI and Chrono fluid solvers](#changed-refactoring-of-chronofsi-and-chrono-fluid-solvers)
+  - [\[Changed\] Renamed data path functions in Chrono::Vehicle and Chrono::Synchrono](#changed-renamed-data-path-functions-in-chronovehicle-and-chronosynchrono)
   - [\[Added\] Chrono::Peridynamics module](#added-chronoperidynamics-module) 
   - [\[Added\] Chrono::VSG plugins for FSI and granular dynamics visualization](#added-chronovsg-plugins-for-fsi-and-granular-dynamics-visualization)
   - [\[Added\] Chrono::VSG features and capabilities](#added-chronovsg-features-and-capabilities)
@@ -146,6 +154,180 @@ Change Log
 
 # Unreleased (development branch) 
 
+## [Changed] Newton convergence test of implicit integrators
+
+The residual part of the Newton convergence test in the HHT, Newmark, Euler implicit, and trapezoidal integrators now checks the constraint violation at the position level, against the state absolute tolerance. Previously, it compared the scaled constraint residual (C/(beta*h^2) for HHT and Newmark, C/h for Euler implicit and trapezoidal) against the multiplier absolute tolerance, so the effective limit on the constraint violation depended on the step size and became unreachable (below round-off) for small steps or for models far from the origin.
+
+- The residual test is now `|R| < abstolS` and `|C| < abstolS`, with `R` the dynamics residual and `C` the position-level constraint violation. The HHT update test (`|Ds|_WRMS < 1` and `|Dl|_WRMS < 1`) is unchanged.
+- The multiplier absolute tolerance (second argument of `SetAbsTolerances`) now applies only to the Lagrange multiplier update in HHT. The Newmark, Euler implicit, and trapezoidal integrators, which use only the residual test, no longer use it.
+- The Newmark, Euler implicit, and trapezoidal integrators now count Newton solves that do not converge (`GetNumTerminated`) and honor `AcceptTerminatedStep(false)`, by throwing an exception.
+- When Newton fails to converge, the exception message (or the verbose output, if the terminated step is accepted) reports the norms and tolerances at the last iteration.
+- The quantities and tolerances used in the convergence tests are documented in each integrator class.
+
+For HHT and Newmark at typical step sizes, the residual test is now less strict on the constraint violation than before (for example, with `abstolS = 1e-6` and `h = 2e-4`, it previously required a violation below about 1e-14). Simulations that relied on the residual test to keep constraint drift very small may need a smaller `abstolS`. For Euler implicit and trapezoidal, the limit on the constraint violation changes from `abstolL*h` to `abstolS`.
+
+## [Changed] Frame convention and reference point for hydrodynamic added mass
+
+`ChLoadHydrodynamics` now applies added mass coefficients according to an explicit frame convention and
+reference point. Previously, the coefficients were applied unchanged to Chrono's velocity coordinates (the
+COM velocity in absolute axes and the angular velocity in body axes), which is consistent with
+coefficients from a BEM code (given in inertial axes) only while a body stays close to its reference
+orientation.
+
+- `ChLoadHydrodynamics::SetAddedMassFrame` selects the axes in which the coefficients are expressed:
+  `INERTIAL` (default, the convention of BEM data) or `BODY`. The coefficients are transformed to Chrono's
+  velocity coordinates using the current body orientations, so the added mass is constant in the selected
+  axes.
+- The coefficients refer to the velocity of the origin of the body reference frame: the COM for a `ChBody`,
+  the auxiliary reference frame for a `ChBodyAuxRef`. Coefficients about another point must be shifted to
+  that origin; `ChLoadHydrodynamics::ComputeShiftTransformation` and `ChLoadHydrodynamics::ShiftBlocks`
+  perform this shift.
+- Hydrodynamic data files do not record the point about which their coefficients were computed (the BEM
+  rotation center, which need not be the center of gravity stored in the file). If it is not the origin of
+  the body reference frame, provide it, in the body reference frame, with the `h5_reference_points` list of
+  a TDPF model specification (or `ChFsiSystemTDPF::SetHydroReferencePoints`) for Chrono::FSI-TDPF, or with
+  the `reference_points` list of the `added_mass` entry of a preCICE MBS participant specification. The
+  coefficients are then shifted at initialization.
+- Explicit added mass blocks in a preCICE MBS participant specification may be declared in body axes with
+  `frame: BODY`.
+- With the APGD and Barzilai-Borwein solvers, the inverse of the total mass matrix is now recomputed
+  whenever a hydrodynamic body rotates.
+
+Results of simulations in which hydrodynamic bodies rotate change accordingly; for the small rotations
+typical of linear potential-flow models, the differences are small.
+
+## [Added] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies
+
+Chrono::VSG has two new components for plugins that visualize granular systems, and Chrono::Multicore
+has a VSG plugin that uses them.
+
+- `ChInstancedShapesVSG` draws granular bodies as GPU instances of shape templates: one unit template
+  per primitive type (sphere and ellipsoid, box, cylinder, cone), scaled per instance, and one template
+  per distinct geometry for capsules, rounded boxes and cylinders, triangle meshes, and convex hulls.
+  Bodies are decomposed into their collision shapes (or, optionally, their visual shapes). The bodies
+  drawn as instances are selected automatically by size (at most 10 times the median body size, among
+  the bodies active at initialization) or explicitly; larger bodies, such as walls, keep the default
+  binding. Per-body color and visibility callbacks are supported; inactive bodies are hidden by default.
+- `ChForceNetworkVSG` draws a force network as segments between arbitrary points, either as lines or
+  as lit cylinders, colored from a per-segment value (through a colormap or a two-color ramp) or with
+  explicit colors, with a constant, value-mapped, or explicit radius in world units. Its capacity is
+  fixed at construction; segments beyond it are dropped and counted.
+- `ChVisualSystemVSG::ExcludeFromBinding` excludes a body from the default binding of visual assets,
+  so that a plugin can draw it by other means.
+- `ChMulticoreVisualizationVSG`, in the new library `Chrono_multicore_vsg` (built when Chrono::VSG is
+  enabled, and linked by `find_package(Chrono)` when both the MULTICORE and VSG components are
+  requested), draws the granular bodies of a Chrono::Multicore system as instances and the contact
+  force network, walls included. The network is colored by the normal force, the Coulomb ratio, or the
+  magnitude of the stored tangential displacement (SMC, MultiStep model), with a force threshold and
+  slab and box region filters for section cuts. The plugin shows a panel with the Multicore timers,
+  contact counts, NSC iterations and residual, number of threads, and contact history overflows, and
+  can write an image of every n-th rendered frame (`SetImageOutput`, off by default). See the new demo
+  `demo_MCORE_force_network`.
+- `ChDemVisualizationVSG`, the VSG plugin for Chrono::DEM, draws the contact force network too, with the
+  same coloring, threshold, and region options, from the new bulk accessor `ChSystemDem::GetContacts`
+  (frictional simulations with contact recording; contacts with boundary conditions require the
+  material-based contact model). See the new demo `demo_DEM_force_network`.
+
+## [Added] Checkpointing of FEA meshes and internal state
+
+Checkpoints now save, besides coordinates and velocities, the data that physics items carry from step
+to step outside the system state vectors, so that a restart reproduces a continuous run. The design is
+described in the developer manual "Physics Item Lifecycle".
+
+- Physics items, FEA elements and FEA nodes can save and restore their internal state through the new
+  virtual functions `SaveInternalState` and `LoadInternalState`, using the format-independent
+  `ChCheckpointWriter` and `ChCheckpointReader` classes. An item that cannot save its internal state
+  reports it through `SupportsCheckpoint`, and saving a checkpoint that includes it fails with an error.
+- The internal state of the following elements is saved: plasticity data of `ChElementBeamIGA`, plastic
+  strains of `ChElementHexaANCF_3813_9`, and the enhanced assumed strain parameters of
+  `ChElementHexaANCF_3813`.
+- SYSTEM checkpoints also save the accelerations (used, for example, by the inertial terms of IGA beams)
+  and the internal state of all items. Checkpoint files written before this change can still be loaded.
+- COMPONENT checkpoints support whole FEA meshes (`ChAssembly::Components::meshes`) and any other
+  physics item (`ChAssembly::Components::items`), including their accelerations, reactions (for
+  example, the multipliers of a `ChExternalDynamicsDAE`) and internal state.
+- Chrono::Vehicle deformable tires (ANCF, Reissner and solid FEA tires) implement `WriteCheckpoint` and
+  `ReadCheckpoint`.
+- The checkpoint time and states are now written with full precision. Previously, the time was written
+  with 6 significant digits, so time-dependent inputs did not match after a restart.
+- SYSTEM checkpoints also save the Lagrange multipliers of the assembly constraints and the timestepper
+  state (the step size control state of the implicit integrators), and bodies and rotational FEA nodes
+  save the derivatives of their rotation quaternion, so that restarts with HHT and the other implicit
+  integrators reproduce a continuous run exactly.
+- The HHT integrator now evaluates the constraint Jacobians at the beginning of each step for the term
+  that involves the previous Lagrange multipliers, instead of reusing the Jacobians cached by the last
+  linear solve. Results of HHT simulations of constrained systems change slightly.
+- `SupportsCheckpoint` now returns false by default for physics items, FEA elements, FEA nodes and
+  loads. Classes opt in once everything they carry from step to step is in the state vectors or saved
+  as internal state; the built-in classes that do so return true. Saving a checkpoint of a system that
+  contains a class that does not support checkpoints (for example a user-defined physics item, or a
+  `ChExternalDynamicsODE` subclass) now fails with an error that lists the offending items. A
+  user-defined class must override `SupportsCheckpoint` to return true (after saving any internal
+  state) to be checkpointed. The list of classes that return false is in the developer manual.
+- The enhanced assumed strain parameters of `ChElementShellANCF_3423` are saved as internal state.
+
+## [Changed] Initialization of physics items
+
+The one-time initialization of physics items was redesigned. The design is described in a new
+developer manual, "Physics Item Lifecycle", in the new "Developer Manuals" section of the
+documentation.
+
+- Each physics item is initialized once, on its own. Items added to a system (and nodes or elements
+  added to an FEA mesh) after the simulation started are initialized alone; the items already in the
+  system are left untouched. Previously, adding a mesh, a node, an element, or a batch of items
+  re-ran the initialization of *every* item in the system, so FEA meshes that were already deformed
+  recorded their deformed shape as their new stress-free reference configuration.
+- `ChMesh::ComputeMassProperties` no longer re-records the reference configuration of the mesh
+  elements. Previously, every call (including calls made during a simulation, for example to
+  report the inertia properties of a Chrono::Vehicle FEA tire or ANCF track shoe) made the elements
+  treat their current shape as stress free.
+- Initialization runs in two phases, each across all items before the next one starts:
+  `SetupInitial` (data allocation and reference configuration) and the new `SetupInitialState`
+  (initial conditions). A physics item can override `SetupInitialState` to set initial conditions
+  that require all other items to have recorded their reference configuration (for example, to
+  pretension an FEA mesh).
+- `ChPhysicsItem::ResetInitialization` marks an item (and, for an assembly or mesh, all its
+  contents) as not initialized, so that it records a new reference configuration from its current
+  state at the next step. `ChPhysicsItem::IsInitialized` reports whether an item was initialized.
+- `ChExternalDynamicsODE`, `ChExternalDynamicsDAE`, the hydraulic actuators, and `ChExternalFmu`
+  are initialized automatically by the containing system. Their `Initialize()` function is
+  deprecated and no longer needs to be called; existing calls keep working.
+- The number of active coordinates of FEA nodes is recomputed every time the mesh is set up, so it
+  stays correct for nodes fixed or released at any time.
+- Loading a SYSTEM checkpoint into a system that was not yet initialized now initializes the system
+  first, so that reference configurations are recorded from the system as built, not from the
+  loaded state.
+
+## [Added] Force accumulators for FEA nodes
+
+FEA nodes now provide the same force accumulator mechanism as rigid bodies. Any number of accumulators
+can be added to a node, each identified by the index returned when it is created, and each owned by
+the code that created it. The accumulated loads are applied *in addition to* the force (and torque)
+set directly on the node with `SetForce` (and `SetTorque`), so independent sources of applied loads
+no longer overwrite one another.
+
+- `ChNodeFEAxyz` (and derived node types such as `ChNodeFEAxyzD` and `ChNodeFEAxyzDD`) provides
+  force-only accumulators: `AddAccumulator`, `EmptyAccumulator`, `AccumulateForce(idx, force)`, and
+  `GetAccumulatedForce(idx)`. Forces are expressed in the absolute frame.
+- `ChNodeFEAxyzrot` provides the full rigid-body API: `AccumulateForce(idx, force, point, local)` and
+  `AccumulateTorque(idx, torque, local)`.
+- `ChMesh::AddAccumulators` adds a new accumulator to every mesh node that supports one and returns
+  the per-node accumulator indices (in the order of `ChMesh::GetNodes`); `ChMesh::EmptyAccumulators`
+  clears them. Nodes without position degrees of freedom are marked with `ChMesh::NO_ACCUMULATOR`.
+
+The accumulator implementation was moved from `ChBody` to its base class `ChBodyFrame`, which is
+shared by `ChBody` and `ChNodeFEAxyzrot`. The `ChBody` API is unchanged. Accumulators are not copied
+when a body or node is copied or assigned.
+
+Loads applied through accumulators on internal nodes of a `ChModalAssembly` are included in the
+reduced model, as are those set with `SetForce` and `SetTorque`.
+
+Chrono::FSI now applies fluid forces on FEA nodes through a dedicated node accumulator (created when
+the FEA mesh is added to the FSI system), mirroring how fluid forces are applied on rigid bodies.
+Previously, the FSI interfaces set the fluid force with `SetForce`, overwriting any other force set on
+FSI mesh nodes; such forces are now added to the fluid forces. This also fixes the generic FSI
+interface (`ChFsiInterfaceGeneric`), which applied the 2-D mesh forces to the nodes of 1-D meshes.
+
 ## [Changed] Chrono::Sensor appearance of shapes with no visual material
 
 A visual shape that carries no `ChVisualMaterial` is now rendered by Chrono::Sensor with
@@ -255,14 +437,21 @@ respectively.
 
 Coupling interfaces are described by a mesh type (`CouplingMeshType`: `GENERIC`, `RIGID_BODY_REFS`,
 `RIGID_BODY_POINTS`, `FEA_MESH_NODES`, `FEA_MESH_POINTS`) and a data type (`CouplingDataType`:
-`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`, `FORCES`,
-`TORQUES`, `GENERIC`). Coupling mesh vertices on rigid bodies can be specified either through a
+`POSITIONS`, `ROTATIONS`, `DISPLACEMENTS`, `LINEAR_VELOCITIES`, `ANGULAR_VELOCITIES`,
+`LINEAR_ACCELERATIONS`, `ANGULAR_ACCELERATIONS`, `FORCES`, `TORQUES`, `GENERIC`). Coupling mesh
+vertices on rigid bodies can be specified either through a
 triangular mesh (OBJ or STL) or as an explicit list of 3D points, and callbacks are available for
 user-defined operations before and after each dynamics advance. A generic driver program is also
 provided, which runs an arbitrary Chrono preCICE adapter defined entirely through a YAML
 specification file.
 
-See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH) and
+FEA meshes can be coupled through `FEA_MESH_NODES` interfaces: the MBS adapter exchanges the nodes of
+its FEA meshes (applying the received forces through node force accumulators), and the SPH adapter
+represents 1-D FEA meshes (e.g., cables) with proxy meshes built from node positions and segments given
+in its own specification.
+
+See `demo_PRECICE_sphere_drop` (Chrono MBS coupled with Chrono::FSI-SPH),
+`demo_PRECICE_flexible_cable` (Chrono FEA cable coupled with Chrono::FSI-SPH), and
 `demo_PRECICE_flap_openfoam` (Chrono MBS coupled with OpenFOAM, matching the corresponding preCICE
 tutorial).
 
@@ -321,7 +510,7 @@ Chrono::Vehicle output was updated accordingly. See `demo_MBS_checkpoint`, `demo
 ## [Changed] Chrono::FSI-SPH API and terminology
 
 The Chrono::FSI-SPH public API was reworked for consistency, and the "elastic SPH" terminology was
-replaced throughout by "CRM" (continuous representation method):
+replaced throughout by "CRM" (Continuum Representation Model):
 
 - The boolean flag `elastic_SPH` was replaced by an enum `PhysicsProblem` (`CFD` or `CRM`).
   Accordingly, `SetElasticSPH(const ElasticMaterialProperties&)` was replaced by
@@ -451,6 +640,14 @@ shapes was fixed in both the Bullet-based and multicore collision systems. See
   URDF models. `ChRobotActuation` was moved to the Chrono robot models library, which can now be
   excluded from the build.
 - The Chrono::Vehicle FMUs and demos were updated to reflect the current Chrono::Vehicle API.
+- The deformable tire class hierarchy was refactored. `ChFEATire` is now the base class for all tires
+  built on an FEA mesh (`ChANCFTire`, `ChReissnerTire`, and `ChSolidFEATire`), and the FEA mesh
+  specific functions (`GetMesh`, `GetLoadContainer`, `AddVisualShapeFEA`, `EnableRimConnection`) moved
+  from `ChDeformableTire` to `ChFEATire`. The former co-rotational solid-element tire classes
+  `ChFEATire` and `FEATire` were renamed `ChSolidFEATire` and `SolidFEATire` (JSON template
+  `SolidFEATire`). Every deformable tire provides a triangle surface mesh over its nodes
+  (`ChDeformableTire::GetSurfaceMesh`), which is used for coupling with CRM terrain through the new
+  `ChFsiProblemSPH::AddFeaSurface` function.
 
 ## [Added] Extended YAML and JSON model specification support
 
@@ -461,6 +658,15 @@ extended and made consistent:
 
 - Initial support for specifying FEA models (see `demo_YAML_fea`) and Chrono::FSI-SPH problems (see
   `demo_YAML_fsi`).
+- FEA meshes defined in the multibody model can be declared as FSI solids in a Chrono::FSI-SPH
+  problem through the `fsi_meshes` list of the FSI specification file, with optional settings for the
+  BCE marker patterns and FEA node directions. See the flexible cable models (CRM and CFD) in
+  `demo_YAML_fsi`.
+- Selected nodes of FEA beams can be included in the simulation output through the `output_nodes`
+  key of a beam (`all` or a list of node indices). Node positions and velocities, as well as node
+  orientations and angular velocities or node slopes (depending on the node type), are written by
+  `ChOutputASCII` and `ChOutputHDF5` in both output modes, including from the Chrono::PRECICE
+  multibody adapter. See `demo_YAML_fea`.
 - Output and run-time visualization settings now use the common `Settings` definitions shared with
   `ChOutput` and the visualization systems. Note that the default visualization type is now `NONE`,
   which disables run-time visualization altogether.
@@ -470,6 +676,42 @@ extended and made consistent:
 
 The YAML schema documentation was audited against the parser code, and several documented settings
 that were unreachable in practice were fixed.
+
+## [Added] YAML specification of single-wheel test rig simulations
+
+The Chrono::Vehicle single-wheel test rig (`ChWheelTestRig`) was extended, and test rig simulations
+can now be fully specified through YAML files (simulation type `WHEEL_RIG`), run with `run_chrono` or
+from a user program (see `demo_YAML_wheel_rig`):
+
+- Wheel assemblies: besides a Chrono::Vehicle wheel and tire, optionally attached to a
+  Chrono::Vehicle suspension, the rig accepts wheel assemblies built outside Chrono::Vehicle (derived
+  from `ChWheelTestRig::WheelAssembly`). In YAML, such custom assemblies are created by factories that
+  the application registers with `ChParserWheelRigYAML::RegisterWheelAssembly` (see the Viper wheel in
+  `demo_YAML_wheel_rig`).
+- Steering: a wheel on a steerable suspension is steered about its kingpin through a steering actuator
+  (for a Chrono::Vehicle suspension, a rig steering rack attached to the tierods). Either the actuator
+  coordinate or the steering angle can be prescribed; a steering angle is converted to the actuator
+  input through a kinematic map computed at initialization, with an optional feedback correction.
+  Steering angles are measured from the loaded configuration, so a zero steering angle retains the
+  static toe of the suspension under the normal load.
+- Drop phase: with a suspension, the suspension travel is held at its static equilibrium under the
+  normal load while the wheel is lowered, and released once the tire carries the normal load. The
+  suspension mass is now included in the load supported by the wheel.
+- Settling phase: the drop is preceded by a terrain settling phase (by default 0.5 s for CRM and
+  granular terrain, none for rigid and SCM terrain), during which CRM active domains are disabled so
+  that the entire terrain patch settles.
+- Terrain: rigid, SCM, granular, or CRM terrain. A CRM terrain is specified through an SPH simulation
+  file, using the same SPH model and solver schemas as an FSI simulation, and the SPH and multibody
+  systems can use different step sizes.
+- Output: the rig reports its measurements and kinematics as named output channels
+  (`ChWheelTestRig::GetOutputChannels`), which are written to the Chrono output database through the
+  new named scalar channels of `ChOutput`. A YAML specification can also request Gnuplot plots of
+  these channels.
+- A simulation can end when the wheel reaches the end of the terrain patch
+  (`ChWheelTestRig::PatchEndReached`), and a test specification can override the normal load of the
+  rig model.
+
+The new YAML schemas are documented in the Chrono::Parsers manual.
 
 ## [Added] Chrono::Modal reduced model serialization and applied loads
 
@@ -534,6 +776,12 @@ Notable fixes since the 10.0.0 release:
   statics and bearing response (now with a zero-tension cutoff); the normalization factor of the
   quintic spline SPH kernel; handling of markers outside the computational domain; and the
   rheology-failure error flag, which never actually reported.
+- In Chrono::FSI-SPH, `CreatePointsCylinderExterior` placed one BCE layer too many on the cylinder
+  side wall (the end caps were correct), and `CreatePointsTruncatedConeExterior` (also used by
+  `CreatePointsConeExterior`) changed the cone slope when adding layers, created no base cap, and
+  with Cartesian points cut the layers off at the base radius. Both now create the configured number
+  of layers on every surface, starting at the surface. Containers built with
+  `CreatePointsCylinderExterior` therefore have one side-wall layer fewer than before.
 - Transparent objects did not cast shadows, and Chrono::VSG rendering was incorrect when physics
   items were bound after visualization initialization or when body frame visibility was set
   beforehand. `ChColormap` crashed on NaN values (now rendered black), Irrlicht node lifetime
@@ -564,6 +812,25 @@ Notable fixes since the 10.0.0 release:
   `DoAssembly()` no longer leaves its internal 1e-6 step in the system, so `DoFrameKinematics()`
   advances by the requested step. Unit tests check a pendulum against its closed form at two lengths
   (#846).
+- In the Bullet collision system, cone shapes collided as if larger than the cone by the collision
+  margin (radially by the envelope plus the safe margin, at the base and apex by half the envelope
+  plus the safe margin), capsule ends extended one envelope too far, and capsule-box contacts used
+  the wrong capsule axis, so that, for example, a capsule standing on or lying across a box generated
+  no contacts.
+- All implicit integrators now skip the analyze phase of a sparse direct solver when the system
+  structure did not change (previously only HHT did), which reduces the cost of each step with, for
+  example, the linearized Euler integrator and Pardiso MKL. The ADMM solver also skips it when it
+  refactorizes after updating its penalty parameter. In addition, the direct solvers now perform
+  the analyze phase whenever the problem size or the number of matrix nonzeros changed: some changes
+  made during a simulation (such as fixing a body or disabling a link) are not flagged as structural
+  changes, and skipping the analysis in those cases could produce wrong results or a crash.
+- In the single-wheel test rig (`ChWheelTestRig`) without a suspension, the slip angle rotated the
+  wheel about a vertical axis 0.3 m to the side of the wheel center, which moved the wheel fore and aft
+  relative to the carrier. With a time-varying slip angle, the hub speed therefore differed from the
+  prescribed longitudinal speed, and the longitudinal slip oscillated (for example, between 0.10 and
+  0.54 instead of a constant 0.28 for the Viper wheel YAML demo). The slip angle is now imposed about
+  the vertical axis through the wheel center. In addition, the reported steering angle of a wheel
+  without a suspension is now zero; it previously repeated the imposed slip angle with opposite sign.
 
 # Release 10.0.0 (2026-03-27)
 
@@ -701,6 +968,22 @@ Two separate FSI-aware fluid solver libraries can be built:
 2. Chrono::FSI-TDPF, which provides a Time-Dependent Potential Flow fluid solver.
 
 For details on the new code structure and the two fluid solvers, see the [documentation](https://api.projectchrono.org/manual_fsi.html) page.
+
+## [Changed] Renamed data path functions in Chrono::Vehicle and Chrono::Synchrono
+
+The functions that set and query the location of data files in Chrono::Vehicle and Chrono::Synchrono were renamed to follow the pattern of the core Chrono functions (`SetChronoDataPath`, `GetChronoDataPath`, and `GetChronoDataFile`):
+
+| Old name                  | New name                            |
+| :------------------------ | :---------------------------------- |
+| `vehicle::SetDataPath`    | `vehicle::SetVehicleDataPath`       |
+| `vehicle::GetDataPath`    | `vehicle::GetVehicleDataPath`       |
+| `vehicle::GetDataFile`    | `vehicle::GetVehicleDataFile`       |
+| `synchrono::SetDataPath`  | `synchrono::SetSynchronoDataPath`   |
+| `synchrono::GetDataPath`  | `synchrono::GetSynchronoDataPath`   |
+| `synchrono::GetDataFile`  | `synchrono::GetSynchronoDataFile`   |
+
+The Python and C# wrappers use the new names; for example, `veh.SetDataPath` in older PyChrono scripts is now `veh.SetVehicleDataPath`.
+Note that PyChrono sets the Chrono and Chrono::Vehicle data paths when the package is imported, so Python scripts need these functions only to look up data files (e.g., `veh.GetVehicleDataFile`) or to override the default location.
 
 ## [Added] Chrono::Peridynamics module
 

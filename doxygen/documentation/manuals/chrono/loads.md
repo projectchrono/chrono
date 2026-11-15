@@ -39,7 +39,7 @@ The @ref chrono::ChForce "ChForce" can be applied directly to a @ref chrono::ChB
   body->AddForce(force)
 
   // AFTER calling AddForce
-  force->SetMforce(10);
+  force->SetForceMagnitude(10);
 ~~~
 
 Please mind that:

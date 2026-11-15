@@ -96,7 +96,7 @@ prismatic1.ForceZ().SetActuatorModulation(mod)
 
 # Actuate second slider using a body force
 frc2 = chrono.ChForce()
-frc2.SetF_x(mod)
+frc2.SetForceModulationX(mod)
 slider2.AddForce(frc2)
 
 # Create the Irrlicht application

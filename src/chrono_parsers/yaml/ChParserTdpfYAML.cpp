@@ -306,6 +306,14 @@ void ChParserTdpfYAML::LoadModelData(const YAML::Node& yaml) {
     ChAssertAlways(model["h5_file"]);
     m_h5_file = model["h5_file"].as<std::string>();
 
+    // Read optional points about which the hydrodynamic coefficients are given (one per body, in HDF5 body order)
+    if (model["h5_reference_points"]) {
+        auto points = model["h5_reference_points"];
+        ChAssertAlways(points.IsSequence());
+        for (size_t i = 0; i < points.size(); i++)
+            m_h5_ref_points.push_back(ReadVector(points[i]));
+    }
+
     // Read wave information
     if (model["waves"]) {
         auto waves = model["waves"];
@@ -408,12 +416,15 @@ std::shared_ptr<fsi::tdpf::ChFsiSystemTDPF> ChParserTdpfYAML::CreateFsiSystemTDP
     auto h5_file = m_file_handler.GetFilename(m_h5_file);
     if (m_verbose) {
         cout << "HDF5 hydro file:  " << h5_file << endl;
+        for (const auto& p : m_h5_ref_points)
+            cout << "  reference point: " << p << endl;
         // Reported before any override: in a coupled FSI run, ChParserFsiYAML subsequently applies the
         // gravity from the FSI simulation file to both phases.
         cout << "fluid gravity:    " << m_gravity << "  (overridden by the FSI simulation file, if any)" << endl;
     }
     m_sysTDPF = chrono_types::make_unique<fsi::tdpf::ChFsiFluidSystemTDPF>();
     m_sysTDPF->SetHydroFilename(h5_file);
+    m_sysTDPF->SetHydroReferencePoints(m_h5_ref_points);
     m_sysTDPF->SetGravitationalAcceleration(m_gravity);
 
     // Set the sea state (note that the number of bodies is set during initialization

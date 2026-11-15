@@ -1,0 +1,38 @@
+{
+  "Name": "UTV trailer leafspring axle",
+  "Type": "Suspension",
+  "Template": "LeafspringAxle",
+
+  "Spindle": {
+    "Mass": 1.0,
+    "COM": [ 0, 0.616, 0 ],
+    "Inertia": [ 0.005, 0.005, 0.005 ],
+    "Radius": 0.05,
+    "Width": 0.06
+  },
+
+  "Axle Tube": {
+    "Mass": 20.0,
+    "COM": [ 0, 0, 0 ],
+    "Inertia": [ 2.5, 0.02, 2.5 ],
+    "Radius": 0.035
+  },
+
+  // Static deflection about 3 cm with a full water tank
+  "Spring": {
+    "Location Chassis": [ 0, 0.42, 0.12 ],
+    "Location Axle": [ 0, 0.42, 0 ],
+    "Spring Coefficient": 70000,
+    "Free Length": 0.15
+  },
+
+  "Shock": {
+    "Location Chassis": [ 0.1, 0.42, 0.12 ],
+    "Location Axle": [ 0.1, 0.42, 0 ],
+    "Damping Coefficient": 2500
+  },
+
+  "Axle": {
+    "Inertia": 0.4
+  }
+}

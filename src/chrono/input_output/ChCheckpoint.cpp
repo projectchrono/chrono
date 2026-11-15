@@ -17,10 +17,23 @@
 // =============================================================================
 
 #include "chrono/input_output/ChCheckpoint.h"
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChMesh.h"
+#endif
 
 namespace chrono {
 
 ChCheckpoint::ChCheckpoint(Type type) : m_type(type), m_time(0) {}
+
+// List of components checkpointed generically: whole FEA meshes, then other physics items
+static std::vector<std::shared_ptr<ChPhysicsItem>> GetItemList(const ChAssembly::Components& components) {
+    std::vector<std::shared_ptr<ChPhysicsItem>> items;
+#ifdef CHRONO_FEA
+    items.insert(items.end(), components.meshes.begin(), components.meshes.end());
+#endif
+    items.insert(items.end(), components.items.begin(), components.items.end());
+    return items;
+}
 
 void ChCheckpoint::Save(ChSystem* sys) {
     ChAssertAlways(m_type == Type::SYSTEM);
@@ -45,6 +58,7 @@ void ChCheckpoint::Save(const ChAssembly::Components& components) {
     SaveBodyBodyLoads(components.bushings);
     SaveLinMotors(components.lin_motors);
     SaveRotMotors(components.rot_motors);
+    SaveItems(GetItemList(components));
 }
 
 void ChCheckpoint::Load(ChSystem* sys) {
@@ -69,6 +83,8 @@ void ChCheckpoint::Load(ChAssembly::Components& components) {
     LoadBodyBodyLoads(components.bushings);
     LoadLinMotors(components.lin_motors);
     LoadRotMotors(components.rot_motors);
+    auto items = GetItemList(components);
+    LoadItems(items);
 }
 
 std::string ChCheckpoint::GetFormatAsString(Format format) {

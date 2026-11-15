@@ -10,6 +10,10 @@ A Chrono YAML SPH simulation file defines the setup for a Chrono::FSI-SPH simula
 - [optional] The `output` object which specifies output options from the SPH simulation.
 - [optional] The `visualization` object which specifies SPH-specific run-time visualization settings.
 
+An SPH simulation file with CRM physics also specifies the CRM terrain of a
+[wheel test rig simulation](@ref YAML_schema_wheel_rig_simulation). In that case, only its model, solver, and
+visualization settings are used; see the [wheel test rig terrain](@ref YAML_wheel_rig_terrain_crm) page for details.
+
 ## FSI-SPH simulation specification
 
 An FSI-SPH simulation must specify the SPH model to be simulated, SPH solver settings, as well as optional output and SPH-specific run-time visualization settings.
@@ -72,21 +76,35 @@ The `color_map` key, if present, specifies the following properties:
 
 ##### Marker visibility
 
-The `visibility` key, if present, hides markers based on their position relative to a set of planes:
+The `visibility` key, if present, hides markers based on their position relative to a set of planes, for example to
+cut away part of the domain and reveal immersed solids. A marker is *in front of* a plane if it lies on the side the
+plane normal points to. With `mode: ALL`, a marker is hidden if it is in front of all planes; with `mode: ANY`, a
+marker is hidden if it is in front of at least one plane.
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
-| `planes` | List of planes defining the half-spaces | array | -- | Yes | -- |
-| `mode` | Whether a marker must satisfy all half-spaces or any one of them | enum | `ALL`,`ANY` | No | `ALL` |
+| `planes` | List of cutting planes | array | -- | Yes | -- |
+| `mode` | Hide markers in front of all planes (`ALL`) or in front of at least one plane (`ANY`) | enum | `ALL`,`ANY` | No | `ALL` |
 | `SPH` | Apply the visibility criterion to SPH particles | boolean | -- | No | `true` |
-| `BCE` | Apply the visibility criterion to BCE markers | boolean | -- | No | `true` |
+| `BCE` | Apply the visibility criterion to boundary (wall) BCE markers | boolean | -- | No | `true` |
 
 Each entry of `planes` specifies the following properties (both required):
 
 | Property | Description | Type | Available Values | Required | Default | 
 |----------|-------------|------|------------------|----------|---------|
 | `point` | A point on the plane | array[3] | -- | Yes | -- |
-| `normal` | Plane normal direction | array[3] | -- | Yes | -- |
+| `normal` | Plane normal direction, pointing toward the side whose markers are hidden | array[3] | -- | Yes | -- |
+
+The visibility criterion does not apply to rigid-body and flexible-body BCE markers, which are always rendered (if
+enabled with `rigid_bce_markers` and `flex_bce_markers`). For example, the following hides all SPH particles and wall
+BCE markers with negative y coordinate, revealing a solid in the plane y = 0 to a camera looking along +y:
+
+~~~{.yaml}
+visibility:
+  planes:
+    - point: [0, 0, 0]
+      normal: [0, -1, 0]
+~~~
 
 ##### Surface reconstruction
 
@@ -104,7 +122,7 @@ The following optional properties can be set:
 
 Below is an example of an FSI-SPH simulation configuration:
 
-\include data/yaml/fsi/sphere_decay/sph.yaml
+\include data/yaml/fsi/dam_break/sph.yaml
 
 ## YAML schema
 

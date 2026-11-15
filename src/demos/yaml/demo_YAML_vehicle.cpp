@@ -116,8 +116,10 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-    // Create output directory
-    if (parser.OutputEnabled()) {
+    // Create output directory (if generating output or saving run-time visualization images)
+    bool output = parser.OutputEnabled();
+    bool save_images = render && parser.WriteImages();
+    if (output || save_images) {
         std::string out_dir = GetChronoOutputPath() + "YAML_VEHICLE";
         if (!CreateOutputDirectory(std::filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -130,8 +132,10 @@ int main(int argc, char* argv[]) {
         }
         parser.SetOutputDir(out_dir);
 
-        double out_step = 1.0 / parser.GetOutputFPS();
-        vehicle->SetOutput(parser.GetOutputFormat(), parser.GetOutputMode(), out_dir, model_name, out_step);
+        if (output) {
+            double out_step = 1.0 / parser.GetOutputFPS();
+            vehicle->SetOutput(parser.GetOutputFormat(), parser.GetOutputMode(), out_dir, model_name, out_step);
+        }
     }
 
     // Simulation loop

@@ -29,7 +29,7 @@
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChWheelTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChForceElementTire.h"
 #ifdef CHRONO_FEA
-    #include "chrono_vehicle/wheeled_vehicle/tire/ChDeformableTire.h"
+    #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 #endif
 
 #include "chrono_vsg/ChVisualSystemVSG.h"
@@ -70,6 +70,10 @@ std::string tire_json = "Polaris/Polaris_TMeasyTire.json";
 // Wheel specification file
 ////std::string wheel_json = "hmmwv/wheel/HMMWV_Wheel.json";
 std::string wheel_json = "Polaris/Polaris_Wheel.json";
+
+// Normal load (static wheel load, appropriate for the selected vehicle)
+double normal_load = 3000;  // Polaris
+////double normal_load = 6500;  // HMMWV
 
 double render_fps = 120;
 bool debug_output = false;
@@ -164,7 +168,7 @@ int main() {
     ChWheelTestRig rig(*sys, wheel, tire);
 
     rig.SetGravitationalAcceleration(9.8);
-    rig.SetNormalLoad(3000);
+    rig.SetNormalLoad(normal_load);
 
     ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
@@ -231,7 +235,7 @@ int main() {
 
 #ifdef CHRONO_FEA
     // Optionally, modify tire visualization (can be done only after initialization)
-    if (auto tire_def = std::dynamic_pointer_cast<ChDeformableTire>(tire)) {
+    if (auto tire_def = std::dynamic_pointer_cast<ChFEATire>(tire)) {
         auto visFEA = chrono_types::make_shared<ChVisualShapeFEA>();
         visFEA->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
         visFEA->SetShellResolution(3);
@@ -320,6 +324,12 @@ int main() {
 
         rig.Advance(step_size);
         sim_time += sys->GetTimerStep();
+
+        // End the simulation when the wheel reaches the end of the terrain patch
+        if (rig.PatchEndReached()) {
+            cout << "\nEnd of terrain patch reached at t = " << sys->GetChTime() << endl;
+            break;
+        }
 
         auto long_slip = rig.GetLongitudinalSlip();
         auto slip_angle = rig.GetSlipAngle() * CH_RAD_TO_DEG;

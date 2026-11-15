@@ -55,6 +55,89 @@ carries a `6 x 12` block whose second half is the coupling to the other hull.
 A single-body model is the degenerate case of this, with one `6 x 6` block.
 
 
+## Frame convention and reference point {#manual_fsi_tdpf_added_mass_frame}
+
+The 6 x 6 block coupling two bodies relates the force and moment on one body to the acceleration of the
+other. Which accelerations and which axes the coefficients refer to is a convention of the source of the
+coefficients, and must be stated explicitly, because Chrono's own velocity coordinates for a body are the
+velocity of its center of mass (COM) in absolute axes and its angular velocity in the axes of the COM frame.
+
+[ChLoadHydrodynamics](@ref chrono::ChLoadHydrodynamics) interprets the coefficients of each body as
+referring to:
+
+- the velocity of the origin of the **body reference frame**, and
+- the body angular velocity,
+
+both expressed in the axes selected with
+[SetAddedMassFrame](@ref chrono::ChLoadHydrodynamics::SetAddedMassFrame):
+
+- `INERTIAL` (default): inertial (absolute) axes. This is the convention of coefficients computed by a
+  boundary element (BEM) code, which are obtained for the body at its reference position and orientation.
+- `BODY`: the axes of the body reference frame, for coefficients that rotate with the body.
+
+The body reference frame is the one in which the body is defined: the COM frame for a
+[ChBody](@ref chrono::ChBody), and the auxiliary reference frame for a
+[ChBodyAuxRef](@ref chrono::ChBodyAuxRef), relative to which the COM frame is specified.
+
+`ChLoadHydrodynamics` transforms the coefficients to Chrono's velocity coordinates using the current
+orientation of each body. For body \f$i\f$, let \f$R_i\f$ and \f$Q_i\f$ be the orientations of its COM and
+reference frames, and \f$d_i\f$ the position of the COM relative to the origin of the reference frame, in
+absolute axes. The velocities the coefficients refer to are \f$T_i\,[v_i;\,\omega_i]\f$, where \f$v_i\f$
+is the COM velocity in absolute axes, \f$\omega_i\f$ the angular velocity in the axes of the COM frame, and
+
+\f[
+  T_i^{\mathrm{inertial}} = \begin{bmatrix} I & \tilde{d}_i R_i \ 0 & R_i \end{bmatrix}, \qquad
+  T_i^{\mathrm{body}} = \begin{bmatrix} Q_i^T & 0 \ 0 & Q_i^T \end{bmatrix} T_i^{\mathrm{inertial}}.
+\f]
+
+For a `ChBody`, \f$d_i = 0\f$ and \f$Q_i = R_i\f$, so that \f$T_i^{\mathrm{inertial}} = \mathrm{diag}(I, R_i)\f$
+and \f$T_i^{\mathrm{body}} = \mathrm{diag}(R_i^T, I)\f$.
+
+The block coupling bodies \f$i\f$ and \f$j\f$ in the system mass matrix is then
+\f$T_i^T A_{ij} T_j\f$. The added mass is constant in the selected axes; in Chrono's velocity coordinates,
+it varies with the body orientation. The velocity-dependent terms that arise from this variation (for
+example the Munk moment) are not included. This is consistent with the linear potential-flow theory from
+which the coefficients are typically obtained, which assumes small motions about the reference position.
+
+### Coefficients about other points
+
+Coefficients computed about a point other than the origin of the body reference frame must be shifted to
+that origin before they are passed to `ChLoadHydrodynamics`.
+[ComputeShiftTransformation](@ref chrono::ChLoadHydrodynamics::ComputeShiftTransformation) returns, for a
+point \f$p_i\f$ given in the body reference frame, the transformation
+
+\f[
+  S_i = \begin{bmatrix} I & -\tilde{e}_i \ 0 & I \end{bmatrix},
+\f]
+
+where \f$e_i\f$ is \f$p_i\f$ expressed in the axes of the frame convention (\f$e_i = Q_i p_i\f$ for inertial
+axes, \f$e_i = p_i\f$ for body axes), and
+[ShiftBlocks](@ref chrono::ChLoadHydrodynamics::ShiftBlocks) replaces each block \f$A_{ij}\f$ with
+\f$S_i^T A_{ij} S_j\f$. For body axes the shift is exact. For inertial axes it depends on the body
+orientation and is computed once, at the initial orientation; the coefficients are then constant about the
+origin of the body reference frame rather than about the original point, which differs only at second order
+in the motion amplitude, beyond the reach of linear potential-flow theory.
+
+A hydrodynamic data file does not record the point about which its coefficients were computed (the BEM
+rotation center), and this point need not be the center of gravity stored in the file. It is given:
+
+- for a monolithic FSI problem, with the `h5_reference_points` list of the TDPF model specification (or
+  [ChFsiSystemTDPF::SetHydroReferencePoints](@ref chrono::fsi::tdpf::ChFsiSystemTDPF::SetHydroReferencePoints)),
+  one point per body in the order of the bodies in the hydrodynamic file;
+- for a preCICE co-simulation, with the `reference_points` list of the `added_mass` entry of the solid
+  participant specification (or `ChPreciceAdapterMbs::SetAddedMassReferencePoints`), one point per coupling
+  body.
+
+In both cases the points are expressed in the body reference frame, and default to its origin (no shift).
+The simplest setup avoids the shift altogether: model each hydrodynamic body as a `ChBodyAuxRef` whose
+reference frame is placed at the point about which the coefficients were computed, with the COM specified
+relative to it, as in the BEM model itself.
+
+Coefficients read from a hydrodynamic data file are always taken to be in inertial axes. Coefficients given
+explicitly in a preCICE participant specification may be declared in body axes instead, with
+`frame: BODY`.
+
+
 ## Ordering of the FSI bodies
 
 **The association between an FSI body and its hydrodynamic coefficients is by index.** The `i`-th
@@ -107,10 +190,13 @@ created last, which is why the distinction is easy to overlook.
 Added mass makes the mass matrix dense over the variables of the hydrodynamic bodies, and couples them to
 each other. Two consequences are worth noting:
 
-- Schur complement-based solvers (`APGD`, `BARZILAIBORWEIN`, `PSOR`) require the inverse of the total mass
-  matrix. `ChLoadHydrodynamics` assembles the system mass matrix including the added mass blocks, inverts
-  it, and provides the result to the system descriptor. This is done once, and repeated only if the size of
-  the system problem changes. Other solvers need only the KRM block and skip this work entirely.
+- Schur complement-based solvers (`APGD`, `BARZILAIBORWEIN`) require the inverse of the total mass matrix.
+  `ChLoadHydrodynamics` assembles the system mass matrix including the added mass blocks, inverts it, and
+  provides the result to the system descriptor. Since the added mass depends on the body orientations (see
+  [Frame convention and reference point](@ref manual_fsi_tdpf_added_mass_frame)), this dense inversion is
+  repeated whenever a hydrodynamic body rotates, as well as when the added mass coefficients or the size of
+  the system problem change. Other solvers need only the KRM block and skip this work entirely. `PSOR` does
+  not support the KRM block and cannot be used with added mass.
 - \f$M + A_\infty\f$ must be positive definite. Added mass coefficients from a boundary element solution
   are symmetric only up to the accuracy of that solution, and heavily truncated or poorly converged
   coefficients can violate this. A singular or indefinite total mass matrix shows up as a diverging or

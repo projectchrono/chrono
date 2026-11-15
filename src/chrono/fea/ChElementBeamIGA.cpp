@@ -15,6 +15,7 @@
 //#define BEAM_VERBOSE
 
 #include "chrono/fea/ChElementBeamIGA.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 namespace fea {
@@ -778,6 +779,31 @@ void ChElementBeamIGA::ComputeNF(const double U,
 
 /// Initial setup. Precompute mass and matrices that do not change during the simulation. In particular, compute the
 /// arc-length parametrization.
+
+void ChElementBeamIGA::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChElementBeam::SaveInternalState(writer);
+
+    writer.Write(plastic_data.size());
+    for (size_t i = 0; i < plastic_data.size(); i++) {
+        plastic_data[i]->SaveCheckpoint(writer);
+        plastic_data_old[i]->SaveCheckpoint(writer);
+    }
+}
+
+void ChElementBeamIGA::LoadInternalState(ChCheckpointReader& reader) {
+    ChElementBeam::LoadInternalState(reader);
+
+    size_t n;
+    reader.Read(n);
+    if (n != plastic_data.size()) {
+        std::cerr << "Error: checkpoint IGA beam element has " << n << " plasticity data points; expected " << plastic_data.size() << std::endl;
+        throw std::runtime_error("Checkpoint IGA beam element does not match");
+    }
+    for (size_t i = 0; i < n; i++) {
+        plastic_data[i]->LoadCheckpoint(reader);
+        plastic_data_old[i]->LoadCheckpoint(reader);
+    }
+}
 
 void ChElementBeamIGA::SetupInitial(ChSystem* system) {
     assert(section);

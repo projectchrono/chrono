@@ -17,6 +17,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <limits>
 #include <set>
 
 #include "chrono/core/ChTimer.h"
@@ -86,7 +87,20 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Get the number of elements in the mesh.
     unsigned int GetNumElements() const { return (unsigned int)velements.size(); }
 
+    /// Index value marking mesh nodes that do not support force accumulators (see AddAccumulators).
+    static constexpr unsigned int NO_ACCUMULATOR = std::numeric_limits<unsigned int>::max();
 
+    /// Add a new force accumulator to each node of this mesh.
+    /// This is a convenience function which calls AddAccumulator for all mesh nodes that support force accumulators
+    /// (ChNodeFEAxyz and derived classes, and ChNodeFEAxyzrot). The return vector contains the accumulator index for
+    /// each mesh node, in the same order as in GetNodes(). Nodes that do not support accumulators are skipped and their
+    /// entry is set to NO_ACCUMULATOR. Note that the returned indices may differ from node to node if accumulators
+    /// were previously added to individual nodes.
+    std::vector<unsigned int> AddAccumulators();
+
+    /// Clear the force accumulators with specified indices for all mesh nodes.
+    /// The provided vector of indices must be the one returned by AddAccumulators.
+    void EmptyAccumulators(const std::vector<unsigned int>& indices);
 
     virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
     virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
@@ -227,6 +241,7 @@ class ChApi ChMesh : public ChIndexedNodes {
                                       ChStateDelta& Dv) override;
     virtual void IntStateOnEndStep(double T) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void IntLoadResidual_F_applied(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
                                     const ChVectorDynamic<>& w,
@@ -243,9 +258,9 @@ class ChApi ChMesh : public ChIndexedNodes {
                                     ChVectorDynamic<>& Wv
                                 ) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,
-                                    ChVectorDynamic<>& Md,
-                                    double& err,
-                                    const double c) override;
+                                      ChVectorDynamic<>& Md,
+                                      double& err,
+                                      const double c) override;
     virtual void IntLoadLumpedMass_Md_weighted(const unsigned int off,
                                     ChVectorDynamic<>& Md,
                                     double& err,
@@ -320,16 +335,27 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-  private:
-    /// Initial setup (before analysis).
-    /// This function is called from ChSystem::SetupInitial, marking a point where system
-    /// construction is completed.
-    /// <pre>
-    ///   - Computes the total number of degrees of freedom
-    ///   - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
-    /// </pre>
-    virtual void SetupInitial() override;
+    /// Mark this mesh and all its nodes and elements as not initialized.
+    /// At the next initialization, elements record a new reference configuration from the current node states.
+    virtual void ResetInitialization() override;
 
+    /// Return true if all nodes and elements of this mesh support checkpointing of their internal state.
+    virtual bool SupportsCheckpoint() const override;
+
+    /// Save the internal state of the nodes and elements of this mesh.
+    /// Also saves the numbers of nodes, elements and fixed nodes, which are checked when loading.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of the nodes and elements of this mesh.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
+  protected:
+    /// Run the specified initialization phase on the nodes and elements of this mesh.
+    /// Phase 1 calls SetupInitial on all nodes, then on all elements, that were not yet initialized. Nodes and
+    /// elements have no phase 2.
+    virtual void InitializeChildren(InitPhase phase) override;
+
+  private:
     std::vector<std::shared_ptr<ChNodeFEAbase>> vnodes;     ///<  nodes
     std::vector<std::shared_ptr<ChElementBase>> velements;  ///<  elements
 

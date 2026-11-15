@@ -10,6 +10,11 @@ set(DEMOS
     demo_DEM_repose
 )
 
+# Programs that require VSG
+if(CH_ENABLE_MODULE_VSG)
+    list(APPEND DEMOS demo_DEM_force_network)
+endif()
+
 # ------------------------------------------------------------------------------
 
 list(APPEND LIBS Chrono_core)

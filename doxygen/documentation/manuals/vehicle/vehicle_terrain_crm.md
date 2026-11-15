@@ -39,7 +39,8 @@ API differences that matter most
    - CRM: `SetCrmSPH(...)` and `SetSPHParameters(...)` (SPH material + solver settings).
 4. Vehicle/solid coupling:
    - SCM: vehicle interaction comes through regular Chrono contact shapes (no explicit FSI registration).
-   - CRM: you must explicitly add interacting solids to FSI (`AddRigidBody(...)`, `AddFeaMesh(...)`), so BCE markers are
+   - CRM: you must explicitly add interacting solids to FSI (`AddRigidBody(...)`, `AddFeaMesh(...)`, or `AddFeaSurface(...)`
+     with the surface mesh of a deformable tire, `ChDeformableTire::GetSurfaceMesh()`), so BCE markers are
      generated.
 5. Time stepping ownership:
    - SCM: usually the vehicle/system step advances terrain effects through contact.
@@ -76,7 +77,7 @@ terrain.RegisterVehicle(vehicle.get());           // recommended in vehicle demo
 terrain.SetCrmSPH(mat_props);
 terrain.SetSPHParameters(sph_params);
 
-terrain.AddRigidBody(spindle, geometry, false);  // or AddFeaMesh(...)
+terrain.AddRigidBody(spindle, geometry, false);  // or AddFeaSurface(tire->GetSurfaceMesh(), false)
 terrain.SetActiveDomain(active_box_dim);         // optional
 
 terrain.Construct(...);                          // box / heightmap / marker files

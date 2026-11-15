@@ -98,6 +98,9 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     /// Get the number of degrees of freedom, derivative.
     virtual unsigned int GetNumCoordsVelLevel() const override { return 9; }
 
+    /// Return true: the internal state of this node is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Get a symbolic 'center' of the node (the position). 
     virtual ChVector3d GetCenter() const override { return VNULL; } // note: there is no physical 3d position for this node class
 
@@ -141,9 +144,6 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                                           ChVectorDynamic<>& Md,
                                           double& error,
                                           const double c) override;
-    virtual void NodeIntLoadIndicator(const unsigned int off,  
-                                        ChVectorDynamic<>& N  
-                                       ) override;
     virtual void NodeIntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R) override;

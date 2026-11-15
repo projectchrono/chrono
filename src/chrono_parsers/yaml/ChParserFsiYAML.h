@@ -72,7 +72,8 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     double GetEndtime() const { return m_sim.end_time; }
 
     /// Set root output directory (default: ".").
-    /// This function creates two additional subdirectories, `mbs` and `fluid`, respectively.
+    /// This function creates the subdirectories `mbs` and `fluid` for the MBS and fluid output, respectively, but only
+    /// for a system that generates output (and an `images` subdirectory if run-time visualization images are saved).
     virtual void SetOutputDir(const std::string& out_dir) override;
 
     /// Return true if generating output.
@@ -96,6 +97,16 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
         std::shared_ptr<utils::ChBodyGeometry> geometry;  ///< FSI geometry
     };
 
+    /// FSI FEA mesh definition.
+    /// The BCE marker settings are used only with an SPH fluid solver.
+    struct FsiMesh {
+        std::string name;            ///< name of the FEA mesh in the MBS model
+        std::string bce_pattern_1D;  ///< BCE marker pattern for 1-D elements (FULL or STAR)
+        std::string bce_pattern_2D;  ///< BCE marker pattern for 2-D elements (CENTERED, OUTWARD, or INWARD)
+        bool remove_center;          ///< eliminate BCE markers on the center line or surface
+        bool check_embedded;         ///< remove SPH particles overlapping the mesh BCE markers
+    };
+
     /// Co-simulation settings.
     struct SimParams {
         SimParams();
@@ -117,6 +128,8 @@ class ChApiParsers ChParserFsiYAML : public ChParserYAML {
     std::shared_ptr<ChSystem> m_sysMBS;
 
     std::vector<FsiBody> m_fsi_bodies;
+    std::vector<FsiMesh> m_fsi_meshes;
+    fsi::NodeDirectionsMode m_node_directions;  ///< method for obtaining FEA node directions
 
     SimParams m_sim;  ///< co-simulation settings
 };

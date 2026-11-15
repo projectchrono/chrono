@@ -38,7 +38,9 @@ ChMulticoreDataManager::ChMulticoreDataManager()
       num_dof(0),
       nnz_bilaterals(0),
       add_contact_callback(nullptr),
-      composition_strategy(new ChContactMaterialCompositionStrategy) {
+      composition_strategy(new ChContactMaterialCompositionStrategy),
+      num_shear_overflows(0),
+      total_shear_overflows(0) {
     node_container = chrono_types::make_shared<Ch3DOFContainer>();
     node_container->data_manager = this;
 }

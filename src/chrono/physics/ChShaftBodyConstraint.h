@@ -65,6 +65,9 @@ class ChApi ChShaftBodyRotation : public ChPhysicsItem {
     /// Get the reaction torque considered as applied to ChBody, expressed in the coordinates of the body.
     ChVector3d GetTorqueReactionOnBody() const { return (shaft_dir * torque_react); }
 
+    /// Return true: the internal state of this constraint is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -157,6 +160,9 @@ class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
 
     /// Get the reaction torque considered as applied to ChBody, expressed in the coordinates of the body.
     ChVector3d GetForceReactionOnBody() const { return (shaft_dir * force_react); }
+
+    /// Return true: the internal state of this constraint is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

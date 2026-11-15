@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChLinkMotorRotation.h"
+#include "chrono/input_output/ChCheckpointBlock.h"
 
 namespace chrono {
 
@@ -128,6 +129,7 @@ void ChLinkMotorRotation::ArchiveOut(ChArchiveOut& archive_out) {
     ChLinkMotor::ArchiveOut(archive_out);
 
     // serialize all member data:
+    archive_out << CHNVP(mrot);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -139,6 +141,21 @@ void ChLinkMotorRotation::ArchiveIn(ChArchiveIn& archive_in) {
     ChLinkMotor::ArchiveIn(archive_in);
 
     // deserialize all member data:
+    archive_in >> CHNVP(mrot);
+}
+
+// The multi-turn rotation angle is accumulated from its value at the previous update, so it cannot be recovered from
+// the body states alone.
+void ChLinkMotorRotation::SaveInternalState(ChCheckpointWriter& writer) const {
+    ChLinkMotor::SaveInternalState(writer);
+
+    writer.Write(mrot);
+}
+
+void ChLinkMotorRotation::LoadInternalState(ChCheckpointReader& reader) {
+    ChLinkMotor::LoadInternalState(reader);
+
+    reader.Read(mrot);
 }
 
 }  // end namespace chrono

@@ -159,6 +159,14 @@ model:
       description: Input file with hydrodynamic data (HDF5 format)
       type: string
 
+    h5_reference_points:
+      description: |
+        Points about which the hydrodynamic coefficients in the HDF5 file are given, one per body, in the order of the
+        bodies in that file. Each point is expressed in the reference frame of the corresponding body.
+        If omitted, the coefficients are assumed to be given about the origins of the body reference frames.
+      type: array
+      items: *VECTOR3D
+
     waves:
       description: |
         Specification of wave conditions.

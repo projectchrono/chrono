@@ -231,6 +231,12 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     // Functions for interfacing to the solver
     //            (***most not needed, thank to bookkeeping in parent class ChElementGeneric)
 
+    /// Save the plasticity data at the integration points.
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the plasticity data at the integration points.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     virtual void EleDoIntegration() override {
         for (size_t i = 0; i < this->plastic_data.size(); ++i) {
             this->plastic_data_old[i]->Copy(*this->plastic_data[i]);

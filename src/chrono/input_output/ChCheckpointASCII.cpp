@@ -18,12 +18,20 @@
 
 #include <iomanip>
 #include <iostream>
+#include <limits>
+#include <set>
+#include <typeinfo>
+#if defined(__GNUG__)
+    #include <cxxabi.h>
+    #include <cstdlib>
+#endif
 
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorLinearDriveline.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationDriveline.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
+#include "chrono/core/ChClassFactory.h"
 
 #include "chrono/input_output/ChCheckpointASCII.h"
 
@@ -33,11 +41,74 @@ using std::endl;
 
 namespace chrono {
 
+// Name and class of an object, for error messages
+static std::string Describe(const ChObj& obj) {
+    const std::type_index type(typeid(obj));
+    std::string name = type.name();
+    if (ChClassFactory::IsClassRegistered(type)) {
+        name = ChClassFactory::GetClassTagName(type);
+    } else {
+#if defined(__GNUG__)
+        int status = 0;
+        char* demangled = abi::__cxa_demangle(name.c_str(), nullptr, nullptr, &status);
+        if (status == 0 && demangled)
+            name = demangled;
+        std::free(demangled);
+#endif
+    }
+    return "'" + obj.GetName() + "' (" + name + ")";
+}
+
+// List the top-level physics items of a system that do not support checkpoints
+static std::string UnsupportedItems(ChSystem& sys) {
+    std::vector<const ChPhysicsItem*> items;
+    const auto& assembly = sys.GetAssembly();
+    for (const auto& item : assembly.GetBodies())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetShafts())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetLinks())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetMeshes())
+        items.push_back(item.get());
+    for (const auto& item : assembly.GetOtherPhysicsItems())
+        items.push_back(item.get());
+    if (sys.GetContactContainer())
+        items.push_back(sys.GetContactContainer().get());
+
+    std::string list;
+    for (const auto item : items) {
+        if (!item->SupportsCheckpoint())
+            list += "\n  " + Describe(*item);
+    }
+    return list;
+}
+
+// A speed motor (ChLinkMotorRotationSpeed, ChLinkMotorLinearSpeed, ChShaftsMotorSpeed) integrates the imposed speed into
+// an internal state (an angle or a position), which it stores in the velocity-level state vector. Access it through
+// the motor's state gather/scatter functions (the solver variable state only holds the result of the last solve).
+static double GetSpeedMotorState(ChPhysicsItem& motor) {
+    ChState x(motor.GetNumCoordsPosLevel(), nullptr);
+    ChStateDelta v(motor.GetNumCoordsVelLevel(), nullptr);
+    double time;
+    motor.IntStateGather(0, x, 0, v, time);
+    return v(0);
+}
+
+static void SetSpeedMotorState(ChPhysicsItem& motor, double state, double time) {
+    ChState x(motor.GetNumCoordsPosLevel(), nullptr);
+    ChStateDelta v(motor.GetNumCoordsVelLevel(), nullptr);
+    double t;
+    motor.IntStateGather(0, x, 0, v, t);
+    v(0) = state;
+    motor.IntStateScatter(0, x, 0, v, time, UpdateFlags::UPDATE_ALL);
+}
+
 ChCheckpointASCII::ChCheckpointASCII(Type type) : ChCheckpoint(type), m_file_read(false), m_np(0), m_nv(0) {
     m_csv.SetDelimiter(" ");
 
-    constexpr auto precision{std::numeric_limits<long double>::digits10 + 1};
-    m_csv.Stream() << std::setprecision(precision);
+    // Write enough digits for doubles to be read back exactly
+    m_csv.Stream() << std::setprecision(std::numeric_limits<double>::max_digits10);
 }
 
 ChCheckpointASCII::~ChCheckpointASCII() {}
@@ -49,7 +120,7 @@ void ChCheckpointASCII::Initialize() {}
 void ChCheckpointASCII::WriteFile(const std::string& filename) {
     std::ofstream ofile(filename);
     ofile << GetTypeAsString(m_type) << endl;
-    ofile << m_time << endl;
+    ofile << std::setprecision(std::numeric_limits<double>::max_digits10) << m_time << endl;
     ofile << m_np << " " << m_nv << endl;
     ofile << m_csv.Stream().str();
     ofile.close();
@@ -106,6 +177,50 @@ void ChCheckpointASCII::ReadFile(const std::string& filename) {
     m_istream = std::istringstream(m_csv.Stream().str());
 }
 
+void ChCheckpointASCII::WriteBlock(const ChCheckpointWriter& block) {
+    static const char* hex = "0123456789abcdef";
+
+    auto& os = m_csv.Stream();
+    const auto& entries = block.GetEntries();
+    os << entries.size();
+    for (const auto& entry : entries) {
+        os << ' ';
+        if (entry.is_bytes) {
+            os << 'x';
+            for (auto b : entry.bytes)
+                os << hex[b >> 4] << hex[b & 0xf];
+        } else {
+            os << entry.value;
+        }
+    }
+    os << '\n';
+}
+
+ChCheckpointReader ChCheckpointASCII::ParseBlock(const std::string& line) {
+    std::istringstream iss(line);
+    size_t n = 0;
+    iss >> n;
+
+    std::vector<ChCheckpointEntry> entries(n);
+    std::string token;
+    for (auto& entry : entries) {
+        if (!(iss >> token)) {
+            cerr << "Error: truncated checkpoint data block" << endl;
+            throw std::runtime_error("Truncated checkpoint data block");
+        }
+        if (token[0] == 'x') {
+            entry.is_bytes = true;
+            entry.bytes.resize((token.size() - 1) / 2);
+            for (size_t i = 0; i < entry.bytes.size(); i++)
+                entry.bytes[i] = static_cast<std::uint8_t>(std::stoi(token.substr(1 + 2 * i, 2), nullptr, 16));
+        } else {
+            entry.value = std::stod(token);
+        }
+    }
+
+    return ChCheckpointReader(std::move(entries));
+}
+
 void ChCheckpointASCII::CheckIfOpen() const {
     if (!m_file_read) {
         cerr << "Error: input checkpoint file not open" << endl;
@@ -118,6 +233,9 @@ void ChCheckpointASCII::CheckIfOpen() const {
 void ChCheckpointASCII::SaveState(ChSystem* sys) {
     CheckIfSystemType();
 
+    // Make sure state counters are current (e.g., for a system that was not yet simulated)
+    sys->Setup();
+
     m_np = sys->GetNumCoordsPosLevel();
     m_nv = sys->GetNumCoordsVelLevel();
     ChState x(m_np, sys);
@@ -127,13 +245,46 @@ void ChCheckpointASCII::SaveState(ChSystem* sys) {
     assert(time == m_time);
     m_csv << x << endl;
     m_csv << v << endl;
+
+    // Accelerations (used by some items, e.g., for inertial forces) and internal state of all physics items (data not
+    // in the state vectors), in one block
+    if (!sys->SupportsCheckpoint()) {
+        cerr << "Error: the system contains physics items whose internal state cannot be checkpointed:" << UnsupportedItems(*sys) << endl;
+        throw std::runtime_error("System internal state cannot be checkpointed");
+    }
+    ChStateDelta a(m_nv, sys);
+    sys->StateGatherAcceleration(a);
+    ChCheckpointWriter internal;
+    sys->SaveInternalState(internal);
+
+    // Lagrange multipliers of the assembly constraints (contact multipliers are not saved, since contacts are
+    // recreated at each step), used by some integrators (e.g., HHT) as part of their history
+    ChVectorDynamic<> L(sys->GetNumConstraints());
+    sys->StateGatherReactions(L);
+    auto nc = sys->GetNumConstraints() - sys->GetContactContainer()->GetNumConstraints();
+
+    // Timestepper internal state, tagged with the timestepper type
+    ChCheckpointWriter timestepper;
+    auto ts = sys->GetTimestepper();
+    if (ts)
+        ts->SaveInternalState(timestepper);
+
+    ChCheckpointWriter writer;
+    writer.Write(a);
+    writer.Write(internal);
+    writer.Write(L.head(nc));
+    writer.Write(ts ? static_cast<int>(ts->GetType()) : -1);
+    writer.Write(timestepper);
+    WriteBlock(writer);
 }
 
 void ChCheckpointASCII::LoadState(ChSystem* sys) {
     CheckIfOpen();
     CheckIfSystemType();
 
-    // Force a calculation of state counters
+    // Force a calculation of state counters.
+    // This also initializes any items not yet initialized, so that they record their reference configuration before
+    // the saved state is loaded.
     sys->Setup();
 
     auto np = sys->GetNumCoordsPosLevel();
@@ -161,7 +312,67 @@ void ChCheckpointASCII::LoadState(ChSystem* sys) {
         iss >> v[i];
     }
 
+    // Load accelerations and the internal state of all physics items, if present (older checkpoint files do not
+    // include them)
+    // Lagrange multipliers and timestepper state follow, if present (older checkpoint files do not include them)
+    bool has_acc = false;
+    bool has_reactions = false;
+    ChStateDelta a(nv, sys);
+    ChVectorDynamic<> L_saved;
+    ChCheckpointReader internal;
+    if (std::getline(m_istream, line) && !line.empty()) {
+        auto reader = ParseBlock(line);
+        reader.Read(a);
+        reader.Read(internal);
+        if (a.size() != nv) {
+            cerr << "Error: inconsistent number of accelerations" << endl;
+            throw std::runtime_error("Inconsistent number of accelerations");
+        }
+        has_acc = true;
+
+        if (!reader.IsAtEnd()) {
+            int ts_type;
+            ChCheckpointReader timestepper;
+            reader.Read(L_saved);
+            reader.Read(ts_type);
+            reader.Read(timestepper);
+            reader.CheckAtEnd();
+
+            auto nc = sys->GetNumConstraints() - sys->GetContactContainer()->GetNumConstraints();
+            if (L_saved.size() != nc) {
+                cerr << "Error: inconsistent number of constraints" << endl;
+                throw std::runtime_error("Inconsistent number of constraints");
+            }
+            has_reactions = true;
+
+            // Restore the timestepper state only for the same type of timestepper
+            auto ts = sys->GetTimestepper();
+            if (ts && static_cast<int>(ts->GetType()) == ts_type) {
+                ts->LoadInternalState(timestepper);
+                timestepper.CheckAtEnd();
+            }
+        }
+    }
+
     sys->StateScatter(x, v, m_time, UpdateFlags::UPDATE_ALL);
+    if (has_acc)
+        sys->StateScatterAcceleration(a);
+    if (has_reactions) {
+        // Keep the current contact multipliers, if any; contacts are recreated at the next step
+        ChVectorDynamic<> L(sys->GetNumConstraints());
+        sys->StateGatherReactions(L);
+        L.head(L_saved.size()) = L_saved;
+        sys->StateScatterReactions(L);
+    }
+
+    // Internal state last, since it may refine data set by the scatter (e.g., quaternion derivatives of bodies); then
+    // update the system with the complete state. Visual assets were updated by the scatter; they are not updated again,
+    // since some items (e.g., gears) set data there that depends on the previous step and is restored as internal state.
+    if (has_acc) {
+        sys->LoadInternalState(internal);
+        internal.CheckAtEnd();
+        sys->Update(UpdateFlags::UPDATE_ALL_NO_VISUAL);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -199,7 +410,10 @@ void ChCheckpointASCII::SaveShafts(const std::vector<std::shared_ptr<ChShaft>>& 
 void ChCheckpointASCII::SaveJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
     CheckIfComponentType();
 
-    // No states
+    // No states, but internal states (e.g., the total rotations of gears and pulleys), all on one line
+    ChCheckpointWriter internal;
+    internal.WriteIndexedBlocks(joints.size(), [&joints](size_t i, ChCheckpointWriter& block) { joints[i]->SaveInternalState(block); });
+    WriteBlock(internal);
 }
 
 void ChCheckpointASCII::SaveCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
@@ -207,7 +421,7 @@ void ChCheckpointASCII::SaveCouples(const std::vector<std::shared_ptr<ChShaftsCo
 
     for (const auto& motor : couples) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChShaftsMotorSpeed>(motor)) {
-            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_csv << GetSpeedMotorState(*motor_speed) << endl;
             m_np += 1;
         }
     }
@@ -227,7 +441,12 @@ void ChCheckpointASCII::SaveLinSprings(const std::vector<std::shared_ptr<ChLinkT
 void ChCheckpointASCII::SaveRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     CheckIfComponentType();
 
-    // No states
+    // No states, but an internal state (the number of full turns)
+    for (const auto& spring : springs) {
+        ChCheckpointWriter internal;
+        spring->SaveInternalState(internal);
+        WriteBlock(internal);
+    }
 }
 
 void ChCheckpointASCII::SaveBodyBodyLoads(const std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
@@ -241,7 +460,7 @@ void ChCheckpointASCII::SaveLinMotors(const std::vector<std::shared_ptr<ChLinkMo
 
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(motor)) {
-            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_csv << GetSpeedMotorState(*motor_speed) << endl;
             m_np += 1;
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
             auto s1 = motor_drvl->GetInnerShaft1Lin();
@@ -260,7 +479,7 @@ void ChCheckpointASCII::SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMo
 
     for (const auto& motor : motors) {
         if (auto motor_speed = std::dynamic_pointer_cast<ChLinkMotorRotationSpeed>(motor)) {
-            m_csv << motor_speed->Variables().State()(0, 0) << endl;
+            m_csv << GetSpeedMotorState(*motor_speed) << endl;
             m_np += 1;
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
             auto s1 = motor_drvl->GetInnerShaft1();
@@ -270,6 +489,49 @@ void ChCheckpointASCII::SaveRotMotors(const std::vector<std::shared_ptr<ChLinkMo
             m_np += 2;
             m_nv += 2;
         }
+
+        // Internal state (the multi-turn rotation angle)
+        ChCheckpointWriter internal;
+        motor->SaveInternalState(internal);
+        WriteBlock(internal);
+    }
+}
+
+void ChCheckpointASCII::SaveItems(const std::vector<std::shared_ptr<ChPhysicsItem>>& items) {
+    CheckIfComponentType();
+
+    for (const auto& item : items) {
+        if (!item->SupportsCheckpoint()) {
+            cerr << "Error: the internal state of physics item " << Describe(*item) << " cannot be checkpointed" << endl;
+            throw std::runtime_error("Physics item internal state cannot be checkpointed");
+        }
+
+        // Coordinates, accelerations and reactions, gathered with local offsets
+        auto np = item->GetNumCoordsPosLevel();
+        auto nv = item->GetNumCoordsVelLevel();
+        auto nc = item->GetNumConstraints();
+        ChState x(np, nullptr);
+        ChStateDelta v(nv, nullptr);
+        ChStateDelta a(nv, nullptr);
+        ChVectorDynamic<> L(nc);
+        double time;
+        item->IntStateGather(0, x, 0, v, time);
+        item->IntStateGatherAcceleration(0, a);
+        item->IntStateGatherReactions(0, L);
+
+        ChCheckpointWriter internal;
+        item->SaveInternalState(internal);
+
+        ChCheckpointWriter writer;
+        writer.Write(x);
+        writer.Write(v);
+        writer.Write(a);
+        writer.Write(L);
+        writer.Write(internal);
+        WriteBlock(writer);
+
+        m_np += np;
+        m_nv += nv;
     }
 }
 
@@ -346,7 +608,15 @@ void ChCheckpointASCII::LoadJoints(std::vector<std::shared_ptr<ChLink>>& joints)
     CheckIfOpen();
     CheckIfComponentType();
 
-    // No states
+    // No states, but internal states (e.g., the total rotations of gears and pulleys), all on one line
+    std::string line;
+    if (!std::getline(m_istream, line)) {
+        cerr << "Error: missing checkpoint data for joints" << endl;
+        throw std::runtime_error("Missing checkpoint data for joints");
+    }
+    auto internal = ParseBlock(line);
+    internal.ReadIndexedBlocks(joints.size(), [&joints](size_t i, ChCheckpointReader& block) { joints[i]->LoadInternalState(block); });
+    internal.CheckAtEnd();
 }
 
 void ChCheckpointASCII::LoadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
@@ -361,7 +631,7 @@ void ChCheckpointASCII::LoadCouples(std::vector<std::shared_ptr<ChShaftsCouple>>
             std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
-            motor_speed->Variables().State()(0, 0) = state;
+            SetSpeedMotorState(*motor_speed, state, m_time);
         }
     }
 }
@@ -388,7 +658,17 @@ void ChCheckpointASCII::LoadRotSprings(std::vector<std::shared_ptr<ChLinkRSDA>>&
     CheckIfOpen();
     CheckIfComponentType();
 
-    // No states
+    // No states, but an internal state (the number of full turns)
+    std::string line;
+    for (auto& spring : springs) {
+        if (!std::getline(m_istream, line)) {
+            cerr << "Error: missing checkpoint data for RSDA '" << spring->GetName() << "'" << endl;
+            throw std::runtime_error("Missing checkpoint data for RSDA");
+        }
+        auto internal = ParseBlock(line);
+        spring->LoadInternalState(internal);
+        internal.CheckAtEnd();
+    }
 }
 
 void ChCheckpointASCII::LoadBodyBodyLoads(std::vector<std::shared_ptr<ChLoadBodyBody>>& loads) {
@@ -413,7 +693,7 @@ void ChCheckpointASCII::LoadLinMotors(std::vector<std::shared_ptr<ChLinkMotorLin
             std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
-            motor_speed->Variables().State()(0, 0) = state;
+            SetSpeedMotorState(*motor_speed, state, m_time);
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorLinearDriveline>(motor)) {
             std::getline(m_istream, line);
             std::istringstream iss(line);
@@ -446,7 +726,7 @@ void ChCheckpointASCII::LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
             std::getline(m_istream, line);
             std::istringstream iss(line);
             iss >> state;
-            motor_speed->Variables().State()(0, 0) = state;
+            SetSpeedMotorState(*motor_speed, state, m_time);
         } else if (auto motor_drvl = std::dynamic_pointer_cast<ChLinkMotorRotationDriveline>(motor)) {
             std::getline(m_istream, line);
             std::istringstream iss(line);
@@ -458,6 +738,66 @@ void ChCheckpointASCII::LoadRotMotors(std::vector<std::shared_ptr<ChLinkMotorRot
             s1->SetPosDt(pos1_dt);
             s2->SetPosDt(pos2_dt);
         }
+
+        // Internal state (the multi-turn rotation angle), loaded last since setting the motor state updates the motor
+        if (!std::getline(m_istream, line)) {
+            cerr << "Error: missing checkpoint data for rotation motor '" << motor->GetName() << "'" << endl;
+            throw std::runtime_error("Missing checkpoint data for rotation motor");
+        }
+        auto internal = ParseBlock(line);
+        motor->LoadInternalState(internal);
+        internal.CheckAtEnd();
+    }
+}
+
+void ChCheckpointASCII::LoadItems(std::vector<std::shared_ptr<ChPhysicsItem>>& items) {
+    CheckIfOpen();
+    CheckIfComponentType();
+
+    // Set up the containing systems. This also initializes items not yet initialized, so that they record their
+    // reference configuration before the saved state is loaded.
+    std::set<ChSystem*> systems;
+    for (const auto& item : items) {
+        if (item->GetSystem())
+            systems.insert(item->GetSystem());
+    }
+    for (auto sys : systems)
+        sys->Setup();
+
+    std::string line;
+    for (const auto& item : items) {
+        if (!std::getline(m_istream, line)) {
+            cerr << "Error: missing checkpoint data for physics item '" << item->GetName() << "'" << endl;
+            throw std::runtime_error("Missing checkpoint data for physics item");
+        }
+        auto reader = ParseBlock(line);
+
+        ChState x(1, nullptr);
+        ChStateDelta v(1, nullptr);
+        ChStateDelta a(1, nullptr);
+        ChVectorDynamic<> L;
+        ChCheckpointReader internal;
+        reader.Read(x);
+        reader.Read(v);
+        reader.Read(a);
+        reader.Read(L);
+        reader.Read(internal);
+        reader.CheckAtEnd();
+
+        if (x.size() != item->GetNumCoordsPosLevel() || v.size() != item->GetNumCoordsVelLevel() || a.size() != v.size() || L.size() != item->GetNumConstraints()) {
+            cerr << "Error: inconsistent number of states or constraints for physics item '" << item->GetName() << "'" << endl;
+            throw std::runtime_error("Inconsistent number of states or constraints");
+        }
+
+        item->IntStateScatter(0, x, 0, v, m_time, UpdateFlags::UPDATE_ALL);
+        item->IntStateScatterAcceleration(0, a);
+        item->IntStateScatterReactions(0, L);
+
+        // Internal state last, since it may refine data set by the scatter; then update the item (except for visual
+        // assets, as for SYSTEM checkpoints)
+        item->LoadInternalState(internal);
+        internal.CheckAtEnd();
+        item->Update(m_time, UpdateFlags::UPDATE_ALL_NO_VISUAL);
     }
 }
 

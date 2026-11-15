@@ -1,0 +1,128 @@
+# =============================================================================
+# PROJECT CHRONO - http://projectchrono.org
+#
+# Copyright (c) 2026 projectchrono.org
+# All rights reserved.
+#
+# Use of this source code is governed by a BSD-style license that can be found
+# in the LICENSE file at the top level of the distribution and at
+# http://projectchrono.org/license-chrono.txt.
+# =============================================================================
+#
+# Schema for a YAML Chrono::Vehicle single-wheel test rig mechanism specification file.
+# This is the "multibody" side of a WHEEL_RIG simulation (see wheel_rig_simulation.schema): the wheel assembly under
+# test, the rig properties, and the MBS solver.
+# The `chrono-version` must match the Chrono major and minor version numbers.
+#
+# =============================================================================
+
+required: [chrono-version, model, solver]
+
+chrono-version:
+  type: string
+  description: Chrono version compatible with this YAML specification (M.m or M.m.p)
+
+# -----------------------------------------------------------------------------
+# Wheel assembly
+
+model:
+  description: |
+    Definition of the wheel assembly under test, either
+    - VEHICLE: a Chrono::Vehicle wheel, tire, and (optional) suspension, specified through Chrono::Vehicle JSON files
+      (`wheel_json` and `tire_json` required), or
+    - CUSTOM: a wheel assembly provided by the application (e.g., a wheel or wheel-suspension assembly of a robot or
+      vehicle model built outside Chrono::Vehicle), created by a factory that the application registers with the
+      YAML parser under the name given by `assembly` (required).
+  type: object
+  properties:
+    type:
+      type: string
+      description: Type of wheel assembly
+      enum: [VEHICLE, CUSTOM]
+      default: VEHICLE
+    name:
+      type: string
+      description: Name of the model
+      default: ''
+    assembly:
+      type: string
+      description: Name of the registered factory for a CUSTOM wheel assembly (CUSTOM type only)
+    parameters:
+      type: object
+      description: |
+        Parameters of a CUSTOM wheel assembly (CUSTOM type only). This object is passed unchanged to the factory of
+        the custom wheel assembly; its content is defined by the application.
+    angle_degrees:
+      type: boolean
+      description: Whether angles in this file (`rig.camber_angle`) are specified in degrees (true) or radians (false)
+      default: true
+    data_path:
+      type: object
+      description: Location of the JSON data files referenced in this model specification
+      required: [type]
+      properties:
+        type:
+            type: string
+            description: Mode for data file location
+            enum: [ABSOLUTE, RELATIVE]
+            default: ABSOLUTE
+        root:
+            type: string
+            description: Root of data files, relative to the location of this script
+            default: "."
+    wheel_json:
+      description: JSON file for wheel subsystem specification (VEHICLE type only)
+      type: string
+    tire_json:
+      description: |
+        JSON file for tire subsystem specification (VEHICLE type only).
+        Handling (force-element) tires have no collision geometry and can only be used with RIGID terrain.
+        FEA (deformable) tires are not supported.
+      type: string
+    suspension_json:
+      description: |
+        JSON file for an optional suspension subsystem to which the wheel is attached (VEHICLE type only).
+        With a suspension, the suspension geometry dictates camber and slip angle, so `rig.camber_angle` and the
+        test `slip_angle` are ignored. A steerable suspension can be steered through the test `steering` input.
+        For an independent suspension, the vertical travel of the other side (not supported by the terrain) is locked.
+      type: string
+    tire:
+      type: object
+      description: Optional tire settings (VEHICLE type only)
+      properties:
+        collision_type:
+          type: string
+          description: Tire-terrain collision detection type (handling tires only)
+          enum: [SINGLE_POINT, FOUR_POINTS, ENVELOPE]
+          default: SINGLE_POINT
+
+# -----------------------------------------------------------------------------
+# Rig properties
+
+rig:
+  description: Test rig properties
+  type: object
+  properties:
+    normal_load:
+      description: |
+        Desired normal load on the wheel (N), typically the static wheel load of the vehicle the wheel belongs to.
+        Can be overridden for a given test through `test.normal_load` in the simulation file.
+        The rig mass is set so that the total weight supported by the wheel equals this load. With a suspension,
+        the suspension is held at its static equilibrium configuration under this load during the drop phase.
+      type: number
+      minimum: 0
+      default: 1000
+    camber_angle:
+      description: Constant wheel camber angle (ignored if a suspension is specified)
+      type: number
+      default: 0
+
+# -----------------------------------------------------------------------------
+# MBS solver
+
+solver:
+  description: |
+      MBS solver specification YAML file, with the path relative to this file.
+      The file must follow the mbs_solver.schema. Its integrator time step is the step size for the multibody system
+      and the wheel assembly dynamics.
+  type: string

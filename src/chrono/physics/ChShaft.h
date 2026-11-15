@@ -133,6 +133,9 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Returns reference to the encapsulated ChVariables,
     ChVariablesShaft& Variables() { return variables; }
 
+    /// Return true: the internal state of this shaft is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

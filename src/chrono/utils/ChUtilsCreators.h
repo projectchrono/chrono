@@ -275,21 +275,23 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(
 
 /// Create a fixed body with collision and visualization representing a cylindrical volume.
 /// The volume geometry is modeled using boxes. The container is aligned with the z direction with the center of the
-/// bottom at the body origin. Optionally, the side boxes in the first quadrant are not visualized.
-ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
-    ChSystem* system,                                      ///< containing system
-    ChContactMaterialSharedPtr mat,                        ///< contact material
-    double radius,                                         ///< container inner radius
-    double height,                                         ///< container inner height
-    double thickness,                                      ///< wall thickness
-    int numBoxes,                                          ///< number of circumference boxes
-    const ChVector3d& pos = ChVector3d(0, 0, 0),           ///< body position
-    const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),  ///< body orientation
-    bool collide = true,                                   ///< enable collision
-    bool overlap = true,                                   ///< include overlap at box edges
-    bool closed = false,                                   ///< create top
-    bool isBoxBase = true,                                 ///< use a box or a cylinder for bases
-    bool partialVisualization = true                       ///< visualize only half of the boxes
+/// bottom at the body origin. The side wall is a ring of plates tangent to the inner radius. The bottom and the top
+/// are optional, so that the container can also be an open ring. Optionally, the side boxes in the first quadrant are
+/// not visualized.
+ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,                                      ///< containing system
+                                                                  ChContactMaterialSharedPtr mat,                        ///< contact material
+                                                                  double radius,                                         ///< container inner radius
+                                                                  double height,                                         ///< container inner height
+                                                                  double thickness,                                      ///< wall thickness
+                                                                  int numBoxes,                                          ///< number of circumference boxes
+                                                                  const ChVector3d& pos = ChVector3d(0, 0, 0),           ///< body position
+                                                                  const ChQuaterniond& rot = ChQuaterniond(1, 0, 0, 0),  ///< body orientation
+                                                                  bool collide = true,                                   ///< enable collision
+                                                                  bool overlap = true,                                   ///< include overlap at box edges
+                                                                  bool closed = false,                                   ///< create top
+                                                                  bool isBoxBase = true,                                 ///< use a box or a cylinder for bases
+                                                                  bool partialVisualization = true,                      ///< do not visualize the side boxes in the first quadrant
+                                                                  bool bottom = true                                     ///< create bottom
 );
 
 /// Load an object from a Wavefront OBJ file and generate its convex decomposition.

@@ -33,6 +33,9 @@ class ChApi ChElementGeneric : public ChElementBase {
     ChElementGeneric() {}
     virtual ~ChElementGeneric() {}
 
+    /// Return true: the internal state of this element is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// Access the proxy to stiffness, for sparse solver
     ChKRMBlock& Kstiffness() { return Kmatr; }
 

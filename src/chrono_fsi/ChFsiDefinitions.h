@@ -91,24 +91,26 @@ struct FsiMeshForce {
 
 /// Description of an FEA mesh surface with 1-D segments exposed to the FSI system.
 struct FsiMesh1D {
-    unsigned int GetNumElements() const { return contact_surface->GetNumSegments(); }
+    unsigned int GetNumElements() const { return (unsigned int)contact_surface->GetSegmentsXYZ().size(); }
     unsigned int GetNumNodes() const { return (unsigned int)ind2ptr_map.size(); }
 
     size_t index;                                                      ///< mesh index in the list of FSI 1D meshes
     std::shared_ptr<fea::ChContactSurfaceSegmentSet> contact_surface;  ///< FEA contact segments
     std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;     ///< pointer-based to index-based mapping
     std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;     ///< index-based to pointer-based mapping
+    std::vector<unsigned int> fsi_accumulators;                        ///< node force accumulators for fluid forces
 };
 
 /// Description of an FEA mesh surface with 2-D faces exposed to the FSI system.
 struct FsiMesh2D {
-    unsigned int GetNumElements() const { return contact_surface->GetNumTriangles(); }
+    unsigned int GetNumElements() const { return (unsigned int)contact_surface->GetTrianglesXYZ().size(); }
     unsigned int GetNumNodes() const { return (unsigned int)ind2ptr_map.size(); }
 
     size_t index;                                                   ///< mesh index in the list of FSI 2D meshes
     std::shared_ptr<fea::ChContactSurfaceMesh> contact_surface;     ///< FEA trimesh skin
     std::map<std::shared_ptr<fea::ChNodeFEAxyz>, int> ptr2ind_map;  ///< pointer-based to index-based mapping
     std::map<int, std::shared_ptr<fea::ChNodeFEAxyz>> ind2ptr_map;  ///< index-based to pointer-based mapping
+    std::vector<unsigned int> fsi_accumulators;                     ///< node force accumulators for fluid forces
 };
 #endif
 

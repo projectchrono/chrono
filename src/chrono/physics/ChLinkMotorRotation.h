@@ -67,6 +67,12 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+    /// Save the internal state of this motor (the rotation angle, including full turns, at the last update).
+    virtual void SaveInternalState(ChCheckpointWriter& writer) const override;
+
+    /// Load the internal state of this motor, as saved by SaveInternalState.
+    virtual void LoadInternalState(ChCheckpointReader& reader) override;
+
     /// Return a string describing the specified motor spindle constraint type.
     static std::string GetSpindleTypeString(SpindleConstraint type);
 

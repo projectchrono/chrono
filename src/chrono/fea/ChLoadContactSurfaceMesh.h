@@ -36,6 +36,9 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
 
     virtual ~ChLoadContactSurfaceMesh() {}
 
+    /// Return true: the internal state of this load is restored from a checkpoint (see ChPhysicsItem).
+    virtual bool SupportsCheckpoint() const override { return true; }
+
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadContactSurfaceMesh* Clone() const override { return new ChLoadContactSurfaceMesh(*this); }
 
