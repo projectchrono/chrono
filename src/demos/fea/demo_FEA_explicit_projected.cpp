@@ -144,16 +144,16 @@ int main(int argc, char* argv[]) {
     msection->SetShearModulus(0.01e9 * 0.3);
     msection->SetRayleighDamping(0.001);
 
-
-    ChBuilderBeamEuler ebuilder;
-    // Create a beam from a point to another
-    ebuilder.BuildBeam(mesh,                     // the mesh where to put the created nodes and elements
-                      msection,                  // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
-                      7,                         // the number of ChElementBeamEuler to create
-                      ChVector3d(-6, 20, -4),      // point A (beginning of beam)
-                      ChVector3d(12, 20, -4),     // point B (end of beam)
-                      ChVector3d(0, 1, 0));      // the 'Y' up direction of the section for the beam
-
+    for (int iz = 0; iz < 3; ++iz) {
+        ChBuilderBeamEuler ebuilder;
+        // Create a beam from a point to another
+        ebuilder.BuildBeam(mesh,                    // the mesh where to put the created nodes and elements
+                           msection,                // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
+                           7,                       // the number of ChElementBeamEuler to create
+                           ChVector3d(-6, 20, -4 + iz*2),  // point A (beginning of beam)
+                           ChVector3d(12, 20, -4 + iz*2),  // point B (end of beam)
+                           ChVector3d(0, 1, 0));    // the 'Y' up direction of the section for the beam
+    }
     //ebuilder.GetLastBeamNodes().back()->SetFixed(true);
 
     // Create the contact surface
@@ -210,10 +210,12 @@ int main(int argc, char* argv[]) {
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddLight(ChVector3d(70, 120, -90), 290, ChColor(0.7f, 0.7f, 0.7f));
-            vis_irr->AddLight(ChVector3d(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
+            //vis_irr->AddLight(ChVector3d(30, 80, 60), 190, ChColor(0.7f, 0.8f, 0.8f));
             vis_irr->AddCamera(ChVector3d(-15, 14, -30), ChVector3d(0, 5, 0));
             //vis_irr->SetSymbolScale(0.0001f);
             //vis_irr->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
+            vis_irr->AddLightWithShadow(ChVector3d(30, 100, 60), ChVector3d(0.7f, 0.8f, 0.8f), 150, 10, 140, 90, 512, ChColor(0.9f, 0.9f, 0.9f),false,false);
+            vis_irr->EnableShadows();
 
             vis = vis_irr;
 #endif
