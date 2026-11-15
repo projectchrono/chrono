@@ -12,13 +12,7 @@
 // Authors: Kostiantyn Dementiev
 // =============================================================================
 //
-// Unit test for Bullet ray casts against a connected triangle mesh (issue #869).
-//
-// Vertical rays are cast at a tilted cube mesh. Without envelope and thickness,
-// each hit must match the exact ray-triangle intersection. With an envelope and
-// a thickness, the reported point moved back by the envelope along the reported
-// normal must lie on the cube inflated by envelope plus thickness. Rays through
-// edges shared by two triangles of a height field must not miss the mesh.
+// Unit test for Bullet ray casts against a connected triangle mesh.
 //
 // =============================================================================
 
@@ -38,7 +32,7 @@ using namespace chrono;
 
 const double half_side = 0.1;  // cube of side 0.2 m
 
-// Add a fixed, rotated cube mesh to the system, using the given envelope and mesh thickness
+// Add a fixed, rotated cube mesh
 static std::shared_ptr<ChBody> AddCube(ChSystemSMC& sys, double envelope, double radius) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
@@ -73,7 +67,6 @@ static double ExactLowestHit(const ChBody& body, double x, double y, double z0, 
     const double a = half_side;
     const ChVector3d o = body.TransformPointParentToLocal(ChVector3d(x, y, z0));
     const ChVector3d d = body.TransformDirectionParentToLocal(ChVector3d(0, 0, z1 - z0));
-    // slab test on the axis-aligned cube in the body frame
     double tmin = 0, tmax = 1;
     for (int i = 0; i < 3; i++) {
         if (std::abs(d[i]) < 1e-14) {
@@ -154,7 +147,7 @@ TEST(ChCollisionSystemBullet, RayHitConnectedMeshMargin) {
             continue;
         num_hits++;
 
-        // RayHit moves the hit point back by the envelope along the normal
+        // RayHit moves the hit point back by the envelope
         ChVector3d p = r.abs_hitPoint + r.abs_hitNormal * envelope;
         EXPECT_NEAR(p.x(), x, 1e-6) << "x = " << x;
         EXPECT_NEAR(p.y(), y, 1e-6) << "x = " << x;
@@ -165,8 +158,7 @@ TEST(ChCollisionSystemBullet, RayHitConnectedMeshMargin) {
 }
 
 TEST(ChCollisionSystemBullet, RayHitConnectedMeshSharedEdges) {
-    // Height field on [-1,1]^2 with the cells split along their x = y diagonals, so that vertical rays
-    // with x = y pass exactly through edges shared by two triangles
+    // Rays with x = y pass exactly through edges shared by two triangles
     const int n = 16;
     const double h = 2.0 / n;
     auto height = [](double x, double y) { return 0.05 * std::sin(3 * x) * std::cos(2 * y) + 0.02 * x; };
@@ -207,7 +199,6 @@ TEST(ChCollisionSystemBullet, RayHitConnectedMeshSharedEdges) {
         sys.GetCollisionSystem()->RayHit(ChVector3d(t, t, 1), ChVector3d(t, t, -1), r);
         ASSERT_TRUE(r.hit) << "t = " << t;
 
-        // on the shared diagonal edge, the surface height is linear between the two diagonal vertices
         int i = std::min(n - 1, (int)std::floor((t + 1) / h));
         double x0 = -1 + i * h;
         double z_exact = height(x0, x0) + (t - x0) / h * (height(x0 + h, x0 + h) - height(x0, x0));

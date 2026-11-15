@@ -125,7 +125,7 @@ void cbtChTriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbt
 }
 
 bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, const cbtVector3& to, cbtScalar& fraction, cbtVector3& normal) const {
-    // Triangle vertices and segment in the world frame, in double precision
+    // World frame, double precision
     const cbtMatrix3x3& R = t.getBasis();
     const cbtVector3& o = t.getOrigin();
     auto world = [&R, &o](const ChVector3d& p) {
@@ -143,9 +143,8 @@ bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, 
         return false;  // degenerate triangle
     nt.Normalize();
 
-    // Whether the line through Q with direction d crosses the triangle: the signed volumes spanned by d and the
-    // three edges all have the same sign. An edge shared by two mesh triangles gives exactly opposite volumes in
-    // the two, so a line through the shared edge is never missed by both.
+    // Line through Q along d crosses the triangle if the three signed edge volumes share a sign. A shared edge
+    // gives exactly opposite volumes in its two triangles, so a ray through it is never missed by both.
     auto crosses = [&V](const ChVector3d& Q, const ChVector3d& d) {
         const double w0 = Vdot(Vcross(V[0] - Q, V[1] - Q), d);
         const double w1 = Vdot(Vcross(V[1] - Q, V[2] - Q), d);
@@ -153,13 +152,11 @@ bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, 
         return (w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0);
     };
 
-    // Distance of the segment start from the triangle plane, and the plane normal on its side
     double h = Vdot(O - V[0], nt);
     const ChVector3d n = h < 0 ? -nt : nt;
     h = std::abs(h);
 
-    // No hit if the segment starts inside the solid (as with the convex cast): over the face within distance r,
-    // or within distance r of an edge
+    // No hit if the segment starts inside the solid (as with the convex cast)
     if (h <= r && crosses(O, n))
         return false;
     for (int i = 0; i < 3; i++) {
@@ -169,10 +166,10 @@ bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, 
             return false;
     }
 
-    double best = 2;  // fraction of the entry point, a hit if not above 1
+    double best = 2;  // entry fraction, above 1 means no hit
     ChVector3d best_n;
 
-    // Face, offset by r toward the segment start (equivalently, the segment moved by -r n against the triangle)
+    // Face offset by r
     const double dn = Vdot(D, n);
     if (dn < 0) {
         const double s = (r - h) / dn;
@@ -182,7 +179,7 @@ bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, 
         }
     }
 
-    // Cylinders around the edges and spheres around the vertices
+    // Edge cylinders and vertex spheres
     if (r > 0) {
         for (int i = 0; i < 3; i++) {
             const ChVector3d& P = V[i];

@@ -308,8 +308,7 @@ void cbtCollisionWorld::rayTestSingleInternal(const cbtTransform& rayFromTrans, 
 	const cbtCollisionShape* collisionShape = collisionObjectWrap->getCollisionShape();
 	const cbtTransform& colObjWorldTransform = collisionObjectWrap->getWorldTransform();
 
-	/* ***CHRONO*** Mesh triangles: exact segment test instead of the convex cast below, which in single
-	   precision can stop centimeters before the surface */
+	/* ***CHRONO*** Mesh triangles: exact segment test, the convex cast can stop short in single precision */
 	if (collisionShape->getShapeType() == CH_TRIANGLE_SHAPE_PROXYTYPE)
 	{
 		const cbtChTriangleShape* triangleShape = static_cast<const cbtChTriangleShape*>(collisionShape);
