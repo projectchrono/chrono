@@ -57,6 +57,12 @@ class cbtChTriangleShape : public cbtConvexInternalShape {
     virtual cbtVector3 localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const;
     virtual void batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const;
 
+    /// Intersect the segment from `from` to `to` (world frame) with this triangle, placed with transform `t` and
+    /// inflated by the collision margin (the same solid the convex cast sees). If the segment starts outside the
+    /// solid and enters it, return true with the fraction along the segment of the entry point and the outward unit
+    /// normal there (world frame). Computed in closed form, in double precision.
+    bool rayTest(const cbtTransform& t, const cbtVector3& from, const cbtVector3& to, cbtScalar& fraction, cbtVector3& normal) const;
+
     // access vertex points  of triangle
     const chrono::ChVector3d* get_p1() const { return p1; }
     const chrono::ChVector3d* get_p2() const { return p2; }

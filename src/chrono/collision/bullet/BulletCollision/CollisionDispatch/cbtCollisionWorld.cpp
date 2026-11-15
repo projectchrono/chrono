@@ -308,6 +308,23 @@ void cbtCollisionWorld::rayTestSingleInternal(const cbtTransform& rayFromTrans, 
 	const cbtCollisionShape* collisionShape = collisionObjectWrap->getCollisionShape();
 	const cbtTransform& colObjWorldTransform = collisionObjectWrap->getWorldTransform();
 
+	/* ***CHRONO*** Mesh triangles: exact segment test instead of the convex cast below, which in single
+	   precision can stop centimeters before the surface */
+	if (collisionShape->getShapeType() == CH_TRIANGLE_SHAPE_PROXYTYPE)
+	{
+		const cbtChTriangleShape* triangleShape = static_cast<const cbtChTriangleShape*>(collisionShape);
+		cbtScalar hitFraction;
+		cbtVector3 hitNormal;
+		if (triangleShape->rayTest(colObjWorldTransform, rayFromTrans.getOrigin(), rayToTrans.getOrigin(), hitFraction, hitNormal) &&
+			hitFraction < resultCallback.m_closestHitFraction)
+		{
+			cbtCollisionWorld::LocalRayResult localRayResult(collisionObjectWrap->getCollisionObject(), 0, hitNormal, hitFraction);
+			bool normalInWorldSpace = true;
+			resultCallback.addSingleResult(localRayResult, normalInWorldSpace);
+		}
+		return;
+	}
+
 	if (collisionShape->isConvex())
 	{
 		//		BT_PROFILE("rayTestConvex");
