@@ -87,13 +87,14 @@ class SphBceManager {
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager
 
-    thrust::device_vector<Real3> m_totalForceRigid;   ///< Total forces from fluid to bodies
-    thrust::device_vector<Real3> m_totalTorqueRigid;  ///< Total torques from fluid to bodies
+    thrust::device_vector<Real3> m_rigid_block_forces;   ///< Force partial sums for each rigid marker block
+    thrust::device_vector<Real3> m_rigid_block_torques;  ///< Torque partial sums for each rigid marker block
 
     uint m_rigid_block_size;                                  ///< Block size for the rigid force accumulator kernel
     uint m_rigid_grid_size;                                   ///< Grid size for the rigid force accumulator kernel
     thrust::device_vector<uint> m_rigid_valid_threads;        ///< numbers of valid (non-padding) threads in the block
     thrust::device_vector<uint> m_rigid_accumulated_threads;  ///< accumulated numbers of padded threads before a block
+    thrust::device_vector<uint> m_rigid_body_offsets;         ///< First reduction block for each body, plus the end offset
 
     NodeDirections m_node_directions_mode;
     bool m_verbose;

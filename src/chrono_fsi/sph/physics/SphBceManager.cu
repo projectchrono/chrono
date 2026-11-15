@@ -58,8 +58,6 @@ void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> params
 
 SphBceManager::SphBceManager(FsiDataManager& data_mgr, NodeDirections node_directions_mode, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_node_directions_mode(node_directions_mode), m_verbose(verbose), m_check_errors(check_errors) {
-    m_totalForceRigid.resize(0);
-    m_totalTorqueRigid.resize(0);
     m_rigid_block_size = 512;
     m_rigid_grid_size = 0;
 }
@@ -71,10 +69,6 @@ SphBceManager::~SphBceManager() {}
 void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
-
-    // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
-    m_totalForceRigid.resize(m_data_mgr.countersH->numFsiBodies);
-    m_totalTorqueRigid.resize(m_data_mgr.countersH->numFsiBodies);
 
     ////int haveGhost = (m_data_mgr.countersH->numGhostMarkers > 0) ? 1 : 0;
     ////int haveHelper = (m_data_mgr.countersH->numHelperMarkers > 0) ? 1 : 0;
@@ -118,7 +112,9 @@ void SphBceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
     // the global array. This is only required in the very next block
     thrust::host_vector<uint> rigid_valid_threads(0);
     thrust::host_vector<uint> rigid_accumulated_threads(1, 0);
+    thrust::host_vector<uint> rigid_body_offsets(1, 0);
 
+    m_rigid_grid_size = 0;
     uint accumulatedPaddedThreads = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
         // Calculate block requirements with thread padding to ensure that during rigid body force accumulation each
@@ -138,11 +134,15 @@ void SphBceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
             rigid_accumulated_threads.push_back(accumulatedPaddedThreads);
         }
         m_rigid_grid_size += numBlocks;
+        rigid_body_offsets.push_back(m_rigid_grid_size);
     }
 
     // Copy vectors to device
     m_rigid_valid_threads = rigid_valid_threads;
     m_rigid_accumulated_threads = rigid_accumulated_threads;
+    m_rigid_body_offsets = rigid_body_offsets;
+    m_rigid_block_forces.resize(m_rigid_grid_size);
+    m_rigid_block_torques.resize(m_rigid_grid_size);
 }
 
 // -----------------------------------------------------------------------------
@@ -316,8 +316,8 @@ void SphBceManager::updateBCEAcc() {
 // CalcFeaMesh2DForces
 // -----------------------------------------------------------------------------
 
-__global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
-                                  Real3* __restrict__ body_torques,
+__global__ void CalcRigidForces_D(Real3* __restrict__ block_forces,
+                                  Real3* __restrict__ block_torques,
                                   const uint* __restrict__ rigidBodyBlockValidThreads,
                                   const uint* __restrict__ rigidBodyAccumulatedPaddedThreads,
                                   const Real4* __restrict__ derivatives,
@@ -325,7 +325,6 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
                                   const uint* __restrict__ body_IDs,
                                   const Real3* __restrict__ body_pos,
                                   const uint* __restrict__ mapOriginalToSorted,
-                                  const uint numRigidMarkers,
                                   const Real markerMass,
                                   const uint startRigidMarkers) {
     extern __shared__ char sharedMem[];
@@ -345,18 +344,12 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
 
     uint global_index_padded = global_index - paddedThreads;
 
-    if (global_index_padded >= numRigidMarkers)
-        return;
-
-    uint marker_index = global_index_padded + startRigidMarkers;
-    uint sorted_index = mapOriginalToSorted[marker_index];
-
-    // Get body ID for the current marker
-    uint body_ID = body_IDs[global_index_padded];
-
     Real3 Force = make_Real3(0.0f, 0.0f, 0.0f);
     Real3 Torque = make_Real3(0.0f, 0.0f, 0.0f);
     if (threadIdx_x < validThreads) {
+        uint marker_index = global_index_padded + startRigidMarkers;
+        uint sorted_index = mapOriginalToSorted[marker_index];
+        uint body_ID = body_IDs[global_index_padded];
         if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
             Force = mR3(derivatives[sorted_index]);
         else
@@ -386,14 +379,40 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
     }
 
     if (threadIdx_x == 0) {
-        // Atomic addition to global arrays
-        atomicAdd(&body_forces[body_ID].x, sharedForces[0].x);
-        atomicAdd(&body_forces[body_ID].y, sharedForces[0].y);
-        atomicAdd(&body_forces[body_ID].z, sharedForces[0].z);
+        block_forces[blockIdx.x] = sharedForces[0];
+        block_torques[blockIdx.x] = sharedTorques[0];
+    }
+}
 
-        atomicAdd(&body_torques[body_ID].x, sharedTorques[0].x);
-        atomicAdd(&body_torques[body_ID].y, sharedTorques[0].y);
-        atomicAdd(&body_torques[body_ID].z, sharedTorques[0].z);
+__global__ void SumRigidForces_D(Real3* __restrict__ body_forces,
+                                 Real3* __restrict__ body_torques,
+                                 const Real3* __restrict__ block_forces,
+                                 const Real3* __restrict__ block_torques,
+                                 const uint* __restrict__ body_offsets) {
+    extern __shared__ char sharedMem[];
+    Real3* shared_forces = reinterpret_cast<Real3*>(sharedMem);
+    Real3* shared_torques = shared_forces + blockDim.x;
+    Real3 force = mR3(0);
+    Real3 torque = mR3(0);
+    for (uint i = body_offsets[blockIdx.x] + threadIdx.x; i < body_offsets[blockIdx.x + 1]; i += blockDim.x) {
+        force += block_forces[i];
+        torque += block_torques[i];
+    }
+    shared_forces[threadIdx.x] = force;
+    shared_torques[threadIdx.x] = torque;
+    __syncthreads();
+
+    // A fixed reduction tree makes the sum independent of marker-block scheduling.
+    for (uint stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (threadIdx.x < stride) {
+            shared_forces[threadIdx.x] += shared_forces[threadIdx.x + stride];
+            shared_torques[threadIdx.x] += shared_torques[threadIdx.x + stride];
+        }
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        body_forces[blockIdx.x] = shared_forces[0];
+        body_torques[blockIdx.x] = shared_torques[0];
     }
 }
 
@@ -542,21 +561,25 @@ void SphBceManager::CalcRigidBodyForces() {
     if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
 
-    thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
-    thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
-
     // Nothing to do if no FSI body has BCE markers (e.g., a body added only to carry an active domain)
-    if (m_rigid_grid_size == 0)
+    if (m_rigid_grid_size == 0) {
+        thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
+        thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
         return;
+    }
 
     // Calculate shared memory size
     size_t sharedMemSize = 2 * m_rigid_block_size * sizeof(Real3);
 
     CalcRigidForces_D<<<m_rigid_grid_size, m_rigid_block_size, sharedMemSize>>>(
-        mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), U1CAST(m_rigid_valid_threads), U1CAST(m_rigid_accumulated_threads),
-        mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->numRigidMarkers, m_data_mgr.paramsH->markerMass,
-        (uint)m_data_mgr.countersH->startRigidMarkers);
+        mR3CAST(m_rigid_block_forces), mR3CAST(m_rigid_block_torques), U1CAST(m_rigid_valid_threads), U1CAST(m_rigid_accumulated_threads), mR4CAST(m_data_mgr.derivVelRhoD),
+        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), m_data_mgr.paramsH->markerMass, (uint)m_data_mgr.countersH->startRigidMarkers);
+
+    const uint sum_block_size = 128;
+    size_t sum_shared_size = 2 * sum_block_size * sizeof(Real3);
+    SumRigidForces_D<<<m_data_mgr.countersH->numFsiBodies, sum_block_size, sum_shared_size>>>(
+        mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), mR3CAST(m_rigid_block_forces), mR3CAST(m_rigid_block_torques), U1CAST(m_rigid_body_offsets));
 
     if (m_check_errors) {
         gpuCheckError();
