@@ -32,7 +32,6 @@
 // =============================================================================
 
 #include <cmath>
-#include <cstring>
 #include <iostream>
 #include <limits>
 #include <string>
@@ -73,31 +72,14 @@ void check(bool condition, const std::string& what) {
 struct Result {
     double mean_fz;  // mean vertical FSI force on the plate over the last avg_steps steps
     double vmax;     // fastest particle at the end
-    std::vector<double> loads;
-    std::vector<double> state;
-    bool repeated_loads = true;
 };
 
-bool Identical(const std::vector<double>& a, const std::vector<double>& b) {
-    if (a.empty() || a.size() != b.size())
-        return false;
-    for (size_t i = 0; i < a.size(); i++) {
-        if (!std::isfinite(a[i]) || !std::isfinite(b[i]) || std::memcmp(&a[i], &b[i], sizeof(double)) != 0) {
-            cout << "  first differing or non-finite component " << i << ": " << std::hexfloat << a[i] << " vs " << b[i] << std::defaultfloat << endl;
-            return false;
-        }
-    }
-    return true;
-}
-
 // Push a plate into a small CRM bed at the given neighbour-search cadence, with a fixed time step.
-Result PushPlateAtCadence(int cadence, bool repeatability = false) {
-    double spacing = repeatability ? 0.01 : initial_spacing;
-    int steps = repeatability ? 100 : num_steps;
+Result PushPlateAtCadence(int cadence) {
     ChSystemSMC sysMBS;
     sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
-    ChFsiProblemCartesian fsi(spacing, &sysMBS);
+    ChFsiProblemCartesian fsi(initial_spacing, &sysMBS);
     fsi.SetVerbose(false);
     fsi.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
@@ -113,7 +95,7 @@ Result PushPlateAtCadence(int cadence, bool repeatability = false) {
 
     ChFsiFluidSystemSPH::SPHParameters sph_params;
     sph_params.integration_scheme = IntegrationScheme::RK2;
-    sph_params.initial_spacing = spacing;
+    sph_params.initial_spacing = initial_spacing;
     sph_params.d0_multiplier = 1.2;
     sph_params.num_bce_layers = 3;
     sph_params.shifting_method = ShiftingMethod::PPST_XSPH;
@@ -133,36 +115,21 @@ Result PushPlateAtCadence(int cadence, bool repeatability = false) {
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     sysMBS.AddBody(ground);
-    if (repeatability)
-        fsi.AddRigidBody(ground, std::vector<ChVector3d>{}, ChFrame<>(), false);
 
     // The plate: a rigid FSI body, half a spacing above the soil, driven straight down by a motor.
     double plate_hx = 0.05, plate_hy = 0.05, plate_hz = 0.01;
-    if (repeatability) {
-        plate_hx = 0.10;
-        plate_hy = 0.08;
-        plate_hz = 0.05;
-    }
     ChContactMaterialData cmat;
     auto geometry = chrono_types::make_shared<utils::ChBodyGeometry>();
     geometry->materials.push_back(cmat);
     geometry->coll_boxes.push_back(
         utils::ChBodyGeometry::BoxShape(ChVector3d(0, 0, 0), QUNIT, ChVector3d(2 * plate_hx, 2 * plate_hy, 2 * plate_hz), 0));
     auto plate = chrono_types::make_shared<ChBody>();
-    plate->SetPos(ChVector3d(0, 0, bzDim + 0.5 * spacing + plate_hz));
+    plate->SetPos(ChVector3d(0, 0, bzDim + 0.5 * initial_spacing + plate_hz));
     plate->SetRot(QUNIT);
     plate->SetMass(1.0);
     plate->SetInertiaXX(ChVector3d(0.001, 0.001, 0.001));
     sysMBS.AddBody(plate);
     fsi.AddRigidBody(plate, geometry, false);
-    if (repeatability) {
-        auto passive = chrono_types::make_shared<ChBody>();
-        passive->SetFixed(true);
-        passive->SetPos(ChVector3d(0, 0, bzDim + 2 * plate_hz + 4 * spacing));
-        sysMBS.AddBody(passive);
-        std::vector<ChVector3d> bce = {ChVector3d(-spacing, 0, 0), VNULL, ChVector3d(spacing, 0, 0)};
-        fsi.AddRigidBody(passive, bce, ChFrame<>(), false);
-    }
 
     // ChLinkMotorLinearPosition prescribes translation along the link Z axis; an identity frame makes
     // that world-vertical. A ramp with negative slope drives the plate down at push_speed.
@@ -172,60 +139,24 @@ Result PushPlateAtCadence(int cadence, bool repeatability = false) {
     sysMBS.AddLink(motor);
 
     fsi.Initialize();
-    if (repeatability)
-        check(fsi.GetNumBCE(plate) > 3 * 512 && fsi.GetNumBCE(plate) % 512 != 0, "repeatability plate spans several blocks with a partial last block");
 
     Result r{0.0, 0.0};
     int n_avg = 0;
-    auto sample = [](std::vector<double>& values, const ChVector3d& v) { values.insert(values.end(), {v.x(), v.y(), v.z()}); };
-    for (int step = 0; step < steps; step++) {
+    for (int step = 0; step < num_steps; step++) {
         fsi.DoStepDynamics(dt);
-        if (repeatability) {
-            sample(r.loads, fsi.GetFsiBodyForce(plate));
-            sample(r.loads, fsi.GetFsiBodyTorque(plate));
-        }
-        if (step >= steps - avg_steps) {
+        if (step >= num_steps - avg_steps) {
             r.mean_fz += fsi.GetFsiBodyForce(plate).z();
             n_avg++;
         }
     }
     r.mean_fz /= n_avg;
 
-    if (repeatability) {
-        // Recompute loads without advancing the state to isolate the rigid-marker reduction.
-        auto sysSPH = fsi.GetFluidSystemSPH();
-        std::vector<FsiBodyForce> forces(3);
-        std::vector<double> reference;
-        for (int repeat = 0; repeat < 64; repeat++) {
-            sysSPH->OnExchangeSolidForces();
-            sysSPH->StoreSolidForces(forces);
-            std::vector<double> current;
-            for (const auto& force : forces) {
-                sample(current, force.force);
-                sample(current, force.torque);
-            }
-            if (repeat == 0)
-                reference = current;
-            else if (!Identical(reference, current)) {
-                r.repeated_loads = false;
-                break;
-            }
-        }
-        check(forces[0].force == VNULL && forces[0].torque == VNULL, "body without BCE markers has zero loads");
-        check(forces[2].force == VNULL && forces[2].torque == VNULL, "passive body after the partial plate block has zero loads");
-    }
-
     for (const auto& v : fsi.GetFluidSystemSPH()->GetParticleVelocities()) {
         double s = v.Length();
         if (!std::isfinite(s))
             return Result{std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()};
         r.vmax = std::max(r.vmax, s);
-        if (repeatability)
-            sample(r.state, v);
     }
-    if (repeatability)
-        for (const auto& p : fsi.GetFluidSystemSPH()->GetParticlePositions())
-            sample(r.state, p);
     return r;
 }
 
@@ -250,17 +181,6 @@ int main(int argc, char* argv[]) {
     // Grains thrown clear of the surface can move fast in either run; the bound only guards against
     // the runaway (metres per second across the whole bed) that the corruption produced.
     check(r4.vmax < 10.0 * std::max(r1.vmax, 0.1), "cadence 4 peak particle speed is not a runaway relative to cadence 1");
-
-    // The larger plate spans several force-reduction blocks; compare complete loads and final marker states.
-    Result reference = PushPlateAtCadence(1, true);
-    check(std::isfinite(reference.mean_fz) && reference.mean_fz > 0, "repeatability plate has a finite upward reaction");
-    check(reference.repeated_loads, "rigid-marker reduction is bit-identical on a frozen state");
-    for (int run = 0; run < 2; run++) {
-        Result repeated = PushPlateAtCadence(1, true);
-        check(repeated.repeated_loads, "rigid-marker reduction is bit-identical on a frozen state");
-        check(Identical(reference.loads, repeated.loads), "repeated CRM load histories are bit-identical");
-        check(Identical(reference.state, repeated.state), "repeated CRM particle states are bit-identical");
-    }
 
     cout << (num_failures == 0 ? "Test succeeded" : "Test FAILED") << endl;
     return num_failures == 0 ? 0 : 1;

@@ -96,6 +96,11 @@ class SphBceManager {
     thrust::device_vector<uint> m_rigid_accumulated_threads;  ///< accumulated numbers of padded threads before a block
     thrust::device_vector<uint> m_rigid_body_offsets;         ///< First reduction block for each body, plus the end offset
 
+    thrust::device_vector<uint> m_flex1D_node_offsets;
+    thrust::device_vector<uint> m_flex1D_contributions;  ///< encoded (marker, local node), grouped by node
+    thrust::device_vector<uint> m_flex2D_node_offsets;
+    thrust::device_vector<uint> m_flex2D_contributions;
+
     NodeDirections m_node_directions_mode;
     bool m_verbose;
     bool m_check_errors;
