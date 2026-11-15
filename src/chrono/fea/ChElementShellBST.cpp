@@ -760,7 +760,7 @@ void ChElementShellBST::Layer::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(m_thickness);
 }
 
-inline void ChElementShellBST::Layer::ArchiveIn(ChArchiveIn& archive_in) {
+void ChElementShellBST::Layer::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
     /*int version =*/archive_in.VersionRead<ChElementShellBST::Layer>();
 

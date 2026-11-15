@@ -61,7 +61,7 @@ class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, publ
     ~ChElementShellBST();
 
     /// Definition of a layer
-    class Layer {
+    class ChApi Layer {
       public:
         Layer() {};  // default constructor only for archiving in containers
 
