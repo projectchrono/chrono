@@ -57,9 +57,10 @@ class cbtChTriangleShape : public cbtConvexInternalShape {
     virtual cbtVector3 localGetSupportingVertexWithoutMargin(const cbtVector3& vec) const;
     virtual void batchedUnitVectorGetSupportingVertexWithoutMargin(const cbtVector3* vectors, cbtVector3* supportVerticesOut, int numVectors) const;
 
-    /// Intersect the segment from `from` to `to` (world frame) with this triangle, placed with `t` and inflated by
-    /// the collision margin. If the segment enters the solid, return true with the entry fraction and the outward
-    /// unit normal (world frame).
+    /// Intersect a world-frame segment with this triangle inflated by its Bullet margin.
+    /// The triangle is placed with `t`. For a mesh triangle, Chrono sets that margin (`getMargin()`) to the
+    /// collision envelope plus the sphere-swept radius of the mesh. If the segment from `from` to `to` enters this
+    /// solid, return true with the entry fraction and the outward unit normal (world frame).
     bool rayTest(const cbtTransform& t, const cbtVector3& from, const cbtVector3& to, cbtScalar& fraction, cbtVector3& normal) const;
 
     // access vertex points  of triangle

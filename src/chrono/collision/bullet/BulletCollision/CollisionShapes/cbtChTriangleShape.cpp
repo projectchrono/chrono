@@ -136,7 +136,7 @@ bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, 
     const ChVector3d V[3] = {world(*p1), world(*p2), world(*p3)};
     const ChVector3d O(from.x(), from.y(), from.z());
     const ChVector3d D = ChVector3d(to.x(), to.y(), to.z()) - O;
-    const double r = getMargin();  // radius of the sphere that sweeps the triangle
+    const double r = getMargin();  // Bullet margin: collision envelope + sphere-swept radius of the mesh
 
     ChVector3d nt = Vcross(V[1] - V[0], V[2] - V[0]);
     if (nt.Length2() == 0)
