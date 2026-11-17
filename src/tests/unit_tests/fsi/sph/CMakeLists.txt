@@ -9,6 +9,7 @@ set(TESTS
     utest_FSI-SPH_reproducibility
     utest_FSI-SPH_free_surface_export
     utest_FSI-SPH_rigid_bce_state
+    utest_FSI-SPH_marker_getters
 )
 
 if(CH_ENABLE_MODULE_FEA)
