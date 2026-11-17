@@ -144,11 +144,19 @@ bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, 
     nt.Normalize();
 
     // Line through Q along d crosses the triangle if the three signed edge volumes share a sign. A shared edge
-    // gives exactly opposite volumes in its two triangles, so a ray through it is never missed by both.
-    auto crosses = [&V](const ChVector3d& Q, const ChVector3d& d) {
-        const double w0 = Vdot(Vcross(V[0] - Q, V[1] - Q), d);
-        const double w1 = Vdot(Vcross(V[1] - Q, V[2] - Q), d);
-        const double w2 = Vdot(Vcross(V[2] - Q, V[0] - Q), d);
+    // gives exactly opposite volumes in its two triangles, so a ray through it is never missed by both. For that,
+    // each volume is evaluated with the edge end points in a fixed order: (a x b) and -(b x a) can differ in their
+    // last bits when the compiler contracts the products into fused multiply-adds.
+    auto before = [](const ChVector3d& a, const ChVector3d& b) {
+        return a.x() < b.x() || (a.x() == b.x() && (a.y() < b.y() || (a.y() == b.y() && a.z() < b.z())));
+    };
+    auto volume = [&before](const ChVector3d& A, const ChVector3d& B, const ChVector3d& Q, const ChVector3d& d) {
+        return before(B, A) ? -Vdot(Vcross(B - Q, A - Q), d) : Vdot(Vcross(A - Q, B - Q), d);
+    };
+    auto crosses = [&V, &volume](const ChVector3d& Q, const ChVector3d& d) {
+        const double w0 = volume(V[0], V[1], Q, d);
+        const double w1 = volume(V[1], V[2], Q, d);
+        const double w2 = volume(V[2], V[0], Q, d);
         return (w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0);
     };
 
