@@ -782,6 +782,15 @@ Notable fixes since the 10.0.0 release:
   with Cartesian points cut the layers off at the base radius. Both now create the configured number
   of layers on every surface, starting at the surface. Containers built with
   `CreatePointsCylinderExterior` therefore have one side-wall layer fewer than before.
+- In Chrono::FSI-SPH, the fluid loads on rigid bodies and flexible solids are now summed in a fixed
+  order instead of with floating-point atomics, so repeated runs with the same GPU and build give
+  bit-identical results.
+- In Chrono::FSI-SPH, 1D flexible solids (cables and beams) used swapped interpolation weights between
+  the two nodes of a segment: a BCE marker placed at a fraction t along the segment gave the share t
+  of its fluid force to the first node and 1-t to the second, the reverse of its position, and its
+  acceleration was interpolated from the nodes with the same swapped weights. Both now use the weights
+  (1-t, t). Results of simulations with 1D FSI solids change; for example, the final cable displacement
+  in `demo_FSI-SPH_Flexible_Cable` changes by about 1%.
 - Transparent objects did not cast shadows, and Chrono::VSG rendering was incorrect when physics
   items were bound after visualization initialization or when body frame visibility was set
   beforehand. `ChColormap` crashed on NaN values (now rendered black), Irrlicht node lifetime
