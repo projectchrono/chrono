@@ -12,14 +12,17 @@
 // Authors: Simulation-Based Engineering Laboratory, University of Wisconsin-Madison
 // =============================================================================
 //
-// Check bit-identical rigid loads and coupled CRM state on repeated runs.
+// Check bit-identical solid loads and coupled CRM state on repeated runs.
 //
 // The FSI loads on solids are summed in a fixed order, so repeated runs with the same GPU and build must give
-// bit-identical results. A plate pushed into a CRM bed is simulated three times, and the plate loads and the full
-// SPH particle state are compared bitwise. Comparing the particle state makes the whole SPH step a determinism
-// guard: any new order-dependent reduction (e.g., a floating-point atomic) anywhere in the step fails this test.
+// bit-identical results. A rigid plate pushed into a CRM bed is simulated three times, and the plate loads and the
+// full SPH particle state are compared bitwise. When Chrono is built with FEA, the bed also holds a cable (1D) and a
+// shell (2D), both fixed at the base and partly buried, and their nodal loads and node positions are compared too.
+// Comparing the particle state makes the whole SPH step a determinism guard: any new order-dependent reduction
+// (e.g., a floating-point atomic) anywhere in the step fails this test.
 // =============================================================================
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -33,9 +36,20 @@
 #include "chrono/utils/ChBodyGeometry.h"
 #include "chrono_fsi/sph/ChFsiProblemSPH.h"
 
+#ifdef CHRONO_FEA
+    #include "chrono/fea/ChBuilderBeam.h"
+    #include "chrono/fea/ChElementShellANCF_3423.h"
+    #include "chrono/fea/ChMesh.h"
+    #include "chrono/fea/ChNodeFEAxyzD.h"
+    #include "chrono/solver/ChIterativeSolverLS.h"
+#endif
+
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::fsi::sph;
+#ifdef CHRONO_FEA
+using namespace chrono::fea;
+#endif
 
 using std::cout;
 using std::endl;
@@ -59,6 +73,7 @@ void check(bool condition, const std::string& what) {
 
 struct Result {
     double mean_fz = 0;
+    bool flex_loaded = true;
     std::vector<double> loads;
     std::vector<double> state;
     bool repeated_loads = true;
@@ -75,6 +90,54 @@ bool Identical(const std::vector<double>& a, const std::vector<double>& b) {
     }
     return true;
 }
+
+#ifdef CHRONO_FEA
+// A vertical ANCF cable with its bottom node fixed, from z0 up to z1 at (x, 0).
+std::shared_ptr<ChMesh> CreateCable(ChSystem& sysMBS, double x, double z0, double z1) {
+    auto section = chrono_types::make_shared<ChBeamSectionCableANCF>();
+    section->SetDiameter(0.02);
+    section->SetYoungModulus(2e8);
+    section->SetDensity(8000);
+    section->SetRayleighDamping(0.02);
+
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    ChBuilderCableANCF builder;
+    builder.BuildBeam(mesh, section, 4, ChVector3d(x, 0, z1), ChVector3d(x, 0, z0));
+    builder.GetLastBeamNodes().back()->SetFixed(true);
+    sysMBS.Add(mesh);
+    return mesh;
+}
+
+// A vertical ANCF shell in the y-z plane at x, 2 x 4 elements, with its bottom row of nodes fixed.
+std::shared_ptr<ChMesh> CreateShell(ChSystem& sysMBS, double x, double width, double z0, double z1) {
+    auto material = chrono_types::make_shared<ChMaterialShellANCF>(8000, 2e7, 0.3);
+    const int ny = 2, nz = 4;
+    double dy = width / ny, dz = (z1 - z0) / nz;
+
+    auto mesh = chrono_types::make_shared<ChMesh>();
+    std::vector<std::shared_ptr<ChNodeFEAxyzD>> nodes;
+    for (int k = 0; k <= nz; k++) {
+        for (int j = 0; j <= ny; j++) {
+            auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(x, j * dy - width / 2, z0 + k * dz), ChVector3d(1, 0, 0));
+            node->SetFixed(k == 0);
+            mesh->AddNode(node);
+            nodes.push_back(node);
+        }
+    }
+    for (int k = 0; k < nz; k++) {
+        for (int j = 0; j < ny; j++) {
+            auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
+            element->SetNodes(nodes[j + (ny + 1) * k], nodes[j + 1 + (ny + 1) * k], nodes[j + 1 + (ny + 1) * (k + 1)], nodes[j + (ny + 1) * (k + 1)]);
+            element->SetDimensions(dy, dz);
+            element->AddLayer(0.01, 0, material);
+            element->SetAlphaDamp(0.0);
+            mesh->AddElement(element);
+        }
+    }
+    sysMBS.Add(mesh);
+    return mesh;
+}
+#endif
 
 Result RunPlate() {
     ChSystemSMC sysMBS;
@@ -145,6 +208,20 @@ Result RunPlate() {
     motor->Initialize(plate, ground, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     sysMBS.AddLink(motor);
 
+#ifdef CHRONO_FEA
+    // Flexible solids at both ends of the bed, clear of the plate, each buried over its lower quarter.
+    auto solver = chrono_types::make_shared<ChSolverMINRES>();
+    solver->SetMaxIterations(2000);
+    solver->SetTolerance(1e-12);
+    solver->EnableDiagonalPreconditioner(true);
+    sysMBS.SetSolver(solver);
+
+    auto cable = CreateCable(sysMBS, -0.125, 0.08, 0.24);
+    auto shell = CreateShell(sysMBS, 0.125, 0.08, 0.08, 0.24);
+    fsi.AddFeaMesh(cable, false);
+    fsi.AddFeaMesh(shell, false);
+#endif
+
     fsi.Initialize();
 
     // 512 is the block size of the rigid force reduction (SphBceManager); with several blocks and a partial last one,
@@ -152,27 +229,56 @@ Result RunPlate() {
     check(fsi.GetNumBCE(plate) > 3 * 512 && fsi.GetNumBCE(plate) % 512 != 0, "repeatability plate spans several blocks with a partial last block");
 
     Result r;
+    auto sysSPH = fsi.GetFluidSystemSPH();
     auto sample = [](std::vector<double>& values, const ChVector3d& v) { values.insert(values.end(), {v.x(), v.y(), v.z()}); };
+
+    // Loads on all FSI solids, as computed in the last call to OnExchangeSolidForces.
+    std::vector<FsiBodyForce> forces(3);
+#ifdef CHRONO_FEA
+    std::vector<FsiMeshForce> forces1D(1), forces2D(1);
+    forces1D[0].force.resize(cable->GetNumNodes());
+    forces2D[0].force.resize(shell->GetNumNodes());
+#endif
+    auto sample_loads = [&](std::vector<double>& values) {
+#ifdef CHRONO_FEA
+        sysSPH->StoreSolidForces(forces, forces1D, forces2D);
+        for (const auto& f : forces1D[0].force)
+            sample(values, f);
+        for (const auto& f : forces2D[0].force)
+            sample(values, f);
+#else
+        sysSPH->StoreSolidForces(forces);
+#endif
+        for (const auto& force : forces) {
+            sample(values, force.force);
+            sample(values, force.torque);
+        }
+    };
+
     for (int step = 0; step < steps; step++) {
         fsi.DoStepDynamics(dt);
-        sample(r.loads, fsi.GetFsiBodyForce(plate));
-        sample(r.loads, fsi.GetFsiBodyTorque(plate));
+        sample_loads(r.loads);
         r.mean_fz += fsi.GetFsiBodyForce(plate).z();
     }
     r.mean_fz /= steps;
 
-    // Recompute loads without advancing the state to isolate the rigid-marker reduction.
-    auto sysSPH = fsi.GetFluidSystemSPH();
-    std::vector<FsiBodyForce> forces(3);
+#ifdef CHRONO_FEA
+    // The buried parts of both flexible solids must carry soil loads.
+    auto max_load = [](const FsiMeshForce& mesh_forces) {
+        double max = 0;
+        for (const auto& f : mesh_forces.force)
+            max = std::max(max, f.Length());
+        return max;
+    };
+    r.flex_loaded = max_load(forces1D[0]) > 0 && max_load(forces2D[0]) > 0;
+#endif
+
+    // Recompute loads without advancing the state to isolate the solid-force reductions.
     std::vector<double> reference;
     for (int repeat = 0; repeat < 64; repeat++) {
         sysSPH->OnExchangeSolidForces();
-        sysSPH->StoreSolidForces(forces);
         std::vector<double> current;
-        for (const auto& force : forces) {
-            sample(current, force.force);
-            sample(current, force.torque);
-        }
+        sample_loads(current);
         if (repeat == 0)
             reference = current;
         else if (!Identical(reference, current)) {
@@ -187,16 +293,24 @@ Result RunPlate() {
         sample(r.state, v);
     for (const auto& p : sysSPH->GetParticlePositions())
         sample(r.state, p);
+#ifdef CHRONO_FEA
+    for (const auto& mesh : {cable, shell})
+        for (const auto& node : mesh->GetNodes())
+            sample(r.state, std::static_pointer_cast<ChNodeFEAxyzD>(node)->GetPos());
+#endif
     return r;
 }
 
 int main(int argc, char* argv[]) {
     Result reference = RunPlate();
     check(std::isfinite(reference.mean_fz) && reference.mean_fz > 0, "plate has a finite upward reaction");
-    check(reference.repeated_loads, "rigid-marker reduction is bit-identical on a frozen state");
+#ifdef CHRONO_FEA
+    check(reference.flex_loaded, "cable and shell carry soil loads");
+#endif
+    check(reference.repeated_loads, "solid-force reductions are bit-identical on a frozen state");
     for (int run = 0; run < 2; run++) {
         Result repeated = RunPlate();
-        check(repeated.repeated_loads, "rigid-marker reduction is bit-identical on a frozen state");
+        check(repeated.repeated_loads, "solid-force reductions are bit-identical on a frozen state");
         check(Identical(reference.loads, repeated.loads), "repeated CRM load histories are bit-identical");
         check(Identical(reference.state, repeated.state), "repeated CRM particle states are bit-identical");
     }
