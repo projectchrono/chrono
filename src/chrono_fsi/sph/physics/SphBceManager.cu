@@ -188,20 +188,21 @@ void SphBceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
 // CalcFeaMesh2DBceAcceleration
 // -----------------------------------------------------------------------------
 
-__global__ void CalcRigidBceAcceleration_D(Real3* accelerations,        // BCE marker accelerations (output)
-                                           const Real3* BCE_pos_local,  // BCE body-local coordinates
-                                           const uint* body_IDs,        // rigid body ID for each BCE marker
-                                           const Real4* body_rot,       // body orientation (relative to global frame)
-                                           const Real3* body_angvel,    // body ang. vels. (relative to global frame)
-                                           const Real3* body_linacc,    // body lin. acels. (relative to global frame)
-                                           const Real3* body_angacc,    // body ang. acels. (relative to global frame)
-                                           const uint* mapOriginalToSorted) {
+__global__ void CalcRigidBceAcceleration_D(Real3* accelerations,             // BCE marker accelerations (output)
+                                           const Real3* BCE_pos_local,       // BCE body-local coordinates
+                                           const uint* body_IDs,             // rigid body ID for each BCE marker
+                                           const Real4* body_rot,            // body orientation (relative to global frame)
+                                           const Real3* body_angvel,         // body ang. vels. (relative to global frame)
+                                           const Real3* body_linacc,         // body lin. acels. (relative to global frame)
+                                           const Real3* body_angacc,         // body ang. acels. (relative to global frame)
+                                           const uint* mapOriginalToSorted,  // sort map (if null, output in original order)
+                                           uint out_offset) {                // original index of first output entry
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numRigidMarkers)
         return;
 
     uint marker_index = index + countersD.startRigidMarkers;
-    uint sorted_index = mapOriginalToSorted[marker_index];
+    uint out_index = mapOriginalToSorted ? mapOriginalToSorted[marker_index] : marker_index - out_offset;
 
     int body_ID = body_IDs[index];
     Real3 local = BCE_pos_local[index];
@@ -223,20 +224,22 @@ __global__ void CalcRigidBceAcceleration_D(Real3* accelerations,        // BCE m
     Real3 alpha_cross = cross(body_angacc[body_ID], local);
     acc += mR3(dot(u, alpha_cross), dot(v, alpha_cross), dot(w, alpha_cross));
 
-    accelerations[sorted_index] = acc;
+    accelerations[out_index] = acc;
 }
 
 __global__ void CalcFeaMesh1DBceAcceleration_D(Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
-                                            const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
-                                            const uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
-                                            const uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
-                                            const Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
-                                            const uint* mapOriginalToSorted) {
+                                               const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
+                                               const uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
+                                               const uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
+                                               const Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
+                                               const uint* mapOriginalToSorted,  // sort map (if null, output in original order)
+                                               uint out_offset) {                // original index of first output entry
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numMesh1DMarkers)
         return;
 
-    uint sorted_index = mapOriginalToSorted[index + countersD.startMesh1DMarkers];
+    uint marker_index = index + countersD.startMesh1DMarkers;
+    uint out_index = mapOriginalToSorted ? mapOriginalToSorted[marker_index] : marker_index - out_offset;
 
     uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -248,7 +251,7 @@ __global__ void CalcFeaMesh1DBceAcceleration_D(Real3* accelerations,            
     Real3 A1 = acc_fsi_fea_D[seg_nodes.y];       // (absolute) acceleration of node 1
 
     Real t = flex1D_BCEcoords_D[index].x;
-    accelerations[sorted_index] = A0 * (1 - t) + A1 * t;
+    accelerations[out_index] = A0 * (1 - t) + A1 * t;
 }
 
 __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
@@ -256,12 +259,14 @@ __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,            
                                                const uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
                                                const uint3* flex2D_BCEsolids_D,  // [num BCEs on 2D faces]    association of flex BCEs with a mesh and face
                                                const Real3* flex2D_BCEcoords_D,  // [num BCEs on 2D faces]    local coordinates of BCE markers on FEA 2-D faces
-                                               const uint* mapOriginalToSorted) {
+                                               const uint* mapOriginalToSorted,  // sort map (if null, output in original order)
+                                               uint out_offset) {                // original index of first output entry
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numMesh2DMarkers)
         return;
 
-    uint sorted_index = mapOriginalToSorted[index + countersD.startMesh2DMarkers];
+    uint marker_index = index + countersD.startMesh2DMarkers;
+    uint out_index = mapOriginalToSorted ? mapOriginalToSorted[marker_index] : marker_index - out_offset;
 
     uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -277,53 +282,53 @@ __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,            
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
     Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
 
-    accelerations[sorted_index] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
+    accelerations[out_index] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
 }
 
-void SphBceManager::CalcRigidBodyBceAcceleration() {
+void SphBceManager::CalcRigidBodyBceAcceleration(Real3* accelerations, const uint* map, uint offset) {
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAcceleration_D<<<numBlocks, numThreads>>>(                                         //
-        mR3CAST(m_data_mgr.bceAcc),                                                                //
+        accelerations,                                                                             //
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),               //
         mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),      //
         mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),  //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                 //
+        map, offset                                                                                //
     );
     if (m_check_errors) {
         gpuCheckError();
     }
 }
 
-void SphBceManager::CalcFeaMesh1DBceAcceleration() {
+void SphBceManager::CalcFeaMesh1DBceAcceleration(Real3* accelerations, const uint* map, uint offset) {
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
 
-    CalcFeaMesh1DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
-        mR3CAST(m_data_mgr.bceAcc),                                 //
-        mR3CAST(m_data_mgr.fsiMesh1DState_D->acc),                  //
-        U2CAST(m_data_mgr.flex1D_Nodes_D),                          //
-        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                      //
-        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                     //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
+    CalcFeaMesh1DBceAcceleration_D<<<nBlocks, nThreads>>>(  //
+        accelerations,                                      //
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->acc),          //
+        U2CAST(m_data_mgr.flex1D_Nodes_D),                  //
+        U3CAST(m_data_mgr.flex1D_BCEsolids_D),              //
+        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),             //
+        map, offset                                         //
     );
     if (m_check_errors) {
         gpuCheckError();
     }
 }
 
-void SphBceManager::CalcFeaMesh2DBceAcceleration() {
+void SphBceManager::CalcFeaMesh2DBceAcceleration(Real3* accelerations, const uint* map, uint offset) {
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh2DMarkers, 256, nBlocks, nThreads);
 
-    CalcFeaMesh2DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
-        mR3CAST(m_data_mgr.bceAcc),                                 //
-        mR3CAST(m_data_mgr.fsiMesh2DState_D->acc),                  //
-        U3CAST(m_data_mgr.flex2D_Nodes_D),                          //
-        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                      //
-        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                     //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
+    CalcFeaMesh2DBceAcceleration_D<<<nBlocks, nThreads>>>(  //
+        accelerations,                                      //
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->acc),          //
+        U3CAST(m_data_mgr.flex2D_Nodes_D),                  //
+        U3CAST(m_data_mgr.flex2D_BCEsolids_D),              //
+        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),             //
+        map, offset                                         //
     );
     if (m_check_errors) {
         gpuCheckError();
@@ -335,14 +340,36 @@ void SphBceManager::CalcFeaMesh2DBceAcceleration() {
 // -----------------------------------------------------------------------------
 
 void SphBceManager::updateBCEAcc() {
+    auto acc = mR3CAST(m_data_mgr.bceAcc);
+    auto map = U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted);
+
     if (m_data_mgr.countersH->numRigidMarkers > 0)
-        CalcRigidBodyBceAcceleration();
+        CalcRigidBodyBceAcceleration(acc, map, 0);
 
     if (m_data_mgr.countersH->numMesh1DMarkers > 0)
-        CalcFeaMesh1DBceAcceleration();
+        CalcFeaMesh1DBceAcceleration(acc, map, 0);
 
     if (m_data_mgr.countersH->numMesh2DMarkers > 0)
-        CalcFeaMesh2DBceAcceleration();
+        CalcFeaMesh2DBceAcceleration(acc, map, 0);
+}
+
+std::vector<Real3> SphBceManager::GetSolidMarkerAccelerations() {
+    const auto& c = *m_data_mgr.countersH;
+    uint offset = (uint)c.startRigidMarkers;
+    thrust::device_vector<Real3> acc_D(c.numAllMarkers - c.startRigidMarkers, mR3(0));
+
+    if (c.numRigidMarkers > 0)
+        CalcRigidBodyBceAcceleration(mR3CAST(acc_D), nullptr, offset);
+
+    if (c.numMesh1DMarkers > 0)
+        CalcFeaMesh1DBceAcceleration(mR3CAST(acc_D), nullptr, offset);
+
+    if (c.numMesh2DMarkers > 0)
+        CalcFeaMesh2DBceAcceleration(mR3CAST(acc_D), nullptr, offset);
+
+    std::vector<Real3> acc_H(acc_D.size());
+    thrust::copy(acc_D.begin(), acc_D.end(), acc_H.begin());
+    return acc_H;
 }
 
 // -----------------------------------------------------------------------------

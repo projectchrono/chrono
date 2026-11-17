@@ -370,21 +370,29 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Get the current total number of FEA mesh BCE markers.
     size_t GetNumFleaMeshMarkers() const;
 
-    /// Return the SPH particle positions.
-    std::vector<ChVector3d> GetParticlePositions() const;
+    /// Return the positions of the markers in the specified group.
+    /// See MarkerGroup for the order of the returned markers; all marker getters use the same order.
+    std::vector<ChVector3d> GetParticlePositions(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Return the SPH particle velocities.
-    std::vector<ChVector3d> GetParticleVelocities() const;
+    /// Return the velocities of the markers in the specified group.
+    /// BCE markers move with their fixed boundary or solid.
+    std::vector<ChVector3d> GetParticleVelocities(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Return the accelerations of SPH particles.
-    std::vector<ChVector3d> GetParticleAccelerations() const;
+    /// Return the accelerations of the markers in the specified group.
+    /// For an SPH particle, this is the force on the particle divided by its mass. A BCE marker on a solid moves with
+    /// that solid, so its acceleration is the acceleration of the solid at the marker location (not the fluid force on
+    /// the marker divided by its mass). BCE markers on fixed boundaries have zero acceleration.
+    std::vector<ChVector3d> GetParticleAccelerations(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Return the forces acting on SPH particles.
-    std::vector<ChVector3d> GetParticleForces() const;
+    /// Return the forces on the markers in the specified group.
+    /// For an SPH particle, this is the total force on the particle. For a BCE marker on a solid, this is the fluid
+    /// force on that marker; summed over the BCE markers of a solid, these give the fluid force on the solid. The fluid
+    /// force on BCE markers of fixed boundaries is not calculated, and is reported as zero.
+    std::vector<ChVector3d> GetParticleForces(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Return the SPH particle fluid properties.
-    /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    std::vector<ChVector3d> GetParticleFluidProperties() const;
+    /// Return the fluid properties of the markers in the specified group.
+    /// For each marker, the 3-dimensional vector contains density, pressure, and viscosity.
+    std::vector<ChVector3d> GetParticleFluidProperties(MarkerGroup group = MarkerGroup::ALL) const;
 
     /// Return the boundary treatment type.
     BoundaryMethod GetBoundaryType() const { return m_paramsH->boundary_method; }
@@ -484,35 +492,38 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
 
     // ----------- Utility functions for extracting information at specific SPH particles
 
-    /// Utility function for finding indices of SPH particles inside a given OBB.
+    /// Find indices of the markers in the specified group that are inside a given OBB.
     /// The object-oriented box, of specified size, is assumed centered at the origin of the provided frame and aligned
-    /// with the axes of that frame.
-    std::vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
+    /// with the axes of that frame. The indices refer to the marker order for MarkerGroup::ALL, as expected by the
+    /// marker getters that take an array of indices.
+    std::vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size, MarkerGroup group = MarkerGroup::ALL);
 
-    /// Extract positions of all markers (SPH and BCE).
-    std::vector<Real3> GetPositions() const;
+    /// Extract positions of the markers in the specified group.
+    std::vector<Real3> GetPositions(MarkerGroup group = MarkerGroup::ALL) const;
 
     /// Return a device-resident view of all marker positions.
     /// This accessor does not copy marker data to the host. The returned device pointer remains owned by this SPH system
     /// and is valid until marker storage is resized or the SPH system is destroyed.
     ChFsiSphMarkerDeviceView GetMarkerDeviceView() const;
 
-    /// Extract velocities of all markers (SPH and BCE).
-    std::vector<Real3> GetVelocities() const;
+    /// Extract velocities of the markers in the specified group.
+    std::vector<Real3> GetVelocities(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Extract accelerations of all markers (SPH and BCE).
-    std::vector<Real3> GetAccelerations() const;
+    /// Extract accelerations of the markers in the specified group.
+    /// See GetParticleAccelerations for the accelerations reported for BCE markers.
+    std::vector<Real3> GetAccelerations(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Extract forces applied to all markers (SPH and BCE).
-    std::vector<Real3> GetForces() const;
+    /// Extract forces on the markers in the specified group.
+    /// See GetParticleForces for the forces reported for BCE markers.
+    std::vector<Real3> GetForces(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Extract fluid properties of all markers (SPH and BCE).
-    /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    std::vector<Real3> GetProperties() const;
+    /// Extract fluid properties of the markers in the specified group.
+    /// For each marker, the 3-dimensional vector contains density, pressure, and viscosity.
+    std::vector<Real3> GetProperties(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Extract free-surface identification flags of all markers (SPH and BCE).
-    /// The flags are returned in the same marker order as GetPositions(), so the two can be indexed together to
-    /// extract the free surface. A value of 1 marks an SPH particle at or near the free surface, as determined by
+    /// Extract free-surface identification flags of the markers in the specified group.
+    /// The flags are returned in the same marker order as GetPositions() for the same group, so the two can be indexed
+    /// together to extract the free surface. A value of 1 marks an SPH particle at or near the free surface, as determined by
     /// comparing the divergence of the position field against ChFsiParamsSPH::free_surface_threshold. Note that a
     /// particle adjacent to a solid is not flagged: BCE markers contribute to that divergence, so they complete the
     /// kernel support of the particles next to them.
@@ -520,18 +531,22 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// halo of an active domain and particles that left the computational domain. Such particles have a truncated
     /// neighborhood by construction, so their free-surface test is meaningless and would otherwise report a spurious
     /// surface along the active domain boundary.
-    std::vector<int> GetFreeSurfaceFlags() const;
+    std::vector<int> GetFreeSurfaceFlags(MarkerGroup group = MarkerGroup::ALL) const;
 
-    /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
+    /// Extract positions of the markers with the specified indices.
+    /// The indices refer to the marker order for MarkerGroup::ALL (see FindParticlesInBox).
     std::vector<Real3> GetPositions(const std::vector<int>& indices) const;
 
-    /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
+    /// Extract velocities of the markers with the specified indices.
+    /// The indices refer to the marker order for MarkerGroup::ALL (see FindParticlesInBox).
     std::vector<Real3> GetVelocities(const std::vector<int>& indices) const;
 
-    /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
+    /// Extract accelerations of the markers with the specified indices.
+    /// The indices refer to the marker order for MarkerGroup::ALL (see FindParticlesInBox).
     std::vector<Real3> GetAccelerations(const std::vector<int>& indices) const;
 
-    /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
+    /// Extract forces on the markers with the specified indices.
+    /// The indices refer to the marker order for MarkerGroup::ALL (see FindParticlesInBox).
     std::vector<Real3> GetForces(const std::vector<int>& indices) const;
 
     // ----------- Utility functions for creating points in various volumes

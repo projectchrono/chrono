@@ -29,24 +29,25 @@ namespace sph {
 /// @addtogroup fsisph_physics
 /// @{
 
-/// Marker (SPH and BCE) groups.
-enum class MarkerGroup { FLUID, SOLID, BOUNDARY, NON_FLUID, NON_SOLID, NON_BOUNDARY, ALL };
+/// Marker (SPH and BCE) groups used internally.
+/// The public MarkerGroup enum (ChFsiDefinitionsSPH.h) exposes FLUID, SOLID, and ALL, with the same meaning.
+enum class MarkerGroupImpl { FLUID, SOLID, BOUNDARY, NON_FLUID, NON_SOLID, NON_BOUNDARY, ALL };
 
-__host__ __device__ inline bool IsInMarkerGroup(MarkerGroup group, Real code) {
+__host__ __device__ inline bool IsInMarkerGroup(MarkerGroupImpl group, Real code) {
     switch (group) {
-        case MarkerGroup::ALL:
+        case MarkerGroupImpl::ALL:
             return true;
-        case MarkerGroup::FLUID:
+        case MarkerGroupImpl::FLUID:
             return code < -0.5;
-        case MarkerGroup::SOLID:
+        case MarkerGroupImpl::SOLID:
             return code > 0.5;
-        case MarkerGroup::BOUNDARY:
+        case MarkerGroupImpl::BOUNDARY:
             return code < 0.5 && code > -0.5;
-        case MarkerGroup::NON_FLUID:
+        case MarkerGroupImpl::NON_FLUID:
             return code > -0.5;
-        case MarkerGroup::NON_SOLID:
+        case MarkerGroupImpl::NON_SOLID:
             return code < 0.5;
-        case MarkerGroup::NON_BOUNDARY:
+        case MarkerGroupImpl::NON_BOUNDARY:
             return code > 0.5 || code < -0.5;
     }
     return false;

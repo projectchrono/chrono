@@ -709,57 +709,77 @@ void FsiDataManager::UpdateActiveDomains() {
 
 struct extract_functor {
     extract_functor() {}
-    __device__ Real3 operator()(Real4& x) const { return mR3(x); }
+    __device__ Real3 operator()(const Real4& x) const { return mR3(x); }
 };
 
-struct scale_functor {
-    scale_functor(Real a) : m_a(a) {}
-    Real3 operator()(Real3& x) const { return m_a * x; }
+struct extract_scale_functor {
+    extract_scale_functor(Real a) : m_a(a) {}
+    __device__ Real3 operator()(const Real4& x) const { return m_a * mR3(x); }
     const Real m_a;
 };
 
-std::vector<Real3> FsiDataManager::GetPositions() {
-    auto& pos4_D = sphMarkers_D->posRadD;
-
-    // Extract positions only (drop radius)
-    thrust::device_vector<Real3> pos_D(pos4_D.size());
-    thrust::transform(thrust::device, pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
-
-    // Copy to output
-    std::vector<Real3> pos_H(pos_D.size());
-    thrust::copy(pos_D.begin(), pos_D.end(), pos_H.begin());
-    return pos_H;
+std::pair<size_t, size_t> FsiDataManager::GetMarkerRange(MarkerGroup group) const {
+    switch (group) {
+        case MarkerGroup::FLUID:
+            return {0, countersH->numFluidMarkers};
+        case MarkerGroup::SOLID:
+            return {countersH->startRigidMarkers, countersH->numAllMarkers};
+        default:
+            return {0, countersH->numAllMarkers};
+    }
 }
 
-std::vector<Real3> FsiDataManager::GetVelocities() {
-    const auto& vel_D = sphMarkers_D->velMasD;
+// Copy the specified range of a device array of Real4 to a host array of Real3, scaling each entry.
+static std::vector<Real3> CopyRange(const thrust::device_vector<Real4>& data4_D, std::pair<size_t, size_t> range, Real scale = 1) {
+    thrust::device_vector<Real3> data_D(range.second - range.first);
+    thrust::transform(data4_D.begin() + range.first, data4_D.begin() + range.second, data_D.begin(), extract_scale_functor(scale));
+    std::vector<Real3> data_H(data_D.size());
+    thrust::copy(data_D.begin(), data_D.end(), data_H.begin());
+    return data_H;
+}
 
-    // Copy to output
-    std::vector<Real3> vel_H(vel_D.size());
-    thrust::copy(vel_D.begin(), vel_D.end(), vel_H.begin());
+std::vector<Real3> FsiDataManager::GetPositions(MarkerGroup group) {
+    return CopyRange(sphMarkers_D->posRadD, GetMarkerRange(group));
+}
+
+std::vector<Real3> FsiDataManager::GetVelocities(MarkerGroup group) {
+    auto range = GetMarkerRange(group);
+    const auto& vel_D = sphMarkers_D->velMasD;
+    std::vector<Real3> vel_H(range.second - range.first);
+    thrust::copy(vel_D.begin() + range.first, vel_D.begin() + range.second, vel_H.begin());
     return vel_H;
 }
 
-std::vector<Real3> FsiDataManager::GetAccelerations() {
-    // Copy data for SPH particles only, in original marker order
-    const auto n = countersH->numFluidMarkers;
-    thrust::device_vector<Real4> acc4_D(n);
-    thrust::copy_n(derivVelRhoOriginalD.begin(), n, acc4_D.begin());
+std::vector<Real3> FsiDataManager::GetSphAccelerations(MarkerGroup group) {
+    // With implicit SPH, the derivatives hold the force on each marker rather than its acceleration
+    Real scale = (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) ? 1 / paramsH->markerMass : 1;
+    auto range = GetMarkerRange(group);
+    auto acc_H = CopyRange(derivVelRhoOriginalD, range, scale);
 
-    // Extract acceleration (drop density)
-    thrust::device_vector<Real3> acc_D(n);
-    thrust::transform(acc4_D.begin(), acc4_D.end(), acc_D.begin(), extract_functor());
-
-    // Copy to output
-    std::vector<Real3> acc_H(acc_D.size());
-    thrust::copy(acc_D.begin(), acc_D.end(), acc_H.begin());
+    // Zero the entries of all BCE markers
+    if (range.second > countersH->numFluidMarkers) {
+        size_t first_bce = std::max(range.first, countersH->numFluidMarkers);
+        std::fill(acc_H.begin() + (first_bce - range.first), acc_H.end(), mR3(0));
+    }
     return acc_H;
 }
 
-std::vector<Real3> FsiDataManager::GetForces() {
-    std::vector<Real3> frc_H = GetAccelerations();
-    std::transform(frc_H.begin(), frc_H.end(), frc_H.begin(), scale_functor(paramsH->markerMass));
+std::vector<Real3> FsiDataManager::GetForces(MarkerGroup group) {
+    // With implicit SPH, the derivatives hold the force on each marker; otherwise they hold the force per unit mass
+    Real scale = (paramsH->integration_scheme == IntegrationScheme::IMPLICIT_SPH) ? 1 : paramsH->markerMass;
+    auto range = GetMarkerRange(group);
+    auto frc_H = CopyRange(derivVelRhoOriginalD, range, scale);
+
+    // Zero the entries of BCE markers on fixed boundaries, where the fluid force is not calculated
+    size_t first_wall = std::max(range.first, countersH->startBoundaryMarkers);
+    size_t last_wall = std::min(range.second, countersH->startRigidMarkers);
+    if (first_wall < last_wall)
+        std::fill(frc_H.begin() + (first_wall - range.first), frc_H.begin() + (last_wall - range.first), mR3(0));
     return frc_H;
+}
+
+std::vector<Real3> FsiDataManager::GetProperties(MarkerGroup group) {
+    return CopyRange(sphMarkers_D->rhoPresMuD, GetMarkerRange(group));
 }
 
 // Predicate selecting the markers whose free-surface flag is meaningful: active fluid particles.
@@ -768,7 +788,7 @@ struct report_free_surface_functor {
     __host__ __device__ bool operator()(const thrust::tuple<int32_t, Real4>& state) const { return thrust::get<0>(state) == 1 && IsFluidParticle(thrust::get<1>(state).w); }
 };
 
-std::vector<int> FsiDataManager::GetFreeSurfaceFlags() {
+std::vector<int> FsiDataManager::GetFreeSurfaceFlags(MarkerGroup group) {
     // The flags are calculated and stored in sorted order; scatter them back to original marker order through the
     // sort map. Markers that are filtered out keep the initial zero: BCE markers, inactive particles, and any
     // marker beyond the extended set.
@@ -781,121 +801,41 @@ std::vector<int> FsiDataManager::GetFreeSurfaceFlags() {
                        thrust::make_transform_iterator(marker_state, report_free_surface_functor()),      //
                        flags_D.begin());                                                                  //
 
-    // Copy to output
-    std::vector<int> flags_H(flags_D.size());
-    thrust::copy(flags_D.begin(), flags_D.end(), flags_H.begin());
+    // Copy the requested range to output
+    auto range = GetMarkerRange(group);
+    std::vector<int> flags_H(range.second - range.first);
+    thrust::copy(flags_D.begin() + range.first, flags_D.begin() + range.second, flags_H.begin());
     return flags_H;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<Real3> FsiDataManager::GetProperties() {
-    auto& prop4_D = sphMarkers_D->rhoPresMuD;
-
-    // Extract fluid properties only (drop particle type)
-    thrust::device_vector<Real3> prop_D(prop4_D.size());
-    thrust::transform(prop4_D.begin(), prop4_D.end(), prop_D.begin(), extract_functor());
-
-    // Copy to output
-    std::vector<Real3> prop_H(prop_D.size());
-    thrust::copy(prop_D.begin(), prop_D.end(), prop_H.begin());
-    return prop_H;
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-
 std::vector<Real3> FsiDataManager::GetPositions(const std::vector<int>& indices) {
-    thrust::device_vector<int> indices_D(indices.size());
-    thrust::copy(indices.begin(), indices.end(), indices_D.begin());
+    thrust::device_vector<int> indices_D(indices.begin(), indices.end());
 
-    // Get all extended positions
-    auto& allpos4_D = sphMarkers_D->posRadD;
-
-    // Gather only those for specified indices
-    thrust::device_vector<Real4> pos4_D(allpos4_D.size());
-    auto end = thrust::gather(thrust::device,                      // execution policy
-                              indices_D.begin(), indices_D.end(),  // range of gather locations
-                              allpos4_D.begin(),                   // beginning of source
-                              pos4_D.begin()                       // beginning of destination
-    );
-
-    // Extract positions only (drop radius)
-    thrust::device_vector<Real3> pos_D(pos4_D.size());
+    // Gather the specified positions and drop the radius
+    const auto& allpos4_D = sphMarkers_D->posRadD;
+    thrust::device_vector<Real4> pos4_D(indices.size());
+    thrust::gather(thrust::device, indices_D.begin(), indices_D.end(), allpos4_D.begin(), pos4_D.begin());
+    thrust::device_vector<Real3> pos_D(indices.size());
     thrust::transform(pos4_D.begin(), pos4_D.end(), pos_D.begin(), extract_functor());
 
-    // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - pos4_D.begin());
-    assert(num_active == indices_D.size());
-    pos_D.resize(num_active);
-
-    // Copy to output
     std::vector<Real3> pos_H(pos_D.size());
     thrust::copy(pos_D.begin(), pos_D.end(), pos_H.begin());
     return pos_H;
 }
 
 std::vector<Real3> FsiDataManager::GetVelocities(const std::vector<int>& indices) {
-    thrust::device_vector<int> indices_D(indices.size());
-    thrust::copy(indices.begin(), indices.end(), indices_D.begin());
+    thrust::device_vector<int> indices_D(indices.begin(), indices.end());
 
-    // Get all velocities
-    auto allvel_D = sphMarkers_D->velMasD;
+    // Gather the specified velocities
+    const auto& allvel_D = sphMarkers_D->velMasD;
+    thrust::device_vector<Real3> vel_D(indices.size());
+    thrust::gather(thrust::device, indices_D.begin(), indices_D.end(), allvel_D.begin(), vel_D.begin());
 
-    // Gather only those for specified indices
-    thrust::device_vector<Real3> vel_D(allvel_D.size());
-    auto end = thrust::gather(thrust::device,                      // execution policy
-                              indices_D.begin(), indices_D.end(),  // range of gather locations
-                              allvel_D.begin(),                    // beginning of source
-                              vel_D.begin()                        // beginning of destination
-    );
-
-    // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - vel_D.begin());
-    assert(num_active == indices_D.size());
-    vel_D.resize(num_active);
-
-    // Copy to output
     std::vector<Real3> vel_H(vel_D.size());
     thrust::copy(vel_D.begin(), vel_D.end(), vel_H.begin());
     return vel_H;
-}
-
-std::vector<Real3> FsiDataManager::GetAccelerations(const std::vector<int>& indices) {
-    thrust::device_vector<int> indices_D(indices.size());
-    thrust::copy(indices.begin(), indices.end(), indices_D.begin());
-
-    // Get the accelerations of all SPH particles, in original marker order
-    const auto n = countersH->numFluidMarkers;
-    thrust::device_vector<Real4> allacc4_D(n);
-    thrust::copy_n(derivVelRhoOriginalD.begin(), n, allacc4_D.begin());
-
-    // Gather only those for specified indices
-    thrust::device_vector<Real4> acc4_D(allacc4_D.size());
-    auto end = thrust::gather(thrust::device,                      // execution policy
-                              indices_D.begin(), indices_D.end(),  // range of gather locations
-                              allacc4_D.begin(),                   // beginning of source
-                              acc4_D.begin()                       // beginning of destination
-    );
-
-    // Extract acceleration (drop density)
-    thrust::device_vector<Real3> acc_D(n);
-    thrust::transform(acc4_D.begin(), acc4_D.end(), acc_D.begin(), extract_functor());
-
-    // Trim the output vector of particle positions
-    size_t num_active = (size_t)(end - acc4_D.begin());
-    assert(num_active == indices_D.size());
-    acc_D.resize(num_active);
-
-    // Copy to output
-    std::vector<Real3> acc_H(acc_D.size());
-    thrust::copy(acc_D.begin(), acc_D.end(), acc_H.begin());
-    return acc_H;
-}
-
-std::vector<Real3> FsiDataManager::GetForces(const std::vector<int>& indices) {
-    std::vector<Real3> frc_H = GetAccelerations(indices);
-    std::transform(frc_H.begin(), frc_H.end(), frc_H.begin(), scale_functor(paramsH->markerMass));
-    return frc_H;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -948,44 +888,27 @@ struct in_box {
     Real3 az;
 };
 
-std::vector<int> FsiDataManager::FindParticlesInBox(const Real3& hsize, const Real3& pos, const Real3& ax, const Real3& ay, const Real3& az) {
-    // Extract indices of SPH particles contained in the OBB
-    auto& ref = referenceArray;
-    auto& pos_D = sphMarkers_D->posRadD;
+std::vector<int> FsiDataManager::FindParticlesInBox(MarkerGroup group, const Real3& hsize, const Real3& pos, const Real3& ax, const Real3& ay, const Real3& az) {
+    auto range = GetMarkerRange(group);
+    const auto& pos_D = sphMarkers_D->posRadD;
 
-    // Find start and end locations for SPH particles (exclude ghost and BCE markers)
-    int haveHelper = (ref[0].z == -3) ? 1 : 0;
-    int haveGhost = (ref[0].z == -2 || ref[1].z == -2) ? 1 : 0;
-    auto sph_start = ref[haveHelper + haveGhost].x;
-    auto sph_end = ref[haveHelper + haveGhost].y;
-    auto num_sph = sph_end - sph_start;
-
-    // Preallocate output vector of indices
-    thrust::device_vector<int> indices_D(num_sph);
-
-    // Extract indices of SPH particles inside OBB
-    thrust::counting_iterator<int> first(0);
-    thrust::counting_iterator<int> last(num_sph);
+    // Extract indices of markers in the specified group that are inside the OBB
+    thrust::device_vector<int> indices_D(range.second - range.first);
     in_box predicate;
     predicate.hsize = hsize;
     predicate.pos = pos;
     predicate.ax = ax;
     predicate.ay = ay;
     predicate.az = az;
-    auto end = thrust::copy_if(thrust::device,     // execution policy
-                               first, last,        // range of all particle indices
-                               pos_D.begin(),      // stencil vector
-                               indices_D.begin(),  // beginning of destination
-                               predicate           // predicate for stencil elements
-    );
-
-    // Trim the output vector of indices
-    size_t num_active = (size_t)(end - indices_D.begin());
-    indices_D.resize(num_active);
+    auto end = thrust::copy_if(thrust::device,                                                                                       //
+                               thrust::counting_iterator<int>((int)range.first), thrust::counting_iterator<int>((int)range.second),  //
+                               pos_D.begin() + range.first,                                                                          //
+                               indices_D.begin(),                                                                                    //
+                               predicate);
 
     // Copy to output
-    std::vector<int> indices_H;
-    thrust::copy(indices_D.begin(), indices_D.end(), indices_H.begin());
+    std::vector<int> indices_H(end - indices_D.begin());
+    thrust::copy(indices_D.begin(), end, indices_H.begin());
     return indices_H;
 }
 

@@ -182,6 +182,15 @@ enum class OutputLevel {
     CRM_FULL         ///< STATE_PRESSURE plus normal and shear stress
 };
 
+/// Marker groups selected by the SPH particle and marker getters.
+/// Results are returned in marker order: SPH particles first, then BCE markers on fixed boundaries, then BCE markers
+/// on FSI solids. Each group is a contiguous range in this order.
+enum class MarkerGroup {
+    FLUID,  ///< SPH particles (fluid or granular material)
+    SOLID,  ///< BCE markers on FSI solids (rigid bodies and flexible meshes); excludes fixed boundaries
+    ALL     ///< SPH particles and all BCE markers, including those on fixed boundaries
+};
+
 /// @} fsisph
 
 }  // namespace sph

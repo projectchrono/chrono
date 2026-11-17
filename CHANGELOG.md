@@ -528,6 +528,17 @@ replaced throughout by "CRM" (Continuum Representation Model):
   was declared as an FSI solid, and an FSI system or interface may now be created with no associated
   MBS system.
 - Chrono::FSI-TDPF functions needed outside the Chrono::FSI framework were exposed as public.
+- The particle and marker getters of `ChFsiFluidSystemSPH` (`GetParticlePositions`,
+  `GetParticleVelocities`, `GetParticleAccelerations`, `GetParticleForces`,
+  `GetParticleFluidProperties`, their `Real3` and NumPy variants, `GetFreeSurfaceFlags`, and
+  `FindParticlesInBox`) take a `MarkerGroup` argument (`FLUID`, `SOLID`, or `ALL`, the default) and
+  return markers in the same order. Accelerations and forces now include BCE markers, so by default
+  they have one entry per marker instead of one per SPH particle. For a BCE marker on a solid, the
+  acceleration is that of the solid at the marker and the force is the fluid force on the marker
+  (summed over the markers of a solid, these give the fluid force on the solid); BCE markers on fixed
+  boundaries report zero. `FindParticlesInBox` returns indices in the `ALL` order, as expected by
+  the indexed getters, and no longer writes past the end of its output. With implicit SPH, the
+  accelerations and forces are no longer off by a factor equal to the particle mass.
 
 Configuration and run-time issues with double-precision Chrono::FSI-SPH builds were also fixed. See
 `demo_FSI-SPH_PlateSinkage` and the YAML-driven `demo_YAML_fsi`.

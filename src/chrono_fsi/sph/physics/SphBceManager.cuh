@@ -20,6 +20,8 @@
 #ifndef CH_SPH_BCE_MANAGER_H
 #define CH_SPH_BCE_MANAGER_H
 
+#include <vector>
+
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/sph/physics/SphDataManager.cuh"
 
@@ -67,7 +69,12 @@ class SphBceManager {
     /// Calculates fluid forces on nodes of 2-D flexible solids.
     void CalcFeaMesh2DForces();
 
+    /// Calculate accelerations of solid BCE markers, in sorted order, into the data manager's bceAcc array.
     void updateBCEAcc();
+
+    /// Return the accelerations of BCE markers on solids, in original marker order.
+    /// The accelerations follow from the current solid states; the first entry is that of the first rigid BCE marker.
+    std::vector<Real3> GetSolidMarkerAccelerations();
 
     /// Complete construction of the BCE at the initial configuration of the system.
     void Initialize(std::vector<int> fsiBodyBceNum);
@@ -80,9 +87,10 @@ class SphBceManager {
     void UpdateSegmentNormals1D();
 
     // Calculate accelerations of solid BCE markers based on the information of the ChSystem.
-    void CalcRigidBodyBceAcceleration();
-    void CalcFeaMesh1DBceAcceleration();
-    void CalcFeaMesh2DBceAcceleration();
+    // Output goes to accelerations[map[i]] for marker i if a sort map is provided, else to accelerations[i - offset].
+    void CalcRigidBodyBceAcceleration(Real3* accelerations, const uint* map, uint offset);
+    void CalcFeaMesh1DBceAcceleration(Real3* accelerations, const uint* map, uint offset);
+    void CalcFeaMesh2DBceAcceleration(Real3* accelerations, const uint* map, uint offset);
 
   private:
     FsiDataManager& m_data_mgr;  ///< FSI data manager

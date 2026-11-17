@@ -37,24 +37,24 @@ using namespace chrono::fsi::sph;
 
 %extend chrono::fsi::sph::ChFsiFluidSystemSPH {
 
-    PyObject* GetParticlePositionsNumpy() {
-        return Real3ArrayToNumpy(self->GetPositions());
+    PyObject* GetParticlePositionsNumpy(chrono::fsi::sph::MarkerGroup group = chrono::fsi::sph::MarkerGroup::ALL) {
+        return Real3ArrayToNumpy(self->GetPositions(group));
     }
 
-    PyObject* GetParticleVelocitiesNumpy() {
-        return Real3ArrayToNumpy(self->GetVelocities());
+    PyObject* GetParticleVelocitiesNumpy(chrono::fsi::sph::MarkerGroup group = chrono::fsi::sph::MarkerGroup::ALL) {
+        return Real3ArrayToNumpy(self->GetVelocities(group));
     }
 
-    PyObject* GetParticleAccelerationsNumpy() {
-        return Real3ArrayToNumpy(self->GetAccelerations());
+    PyObject* GetParticleAccelerationsNumpy(chrono::fsi::sph::MarkerGroup group = chrono::fsi::sph::MarkerGroup::ALL) {
+        return Real3ArrayToNumpy(self->GetAccelerations(group));
     }
 
-    PyObject* GetParticleForcesNumpy() {
-        return Real3ArrayToNumpy(self->GetForces());
+    PyObject* GetParticleForcesNumpy(chrono::fsi::sph::MarkerGroup group = chrono::fsi::sph::MarkerGroup::ALL) {
+        return Real3ArrayToNumpy(self->GetForces(group));
     }
 
-    PyObject* GetParticleFluidPropertiesNumpy() {
-        return Real3ArrayToNumpy(self->GetProperties());
+    PyObject* GetParticleFluidPropertiesNumpy(chrono::fsi::sph::MarkerGroup group = chrono::fsi::sph::MarkerGroup::ALL) {
+        return Real3ArrayToNumpy(self->GetProperties(group));
     }
 }
 
