@@ -138,6 +138,7 @@ void ChParserSphYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.end_time = sim["end_time"].as<double>();
         if (sim["gravity"])
             m_sim.gravity = ReadVector(sim["gravity"]);
+        ReadFrameAcceleration(sim);
     }
 
     // SPH-specific run-time visualization (optional)

@@ -30,7 +30,17 @@ the YAML file with an MBS solver specification (which must follow the [MBS solve
 | `enforce_realtime` | Whether to enforce real-time simulation | boolean | -- | No | false |
 | `end_time` | Total simulation time in seconds | double | -- | No | -1 for infinite simulation |
 | `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
+| `frame_acceleration` | Prescribed acceleration of the reference frame of the simulation | object | -- | No | -- |
 | `num_threads` | Number of threads used by the parallel components | object | -- | No | -- |
+
+The `frame_acceleration` key, if present, simulates the problem in a translating, non-inertial frame (e.g., a shaking
+tank) with acceleration a(t) = f(t) d: at each step, the effective gravity g - a(t) replaces the gravitational
+acceleration g. It is used by the Chrono preCICE MBS participant, and specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `direction` | Direction d of the frame acceleration (normalized when read) | array[3] | -- | Yes | -- |
+| `function` | Magnitude f(t) of the frame acceleration, specified as a [function](@ref YAML_schema_mbs_model) of time (angles in degrees) | object | -- | Yes | -- |
 
 The `num_threads` key, if present, specifies the following properties:
 

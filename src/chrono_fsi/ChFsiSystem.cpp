@@ -46,6 +46,10 @@ ChFsiSystem::ChFsiSystem(ChSystem* sysMBS, ChFsiFluidSystem* sysCFD)
       m_fsi_interface(nullptr),
       m_is_initialized(false),
       m_verbose(true),
+      m_gravity(VNULL),
+      m_gravity_set(false),
+      m_frame_acc_dir(VECT_X),
+      m_frame_acc(nullptr),
       m_step_MBD(-1),
       m_step_CFD(-1),
       m_time(0),
@@ -108,10 +112,31 @@ void ChFsiSystem::SetStepSizeCFD(double step) {
 }
 
 void ChFsiSystem::SetGravitationalAcceleration(const ChVector3d& gravity) {
+    m_gravity = gravity;
+    m_gravity_set = true;
     if (m_sysCFD)
         m_sysCFD->SetGravitationalAcceleration(gravity);
     if (m_sysMBS)
         m_sysMBS->SetGravitationalAcceleration(gravity);
+}
+
+void ChFsiSystem::SetFrameAcceleration(const ChVector3d& direction, std::shared_ptr<ChFunction> acceleration) {
+    ChAssertAlways(direction.Length() > 0);
+    m_frame_acc_dir = direction.GetNormalized();
+    m_frame_acc = acceleration;
+}
+
+void ChFsiSystem::ApplyFrameAcceleration(double time) {
+    // Use the multibody gravity as the gravitational acceleration, if never set explicitly; this is done at the first
+    // call, before any effective gravity is set
+    if (!m_gravity_set) {
+        m_gravity = m_sysMBS->GetGravitationalAcceleration();
+        m_gravity_set = true;
+    }
+
+    ChVector3d gravity = m_gravity - m_frame_acc->GetVal(time) * m_frame_acc_dir;
+    m_sysCFD->SetGravitationalAcceleration(gravity);
+    m_sysMBS->SetGravitationalAcceleration(gravity);
 }
 
 std::shared_ptr<FsiBody> ChFsiSystem::AddRigidBody(std::shared_ptr<ChBody> body, std::shared_ptr<ChBodyGeometry> geometry, bool check_embedded) {
@@ -292,6 +317,10 @@ void ChFsiSystem::DoStepDynamics(double step) {
 
     m_timer_step.reset();
     m_timer_FSI.reset();
+
+    // With a prescribed frame acceleration, set the effective gravity for this step
+    if (m_frame_acc)
+        ApplyFrameAcceleration(m_time);
 
     if (m_coupling == CouplingScheme::CONCURRENT) {
         // Advance dynamics of the two phases.

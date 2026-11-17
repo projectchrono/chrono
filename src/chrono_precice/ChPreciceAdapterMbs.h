@@ -161,6 +161,8 @@ class ChApiPrecice ChPreciceAdapterMbs : public ChPreciceAdapter {
     virtual double GetSolverTimeStep(double max_time_step) const override;
     virtual void AdvanceParticipant(double time, double time_step) override;
     virtual void OnWriteOutput(int frame, double time) override;
+    virtual ChVector3d GetSolverGravity() const override;
+    virtual void SetSolverGravity(const ChVector3d& gravity) override;
 
   private:
     /// Checkpoint data.

@@ -45,6 +45,8 @@ ChPreciceAdapterSph::ChPreciceAdapterSph(const std::string& precice_config_filen
     m_vis_settings = parser.GetVisualizationSettings();
     m_visSPH_settings = parser.GetSphVisualizationSettings();
     #endif
+    if (parser.GetFrameAcceleration())
+        SetFrameAcceleration(parser.GetFrameAccelerationDirection(), parser.GetFrameAcceleration());
 
     // Read common preCICE participant configuration (participant name, file handler, and coupling interfaces)
     ReadParticipantConfigurationYAML(input_filename);
@@ -792,6 +794,14 @@ void ChPreciceAdapterSph::AdvanceParticipant(double time, double time_step) {
 
     // Advance system dynamics
     m_sysSPH->DoStepDynamics(time_step);
+}
+
+ChVector3d ChPreciceAdapterSph::GetSolverGravity() const {
+    return m_sysSPH->GetGravitationalAcceleration();
+}
+
+void ChPreciceAdapterSph::SetSolverGravity(const ChVector3d& gravity) {
+    m_sysSPH->SetGravitationalAcceleration(gravity);
 }
 
 // -----------------------------------------------------------------------------

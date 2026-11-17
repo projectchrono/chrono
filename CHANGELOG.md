@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Prescribed frame acceleration for FSI and preCICE simulations](#added-prescribed-frame-acceleration-for-fsi-and-precice-simulations)
   - [\[Changed\] Newton convergence test of implicit integrators](#changed-newton-convergence-test-of-implicit-integrators)
   - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
   - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
@@ -153,6 +154,14 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Added] Prescribed frame acceleration for FSI and preCICE simulations
+
+A problem in a moving container, such as a tank shaken along a horizontal axis, can now be simulated in the frame of the container. The frame is translating and non-inertial with a prescribed acceleration a(t) = f(t) d; at each step, the solvers use the effective gravity g - a(t) instead of the gravitational acceleration g.
+
+- `ChFsiSystem::SetFrameAcceleration` sets the frame acceleration for both the fluid and the multibody systems (Chrono::FSI-SPH, which accepts gravity changes after initialization).
+- `ChPreciceAdapter::SetFrameAcceleration` sets it for a preCICE participant; it is supported by the Chrono MBS and SPH participants, and all participants of a coupled simulation must use the same frame acceleration.
+- In YAML, the optional `frame_acceleration` object of the `simulation` settings (MBS, FSI-SPH, and FSI simulation files) specifies the `direction` d and the `function` f(t), like any other Chrono YAML function.
 
 ## [Changed] Newton convergence test of implicit integrators
 

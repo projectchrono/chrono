@@ -26,6 +26,7 @@
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChVector3.h"
 #include "chrono/utils/ChUtils.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/input_output/ChOutput.h"
 
 #ifdef CHRONO_HAS_YAML
@@ -183,6 +184,14 @@ class ChApiPrecice ChPreciceAdapter {
 
     /// Get the point within the coupling time window at which data from other participants is read.
     CouplingReadTime GetCouplingReadTime() const { return m_coupling_read_time; }
+
+    /// Prescribe the acceleration of the reference frame in which this participant is simulated.
+    /// The participant is simulated in a translating, non-inertial frame (e.g., a shaking tank) with acceleration
+    /// a(t) = acceleration(t) * direction, where `direction` is normalized here. At the beginning of each step, the
+    /// participant solver is given the effective gravity g - a(t), where g is the solver's gravitational acceleration
+    /// at the first step. All participants of a coupled simulation must use the same frame acceleration.
+    /// Supported by the MBS and SPH participants.
+    void SetFrameAcceleration(const ChVector3d& direction, std::shared_ptr<ChFunction> acceleration);
 
     /// Get the preCICE participant name.
     const std::string& GetParticipantName() const;
@@ -374,6 +383,16 @@ class ChApiPrecice ChPreciceAdapter {
     /// This function is called before the preCICE coupling is finalized.
     virtual void FinalizeParticipant() {}
 
+    /// Get the gravitational acceleration of the participant solver.
+    /// Used only with a prescribed frame acceleration (see SetFrameAcceleration). The default implementation throws an
+    /// exception; a derived class that supports a frame acceleration must override this function and SetSolverGravity.
+    virtual ChVector3d GetSolverGravity() const;
+
+    /// Set the gravitational acceleration of the participant solver.
+    /// Used only with a prescribed frame acceleration (see SetFrameAcceleration). The default implementation throws an
+    /// exception.
+    virtual void SetSolverGravity(const ChVector3d& gravity);
+
     /// Write output from the Chrono preCICE participant.
     /// A derived class must:
     /// - write output to the DB
@@ -468,6 +487,14 @@ class ChApiPrecice ChPreciceAdapter {
 #endif
 
   private:
+    /// Set the effective gravity g - a(t) in the participant solver, for a prescribed frame acceleration.
+    void ApplyFrameAcceleration(double time);
+
+    ChVector3d m_gravity;                     ///< solver gravity at the first step (without frame acceleration)
+    bool m_gravity_set;                       ///< true once m_gravity was read from the solver
+    ChVector3d m_frame_acc_dir;               ///< direction of the frame acceleration
+    std::shared_ptr<ChFunction> m_frame_acc;  ///< magnitude of the frame acceleration (if any) as function of time
+
     /// Parse preCICE configuration.
     /// - Cache mesh and data information,
     /// - Check if using added mass.

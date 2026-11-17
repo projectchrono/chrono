@@ -28,7 +28,7 @@ using std::endl;
 namespace chrono {
 namespace parsers {
 
-ChParserYAML::ChParserYAML() : m_name("model"), m_verbose(false), m_use_degrees(true), m_output_dir(".") {
+ChParserYAML::ChParserYAML() : m_name("model"), m_verbose(false), m_use_degrees(true), m_output_dir("."), m_frame_acc_dir(VECT_X), m_frame_acc(nullptr) {
     m_vis_settings.image_dir = "./images";
 }
 
@@ -78,6 +78,22 @@ void ChParserYAML::LoadSimData(const YAML::Node& yaml) {
     // Run-time visualization (optional)
     if (yaml["visualization"])
         m_vis_settings = ChVisualSystem::Settings::Read(yaml["visualization"]);
+}
+
+void ChParserYAML::ReadFrameAcceleration(const YAML::Node& sim) {
+    if (!sim["frame_acceleration"])
+        return;
+
+    auto a = sim["frame_acceleration"];
+    ChAssertAlways(a["direction"]);
+    ChAssertAlways(a["function"]);
+    m_frame_acc_dir = ReadVector(a["direction"]);
+    ChAssertAlways(m_frame_acc_dir.Length() > 0);
+    m_frame_acc_dir.Normalize();
+    m_frame_acc = ReadFunction(a["function"], true);
+
+    if (m_verbose)
+        std::cout << "frame acceleration direction: " << m_frame_acc_dir << std::endl;
 }
 
 // -----------------------------------------------------------------------------

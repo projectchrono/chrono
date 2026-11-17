@@ -97,6 +97,17 @@ interpolation between nodes, `AVERAGE` approximates node directions by averaging
 | `time_step` | Co-simulation (meta) step | double | -- | Yes | -- |
 | `end_time` | Total simulation time in seconds | double | -- | No | -1 for infinite simulation |
 | `gravity` | Gravitational acceleration vector [x, y, z] | array[3] | -- | No | [0, 0, -9.8] |
+| `frame_acceleration` | Prescribed acceleration of the reference frame of the simulation | object | -- | No | -- |
+
+The `frame_acceleration` key, if present, simulates the FSI problem in a translating, non-inertial frame (e.g., a
+shaking tank) with acceleration a(t) = f(t) d: at each step, both the fluid and the multibody systems use the
+effective gravity g - a(t) instead of the gravitational acceleration g. It is supported with a Chrono::FSI-SPH fluid
+system (not with Chrono::FSI-TDPF), and specifies the following properties:
+
+| Property | Description | Type | Available Values | Required | Default | 
+|----------|-------------|------|------------------|----------|---------|
+| `direction` | Direction d of the frame acceleration (normalized when read) | array[3] | -- | Yes | -- |
+| `function` | Magnitude f(t) of the frame acceleration, specified as a [function](@ref YAML_schema_mbs_model) of time (angles in degrees) | object | -- | Yes | -- |
 
 
 #### Output options

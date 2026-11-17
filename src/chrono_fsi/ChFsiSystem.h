@@ -22,6 +22,7 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/physics/ChSystem.h"
+#include "chrono/functions/ChFunction.h"
 #ifdef CHRONO_FEA
     #include "chrono/fea/ChMesh.h"
     #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -80,6 +81,14 @@ class CH_FSI_API ChFsiSystem {
     /// Set gravitational acceleration for the FSI system.
     /// This function sets gravity for both the fluid and multibody systems.
     void SetGravitationalAcceleration(const ChVector3d& gravity);
+
+    /// Prescribe the acceleration of the reference frame in which the FSI problem is simulated.
+    /// The problem is simulated in a translating, non-inertial frame (e.g., a shaking tank) with acceleration
+    /// a(t) = acceleration(t) * direction, where `direction` is normalized here. At the beginning of each step, both
+    /// the fluid and multibody systems are given the effective gravity g - a(t), where g is the gravitational
+    /// acceleration (as set with SetGravitationalAcceleration or, if never set, the gravity of the multibody system at
+    /// the first step). The fluid system must accept gravity changes after initialization (e.g., Chrono::FSI-SPH).
+    void SetFrameAcceleration(const ChVector3d& direction, std::shared_ptr<ChFunction> acceleration);
 
     /// Set integration step size for fluid dynamics.
     void SetStepSizeCFD(double step);
@@ -259,6 +268,14 @@ class CH_FSI_API ChFsiSystem {
   private:
     void AdvanceCFD(double step, double threshold);
     void AdvanceMBS(double step, double threshold);
+
+    /// Set the effective gravity g - a(t) in both phases, for a prescribed frame acceleration.
+    void ApplyFrameAcceleration(double time);
+
+    ChVector3d m_gravity;                     ///< gravitational acceleration (without frame acceleration)
+    bool m_gravity_set;                       ///< true if m_gravity was explicitly set
+    ChVector3d m_frame_acc_dir;               ///< direction of the frame acceleration
+    std::shared_ptr<ChFunction> m_frame_acc;  ///< magnitude of the frame acceleration (if any) as function of time
 
     double m_step_MBD;  ///< time step for multibody dynamics
     double m_step_CFD;  ///< time step for fluid dynamics

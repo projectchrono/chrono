@@ -82,6 +82,16 @@ class ChApiParsers ChParserYAML {
     bool WriteImages() const { return m_vis_settings.write_images; }
     const std::string& GetImageDir() const { return m_vis_settings.image_dir; }
 
+    // Prescribed frame acceleration
+
+    /// Return the magnitude of the prescribed frame acceleration as a function of time (empty if none).
+    /// A frame acceleration is specified in the optional `frame_acceleration` object of the `simulation` settings
+    /// (MBS, SPH, and FSI simulation files).
+    std::shared_ptr<ChFunction> GetFrameAcceleration() const { return m_frame_acc; }
+
+    /// Return the direction of the prescribed frame acceleration.
+    const ChVector3d& GetFrameAccelerationDirection() const { return m_frame_acc_dir; }
+
     /// Load simulation settings for this parser from the specified YAML node.
     /// This function reads settings common to all Chrono YAML parsers (run-time visualization and output).
     /// A derived class must also read any additional parser-specific simulation settings.
@@ -118,6 +128,11 @@ class ChApiParsers ChParserYAML {
     /// Print the given label followed by the name of the output file with the specified stem.
     void PrintOutputFileName(const std::string& label, const std::string& file_stem) const;
 
+    /// Read the optional prescribed frame acceleration from the given `simulation` YAML node.
+    /// The `frame_acceleration` object provides a `direction` vector and a `function` (a ChFunction specification,
+    /// with any angles in degrees) for the magnitude of the acceleration.
+    void ReadFrameAcceleration(const YAML::Node& sim);
+
     /// Read the YAML file type from the given node.
     /// The value is matched case-insensitively against the recognized types. An unrecognized value is
     /// reported as YamlFileType::CUSTOM, with a warning naming the offending value.
@@ -134,6 +149,9 @@ class ChApiParsers ChParserYAML {
     std::shared_ptr<ChOutput> m_output_db;  ///< output database
 
     ChYamlFileHandler m_file_handler;  ///< handler for data file paths
+
+    ChVector3d m_frame_acc_dir;               ///< direction of the prescribed frame acceleration
+    std::shared_ptr<ChFunction> m_frame_acc;  ///< magnitude of the prescribed frame acceleration (if any)
 };
 
 /// @} parsers_module
