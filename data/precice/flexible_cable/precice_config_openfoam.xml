@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<precice-configuration>
+  <log>
+    <sink
+      type="stream"
+      output="stdout"
+      filter="%Severity% > info"
+      format="preCICE:%ColorizedSeverity% %Message%"
+      enabled="true" />
+  </log>
+
+  <!-- Linear in time within each window, so that every OpenFOAM substep receives its share of the displacement
+       increment of the window (the adapter reads the displacements after each substep) -->
+  <data:vector name="Displacements" waveform-degree="1" />
+  <data:vector name="Forces" />
+
+  <!-- Chrono cable nodes, with the cable elements as mesh edges -->
+  <mesh name="SolidMesh" dimensions="3">
+    <use-data name="Displacements" />
+    <use-data name="Forces" />
+  </mesh>
+
+  <!-- Face centers of the OpenFOAM cable patch -->
+  <mesh name="FluidMesh" dimensions="3">
+    <use-data name="Displacements" />
+    <use-data name="Forces" />
+  </mesh>
+
+  <participant name="Solid">
+    <provide-mesh name="SolidMesh" />
+    <write-data name="Displacements" mesh="SolidMesh" />
+    <read-data name="Forces" mesh="SolidMesh" />
+  </participant>
+
+  <participant name="Fluid">
+    <provide-mesh name="FluidMesh" />
+    <receive-mesh name="SolidMesh" from="Solid" />
+    <!-- Nearest-projection onto the cable elements (edges of SolidMesh): displacements are interpolated linearly
+         along the elements, and the forces on the patch faces are split between the element end nodes. -->
+    <mapping:nearest-projection direction="read" from="SolidMesh" to="FluidMesh" constraint="consistent" />
+    <mapping:nearest-projection direction="write" from="FluidMesh" to="SolidMesh" constraint="conservative" />
+    <read-data name="Displacements" mesh="FluidMesh" />
+    <write-data name="Forces" mesh="FluidMesh" />
+  </participant>
+
+  <!-- The participants run from their own directories (solid_chrono and fluid_openfoam) -->
+  <m2n:sockets acceptor="Solid" connector="Fluid" exchange-directory=".." />
+
+  <coupling-scheme:serial-explicit>
+    <!-- The solid participant runs first in each time window, with the fluid forces of the previous window
+         ('read_data_time: WINDOW_START'); the fluid participant then follows the displacements of the current
+         window, interpolated in time. The cable is much denser than water, so an explicit scheme is expected to be
+         stable. The OpenFOAM time step adapts within each window. -->
+    <time-window-size value="5e-4" />
+    <max-time value="2.0" />
+    <participants first="Solid" second="Fluid" />
+    <exchange data="Displacements" mesh="SolidMesh" from="Solid" to="Fluid" />
+    <exchange data="Forces" mesh="SolidMesh" from="Fluid" to="Solid" />
+  </coupling-scheme:serial-explicit>
+</precice-configuration>

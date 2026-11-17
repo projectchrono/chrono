@@ -16,12 +16,13 @@
 // cable elements), anchored at the bottom of a container, impacted by a collapsing
 // granular (CRM) or water (CFD) column.
 // - the solid participant is a Chrono MBS with an FEA mesh
-// - the fluid participant is a Chrono::FSI-SPH solver
+// - the fluid participant is a Chrono::FSI-SPH solver or OpenFOAM (water column only)
 //
-// The coupled simulation is the preCICE counterpart of demo_FSI-SPH_Flexible_Cable
-// (single cable, no rigid bodies) and of the corresponding YAML models in
-// demo_YAML_fsi (option '-m soft_cable'). With a stiffer cable (option '-m stiff_cable'),
-// the cable deflects moderately under the collapsing water column.
+// The coupled simulation with Chrono::FSI-SPH is the preCICE counterpart of
+// demo_FSI-SPH_Flexible_Cable (single cable, no rigid bodies) and of the corresponding
+// YAML models in demo_YAML_fsi (option '-m soft_cable'). A stiffer cable (option
+// '-m stiff_cable') keeps the cable deflection moderate, as required by the deforming
+// mesh of the OpenFOAM participant.
 // The two participants must be run in separate processes.
 //
 // =============================================================================
@@ -125,11 +126,13 @@ int main(int argc, char* argv[]) {
     std::string help =
         "Specify the participant type, one of:\n"        //
         " 'Solid'     - Chrono multibody solid phase\n"  //
-        " 'Fluid_SPH' - Chrono::SPH fluid solver\n";     //
+        " 'Fluid_SPH' - Chrono::SPH fluid solver\n"      //
+        "With '-f OpenFOAM', this program runs only the 'Solid' participant, with the stiff cable, from the\n"
+        "'solid_chrono' directory of the case (see data/precice/flexible_cable/README.md).\n";
 
     ChCLI cli(argv[0], help);
     cli.AddOption<std::string>("", "p,participant_type", "participant type (Solid, Fluid_SPH)");
-    cli.AddOption<std::string>("", "f,fluid", "fluid phase problem (CRM, CFD)", "CRM");
+    cli.AddOption<std::string>("", "f,fluid", "fluid phase problem (CRM, CFD, OpenFOAM)", "CRM");
     cli.AddOption<std::string>("", "m,model", "cable model (soft_cable, stiff_cable)", "soft_cable");
     cli.AddOption<std::string>("", "c,config_file", "preCICE configuration file (default: depends on fluid problem)", "");
     cli.AddOption<bool>("", "quiet", "Disable verbose terminal output");
@@ -148,9 +151,17 @@ int main(int argc, char* argv[]) {
     }
 
     auto fluid = ChToLower(cli.GetAsType<std::string>("fluid"));
-    if (fluid != "crm" && fluid != "cfd") {
-        cerr << "Unrecognized fluid problem. Use 'CRM' or 'CFD'" << endl;
+    if (fluid != "crm" && fluid != "cfd" && fluid != "openfoam") {
+        cerr << "Unrecognized fluid problem. Use 'CRM', 'CFD', or 'OpenFOAM'" << endl;
         return 1;
+    }
+    if (fluid == "openfoam") {
+        if (type != "Solid") {
+            cerr << "With '-f OpenFOAM', only the 'Solid' participant can be run by this program" << endl;
+            return 1;
+        }
+        // The solid participant runs from data/precice/flexible_cable/solid_chrono, next to the OpenFOAM case
+        SetChronoDataPath("../../../");
     }
 
     auto model = ChToLower(cli.GetAsType<std::string>("model"));
@@ -158,9 +169,19 @@ int main(int argc, char* argv[]) {
         cerr << "Unrecognized cable model. Use 'soft_cable' or 'stiff_cable'" << endl;
         return 1;
     }
+    if (fluid == "openfoam" && model == "soft_cable") {
+        // The water column bends the soft cable flat onto the container floor, which the deforming OpenFOAM mesh
+        // around the cable cannot follow
+        cerr << "The OpenFOAM fluid participant requires the stiff cable. Use '-m stiff_cable'" << endl;
+        return 1;
+    }
     std::string participant_file = "precice/flexible_cable/solid_chrono/mbs_participant.yaml";
     if (model == "stiff_cable")
         participant_file = "precice/flexible_cable/solid_chrono/mbs_participant_stiff.yaml";
+    if (fluid == "openfoam") {
+        // With OpenFOAM, the solid participant runs first in each time window (see precice_config_openfoam.xml)
+        participant_file = "precice/flexible_cable/solid_chrono/mbs_participant_openfoam.yaml";
+    }
 
     auto precice_config_filename = cli.GetAsType<std::string>("config_file");
     if (precice_config_filename.empty())

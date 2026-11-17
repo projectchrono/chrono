@@ -1,0 +1,34 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    cable
+    {
+        type            movingWallVelocity;
+        value           uniform (0 0 0);
+    }
+    "(floor|leftWall|rightWall)"
+    {
+        type            noSlip;
+    }
+    atmosphere
+    {
+        type            pressureInletOutletVelocity;
+        value           uniform (0 0 0);
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}
