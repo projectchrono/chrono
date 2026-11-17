@@ -50,13 +50,14 @@ int main(int argc, char* argv[]) {
     std::cout << "  7. Flexible cable in water flow (SPH, CFD)" << std::endl;
     std::cout << "  8. Sphere regular waves (TDPF)" << std::endl;
     std::cout << "  9. Sphere decay (TDPF)" << std::endl;
-    std::cout << " 10. Other (user-provided FSI YAML file)" << std::endl;
+    std::cout << " 10. Flexible cable in a shaking tank (SPH, CFD)" << std::endl;
+    std::cout << " 11. Other (user-provided FSI YAML file)" << std::endl;
     std::cout << "\nSelect model: ";
     std::getline(std::cin, input);
     if (!input.empty()) {
         std::istringstream stream(input);
         stream >> model;
-        ChClampValue(model, 1, 10);
+        ChClampValue(model, 1, 11);
     }
 
     // Set input file name
@@ -90,6 +91,9 @@ int main(int argc, char* argv[]) {
             yaml_filename = GetChronoDataFile("yaml/fsi/sphere_decay/fsi_sphere_decay.yaml");
             break;
         case 10:
+            yaml_filename = GetChronoDataFile("yaml/fsi/flexible_cable_shaking_tank/fsi_flexible_cable_shaking_tank.yaml");
+            break;
+        case 11:
             std::cout << "FSI YAML specification file name: ";
             std::getline(std::cin, yaml_filename);
             break;

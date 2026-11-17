@@ -1,0 +1,23 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      decomposeParDict;
+}
+
+numberOfSubdomains 8;
+
+method          scotch;
+
+// Keep the faces of each pair of cyclic patches on the same processor; split across processors, the two sides
+// drift apart under mesh motion and their faces no longer match
+constraints
+{
+    cyclics
+    {
+        type        preservePatches;
+        patches     (front back left right);
+    }
+}

@@ -1,0 +1,38 @@
+chrono-version: 11.0
+
+model:
+  name: Shaking tank
+  physics_problem: CFD
+  geometry_type: CARTESIAN
+
+  angle_degrees: true
+
+  data_path:
+    type: RELATIVE
+    root: "."
+
+  # Viscous fluid (kinematic viscosity 5e-3): laminar flow around the cable, resolved at the SPH particle spacing
+  fluid_properties:
+    density: 1000.0
+    viscosity: 5.0
+
+  initial_states:
+    depth_based_pressure: true
+    zero_height: 1.0
+
+  # Box of fluid with a floor and a free surface (periodic in x and y)
+  fluid_domain:
+    dimensions: [0.8, 0.4, 1.0]
+    box_origin: [0, 0, 0]
+    box_walls:
+      x: [false, false]   # negative, positive
+      y: [false, false]   # negative, positive
+      z: [true, false]    # negative, positive
+
+  # Periodic in x and y (the periodic width is the box width plus one particle spacing)
+  computational_domain:
+    aabb_min: [-0.41, -0.21, -1.0]
+    aabb_max: [0.41, 0.21, 2.0]
+    x_bc_type: PERIODIC
+    y_bc_type: PERIODIC
+    z_bc_type: NONE

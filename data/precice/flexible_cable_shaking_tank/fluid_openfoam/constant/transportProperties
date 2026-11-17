@@ -1,0 +1,28 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+
+// Viscous fluid (kinematic viscosity 5e-3), as in the Chrono::FSI-SPH participant. The box is filled with it up to
+// its top (a pressure boundary); the second (air) phase is required by interFoam but does not appear.
+phases          (water air);
+
+water
+{
+    transportModel  Newtonian;
+    nu              5e-03;
+    rho             1000;
+}
+
+air
+{
+    transportModel  Newtonian;
+    nu              1.48e-05;
+    rho             1;
+}
+
+sigma           0.07;
