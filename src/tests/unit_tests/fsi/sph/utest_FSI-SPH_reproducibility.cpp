@@ -13,6 +13,11 @@
 // =============================================================================
 //
 // Check bit-identical rigid loads and coupled CRM state on repeated runs.
+//
+// The FSI loads on solids are summed in a fixed order, so repeated runs with the same GPU and build must give
+// bit-identical results. A plate pushed into a CRM bed is simulated three times, and the plate loads and the full
+// SPH particle state are compared bitwise. Comparing the particle state makes the whole SPH step a determinism
+// guard: any new order-dependent reduction (e.g., a floating-point atomic) anywhere in the step fails this test.
 // =============================================================================
 
 #include <cmath>
@@ -142,6 +147,8 @@ Result RunPlate() {
 
     fsi.Initialize();
 
+    // 512 is the block size of the rigid force reduction (SphBceManager); with several blocks and a partial last one,
+    // the plate exercises both the per-block sums and the final per-body sum. Update if that block size changes.
     check(fsi.GetNumBCE(plate) > 3 * 512 && fsi.GetNumBCE(plate) % 512 != 0, "repeatability plate spans several blocks with a partial last block");
 
     Result r;

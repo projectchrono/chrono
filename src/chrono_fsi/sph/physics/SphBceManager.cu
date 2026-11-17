@@ -121,11 +121,9 @@ void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
         UpdateBodyMarkerStateInitial();
     }
 
-    SetMeshForceMap(m_data_mgr.countersH->numFsiNodes1D, m_data_mgr.flex1D_Nodes_H, m_data_mgr.flex1D_BCEsolids_H, m_flex1D_node_offsets, m_flex1D_contributions);
-    SetMeshForceMap(m_data_mgr.countersH->numFsiNodes2D, m_data_mgr.flex2D_Nodes_H, m_data_mgr.flex2D_BCEsolids_H, m_flex2D_node_offsets, m_flex2D_contributions);
-
     // Populate local position of BCE markers - on flexible bodies
     if (haveMesh1D) {
+        SetMeshForceMap(m_data_mgr.countersH->numFsiNodes1D, m_data_mgr.flex1D_Nodes_H, m_data_mgr.flex1D_BCEsolids_H, m_flex1D_node_offsets, m_flex1D_contributions);
         m_data_mgr.flex1D_Nodes_D = m_data_mgr.flex1D_Nodes_H;
         m_data_mgr.flex1D_Normals_D = m_data_mgr.flex1D_Normals_H;
         m_data_mgr.flex1D_BCEsolids_D = m_data_mgr.flex1D_BCEsolids_H;
@@ -135,6 +133,7 @@ void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     }
 
     if (haveMesh2D) {
+        SetMeshForceMap(m_data_mgr.countersH->numFsiNodes2D, m_data_mgr.flex2D_Nodes_H, m_data_mgr.flex2D_BCEsolids_H, m_flex2D_node_offsets, m_flex2D_contributions);
         m_data_mgr.flex2D_Nodes_D = m_data_mgr.flex2D_Nodes_H;
         m_data_mgr.flex2D_BCEsolids_D = m_data_mgr.flex2D_BCEsolids_H;
         m_data_mgr.flex2D_BCEcoords_D = m_data_mgr.flex2D_BCEcoords_H;
@@ -400,9 +399,10 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ block_forces,
 
     __syncthreads();
 
-    // Standard block wise reduction - each block only contains elements from a single rigid body
+    // Standard block wise reduction - each block only contains elements from a single rigid body.
+    // Padding threads hold zero force and torque, so they can take part in the reduction.
     for (uint stride = blockDim.x / 2; stride > 0; stride >>= 1) {
-        if (threadIdx_x < stride && threadIdx_x + stride < validThreads) {
+        if (threadIdx_x < stride) {
             sharedForces[threadIdx_x].x += sharedForces[threadIdx_x + stride].x;
             sharedForces[threadIdx_x].y += sharedForces[threadIdx_x + stride].y;
             sharedForces[threadIdx_x].z += sharedForces[threadIdx_x + stride].z;
@@ -522,9 +522,10 @@ void SphBceManager::CalcRigidBodyForces() {
 }
 
 void SphBceManager::CalcFeaMesh1DForces() {
-    auto num_nodes = m_data_mgr.countersH->numFsiNodes1D;
-    if (num_nodes == 0)
+    // The node-to-marker map is built only for meshes with elements (see Initialize)
+    if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
+    auto num_nodes = m_data_mgr.countersH->numFsiNodes1D;
 
     constexpr uint block_size = 256;
     CalcMeshForces_D<2><<<num_nodes, block_size, block_size * sizeof(Real3)>>>(
@@ -535,9 +536,10 @@ void SphBceManager::CalcFeaMesh1DForces() {
 }
 
 void SphBceManager::CalcFeaMesh2DForces() {
-    auto num_nodes = m_data_mgr.countersH->numFsiNodes2D;
-    if (num_nodes == 0)
+    // The node-to-marker map is built only for meshes with elements (see Initialize)
+    if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
+    auto num_nodes = m_data_mgr.countersH->numFsiNodes2D;
 
     constexpr uint block_size = 256;
     CalcMeshForces_D<3><<<num_nodes, block_size, block_size * sizeof(Real3)>>>(

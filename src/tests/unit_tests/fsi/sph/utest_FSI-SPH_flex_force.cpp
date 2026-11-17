@@ -158,6 +158,8 @@ TEST_P(FlexForce, TransferAndRepeatability) {
             Real t = data.flex1D_BCEcoords_H[i].x;
             auto expected = Values(pos1[seg.x] * (1 - t) + pos1[seg.y] * t);
             auto actual = Values(acc[mapping[c.startMesh1DMarkers + i]]);
+            // Exact comparison is safe: node accelerations are small integers and t = k/8, so every product and sum
+            // is exactly representable and the result does not depend on how the interpolation is evaluated.
             EXPECT_EQ(actual, expected);
         }
     }

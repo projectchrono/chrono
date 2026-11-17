@@ -94,12 +94,15 @@ class SphBceManager {
     uint m_rigid_grid_size;                                   ///< Grid size for the rigid force accumulator kernel
     thrust::device_vector<uint> m_rigid_valid_threads;        ///< numbers of valid (non-padding) threads in the block
     thrust::device_vector<uint> m_rigid_accumulated_threads;  ///< accumulated numbers of padded threads before a block
-    thrust::device_vector<uint> m_rigid_body_offsets;         ///< First reduction block for each body, plus the end offset
+    thrust::device_vector<uint> m_rigid_body_offsets;         ///< first reduction block of each body (numFsiBodies + 1 entries)
 
-    thrust::device_vector<uint> m_flex1D_node_offsets;
-    thrust::device_vector<uint> m_flex1D_contributions;  ///< encoded (marker, local node), grouped by node
-    thrust::device_vector<uint> m_flex2D_node_offsets;
-    thrust::device_vector<uint> m_flex2D_contributions;
+    // Node-to-marker maps for the flexible force gather, in CSR form: the contributions to node i are entries
+    // node_offsets[i] to node_offsets[i+1]-1 of contributions, each encoded as marker * nodes_per_marker + local node
+    // (2 nodes per marker in 1D, 3 in 2D) and kept in the original marker order.
+    thrust::device_vector<uint> m_flex1D_node_offsets;   ///< first contribution of each 1D node (numFsiNodes1D + 1 entries)
+    thrust::device_vector<uint> m_flex1D_contributions;  ///< encoded (marker, local node) pairs, grouped by 1D node
+    thrust::device_vector<uint> m_flex2D_node_offsets;   ///< first contribution of each 2D node (numFsiNodes2D + 1 entries)
+    thrust::device_vector<uint> m_flex2D_contributions;  ///< encoded (marker, local node) pairs, grouped by 2D node
 
     NodeDirections m_node_directions_mode;
     bool m_verbose;
