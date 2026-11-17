@@ -741,10 +741,10 @@ std::vector<Real3> FsiDataManager::GetVelocities() {
 }
 
 std::vector<Real3> FsiDataManager::GetAccelerations() {
-    // Copy data for SPH particles only
+    // Copy data for SPH particles only, in original marker order
     const auto n = countersH->numFluidMarkers;
     thrust::device_vector<Real4> acc4_D(n);
-    thrust::copy_n(derivVelRhoD.begin(), n, acc4_D.begin());
+    thrust::copy_n(derivVelRhoOriginalD.begin(), n, acc4_D.begin());
 
     // Extract acceleration (drop density)
     thrust::device_vector<Real3> acc_D(n);
@@ -864,10 +864,10 @@ std::vector<Real3> FsiDataManager::GetAccelerations(const std::vector<int>& indi
     thrust::device_vector<int> indices_D(indices.size());
     thrust::copy(indices.begin(), indices.end(), indices_D.begin());
 
-    // Get all extended accelerations
+    // Get the accelerations of all SPH particles, in original marker order
     const auto n = countersH->numFluidMarkers;
     thrust::device_vector<Real4> allacc4_D(n);
-    thrust::copy_n(derivVelRhoD.begin(), n, allacc4_D.begin());
+    thrust::copy_n(derivVelRhoOriginalD.begin(), n, allacc4_D.begin());
 
     // Gather only those for specified indices
     thrust::device_vector<Real4> acc4_D(allacc4_D.size());
