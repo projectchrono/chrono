@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetGravityY();
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    ChCollisionModel::SetDefaultSuggestedEnvelope(0.2);
+    ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
     ChCollisionModel::SetDefaultSuggestedMargin(0.02);
 
     // Create a contact material that will be shared among all collision shapes
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
     // by using the ChSolverLumpedPSOR solver.
     auto solver = chrono_types::make_shared<ChSolverLumpedPSOR>();
     solver->SetMaxIterations(1);   // a small n of iterations often is enough!
-    solver->EnableWarmStart(true); // this allows the cheap correction to accumulate during the many small explicit timesteps
+    solver->EnableWarmStart(false); // this allows the cheap correction to accumulate during the many small explicit timesteps
     sys.SetSolver(solver);
 
     // Choose one of the various explicit time steppers.  
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
     stepper->SetStabilizationFactor(0.8); // A good value is 0.8. Close to 1 means immediate constr. recovery, but may cause oscillations
     sys.SetTimestepper(stepper);
 
-    sys.SetMinBounceSpeed(0.2);
+    sys.SetMinBounceSpeed(0.6);
 
     // Simulation loop
     while (vis->Run()) {
