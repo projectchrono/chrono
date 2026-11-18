@@ -35,6 +35,7 @@ set(Chrono_MULTIDOMAIN_SOURCES
     ChSystemDescriptorMultidomain.cpp
     ChSolverPSORmultidomain.cpp
     ChSolverLumpedMultidomain.cpp
+    ChSolverLumpedPSORMultidomain.cpp
     ChSolverBBmultidomain.cpp
     ChMpi.cpp
 )
@@ -49,6 +50,7 @@ set(Chrono_MULTIDOMAIN_HEADERS
     ChSystemDescriptorMultidomain.h
     ChSolverPSORmultidomain.h
     ChSolverLumpedMultidomain.h
+    ChSolverLumpedPSORMultidomain.h
     ChSolverBBmultidomain.h
     ChMpi.h
 )
