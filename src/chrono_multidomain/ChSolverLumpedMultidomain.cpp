@@ -40,48 +40,37 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
 
     ChVectorDynamic<> R(nv);
     ChVectorDynamic<> a(nv);
-    //ChVectorDynamic<> L(nc);
 
     // penalty terms from constraints
     R.setZero(nv);
-    //L.setZero(nc);
     
-    sysdMD.BuildFbVector(R); // rhs, applied forces (plus the penalty terms of constraints if timestepper in penalty ON mode)
+    sysdMD.BuildFbVector(R); // rhs, applied forces (maybe plus the constraint penalty if timestepper in penalty ON mode)
 
-    // NO NOT NEEDED... When ChSystem::StateSolveCorrection() is called in outer context, it detects that 
-    // a diagonal_M is needed in this solver, and it fills it with the lumped masses of the system. 
+    // NO NOT NEEDED... (old code by Matthew) When ChSystem::StateSolveCorrection() is called in outer context, it detects that 
+    // it already takes this->diagonal_M and it fills it with the lumped masses of the system. 
     // Also note that the lumped masses are already split between shared domains with Wv weights.
     /*
     ChVectorDynamic<> diag_all;
     sysdMD.BuildDiagonalVector(diag_all);  // POTENTIAL TROUBLE! THIS IS NOT NECESSARILY THE SAME AS DIAGONAL MASSES: MORE IN GENERAL
                                            // IT GIVES THE DIAGONAL OF THE "H" MATRIX, THAT IS OFTEN M, BUT SOMETIMES ALSO WITH K AND R 
     diagonal_M = diag_all.head(nv);
-
-    constexpr bool apply_partition_weights = false;
-    if (apply_partition_weights) {
-        if (auto domain = sysdMD.GetDomain()) {
-            domain->ComputeSharedCoordsWeights(domain->CoordWeightsWv());
-            const auto& wv = domain->CoordWeightsWv();
-            if (wv.size() >= nv) {
-                for (int i = 0; i < nv; ++i) {
-                    const double w = wv(i);
-                    R[i] *= w;
-                    diagonal_M[i] *= w;
-                }
-            }
-        }
-    }
+    ...
     */
 
-    // MULTIDOMAIN: assemble shared force prior to division.
-    // This avoids re-adding already divided accelerations across interfaces.
+    // MULTIDOMAIN_COMM************
+    // Assembly shared forces, so that the following a = R / diagonal_M is correct
     sysdMD.VectAdditiveToClipped(R);
 
-    // NOTE! diagonal_M is _already_ in clipped form here: if it was in additive form we should have done
-    //  sysdMD.VectAdditiveToClipped(diagonal_M); 
-    // So we avoid a MPI communication here. As a double check, doing the following should go back to clipped:
-    //  diagonal_M.array() *= sysdMD.GetDomain()->CoordWeightsWv().array(); // to addditive 
-    //  sysdMD.VectAdditiveToClipped(diagonal_M); 
+    // MULTIDOMAIN_COMM************
+    // Assembly shared masses, so that the following a = R / diagonal_M is correct
+    // Note: such diagonal_M is in "additive" form because diagonal_M was populated by 
+    // ChSystem::StateSolveCorrection() in the outer context where it calls ChSystem::LoadLumpedMass_Md() 
+    // and assuming one has set system->EnableCoordWeightsWv(true), then LoadLumpedMass_Md does this:
+    //  - the masses of bodies and nodes (topology vertexes, shared) are scaled by the Wv weights
+    //  - the masses introduced by FEA elements (topology edges) are NOT scaled by the Wv weights, that
+    //    is good because they are not shared and live in just one of the domains.
+    // So we only need to convert the diagonal_M from additive to clipped form.
+    sysdMD.VectAdditiveToClipped(diagonal_M);  
 
 
     // Compute acceleration using lumped diagonal mass. No need to invoke a linear solver.
@@ -95,16 +84,14 @@ double ChSolverLumpedMultidomain::Solve(ChSystemDescriptor& sysd) {
 
         // Hack to overcome a 0/0=NaN result for FEA like IGA where one node is a domain outlier (hence zero R) but with zero mass M because the element that gives the mass is in the other domain
         // NOTE: THIS SHOULD NOT BE NEEDED ANYMORE BECAUSE WE WORK WITH diagonal_M IN "CLIPPED" FORM AFTER VectAdditiveToClipped 
-        if (this->diagonal_M[i] == 0)
-            a[i] = 0; 
+        //if (this->diagonal_M[i] == 0)
+        //    a[i] = 0; 
     }
 
+    // MULTIDOMAIN_COMM************
     // Synchronize shared accelerations via interface averaging. In theory the shared accelerations should be equal across nodes, but
     // in practice they may differ due to numerical errors, e.g. finite precision in fp arithmetic, different processors, etc., so we average them across domains.
     sysdMD.VectAverage(a, 1.0);
-
-    // Resulting dual variables:
-    //sysd.FromVectorToConstraints(L);
 
     // Resulting primal variables:
     sysd.FromVectorToVariables(a);

@@ -313,7 +313,6 @@ void ChSystemDescriptorMultidomain::SharedVectsAverageToDomainVector(ChVectorDyn
         }
     }
         
-    // initialize avg counters to 1
     for (auto gvar : this->m_variables)
         if (gvar->IsActive()) {
             vect.segment(gvar->GetOffset(), gvar->GetDOF()) *= (average_multiplier / (double)sharing_count[gvar]);

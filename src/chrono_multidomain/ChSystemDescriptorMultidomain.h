@@ -437,7 +437,7 @@ class ChApiMultiDomain ChSystemDescriptorMultidomain : public ChSystemDescriptor
     /// It is expected that all domains will execute this operation, otherwise deadlock.
     virtual void VectAdditiveToClipped(ChVectorDynamic<>& vect);
 
-    /// Takes vectors "vect" and average the shared coordinates with other vectors from other domains.
+    /// Takes vectors "vect" in 'clipped' form and average the shared coordinates with other vectors from other domains.
     /// Overwrites "vect". Note, vect has size and indexing as domain's coordinates.
     /// This operation requires a network-expensive SEND and RECEIVE operation!
     /// It is expected that all domains will execute this operation, otherwise deadlock.

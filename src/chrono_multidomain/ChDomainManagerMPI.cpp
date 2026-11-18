@@ -75,10 +75,6 @@ void ChDomainManagerMPI::SetDomain(std::shared_ptr<ChDomain> mdomain) {
 	// By default, change the default solver to be PSOR for multidomain:
 	auto multidomain_solver_PSOR = chrono_types::make_shared<ChSolverPSORmultidomain>();
 	mdomain->GetSystem()->SetSolver(multidomain_solver_PSOR);
-
-	// By default, skip adding forces F and M*v for nodes that are not "master", i.e. shared but not inside domain: 
-	// ***TODO** remove, EnableCoordWeightsWv fixes the same issue but in cleaner way
-	//  mdomain->GetSystem()->EnableResidualFilteringByDomain(true, mdomain.get());
 	
 	// By default, scale forces F, M*v, lumped Md and masses for shared nodes
 	mdomain->GetSystem()->EnableCoordWeightsWv(true, mdomain->CoordWeightsWv());
