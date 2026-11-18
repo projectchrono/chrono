@@ -1,0 +1,53 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+
+application     interFoam;
+
+startFrom       startTime;
+startTime       0;
+
+// The coupled simulation ends at the max-time of the preCICE configuration
+stopAt          endTime;
+endTime         2.0;
+
+// Initial time step equal to the preCICE time window, so that interFoam does not subcycle while the Courant
+// number allows full windows (after a window end cuts a step short, the step grows back only slowly)
+deltaT          5e-4;
+
+// Write at the first time step after each write time, without adjusting the time step: an adjusted step that ends
+// at a write time coinciding with the end of a preCICE time window can leave a time step too short for preCICE
+writeControl    runTime;
+writeInterval   0.02;
+purgeWrite      0;
+
+writeFormat     binary;
+writePrecision  8;
+writeCompression off;
+
+timeFormat      general;
+timePrecision   6;
+
+runTimeModifiable yes;
+
+// The time step adapts to the Courant numbers, within each preCICE time window
+adjustTimeStep  yes;
+maxCo           0.5;
+maxAlphaCo      0.5;
+maxDeltaT       5e-4;
+
+libs            ("libpreciceAdapterFunctionObject.so");
+
+functions
+{
+    preCICE_Adapter
+    {
+        type        preciceAdapterFunctionObject;
+        errors      strict;
+    }
+}

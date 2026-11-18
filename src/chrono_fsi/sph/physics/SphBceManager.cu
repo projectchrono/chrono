@@ -22,6 +22,8 @@
 
 #include <type_traits>
 #include <fstream>
+#include <limits>
+#include <stdexcept>
 
 #include <thrust/iterator/constant_iterator.h>
 #include <thrust/reduce.h>
@@ -58,8 +60,6 @@ void CopyParametersToDevice_SphBceManager(std::shared_ptr<ChFsiParamsSPH> params
 
 SphBceManager::SphBceManager(FsiDataManager& data_mgr, NodeDirections node_directions_mode, bool verbose, bool check_errors)
     : m_data_mgr(data_mgr), m_node_directions_mode(node_directions_mode), m_verbose(verbose), m_check_errors(check_errors) {
-    m_totalForceRigid.resize(0);
-    m_totalTorqueRigid.resize(0);
     m_rigid_block_size = 512;
     m_rigid_grid_size = 0;
 }
@@ -68,13 +68,42 @@ SphBceManager::~SphBceManager() {}
 
 // -----------------------------------------------------------------------------
 
+template <class Connectivity>
+void SetMeshForceMap(size_t num_nodes,
+                     const thrust::host_vector<Connectivity>& elements,
+                     const thrust::host_vector<uint3>& solids,
+                     thrust::device_vector<uint>& node_offsets,
+                     thrust::device_vector<uint>& contributions) {
+    constexpr uint nodes_per_marker = std::is_same_v<Connectivity, int2> ? 2 : 3;
+    if (num_nodes >= std::numeric_limits<uint>::max() || solids.size() > std::numeric_limits<uint>::max() / nodes_per_marker)
+        throw std::overflow_error("FSI mesh force map exceeds the supported index range");
+
+    thrust::host_vector<uint> offsets(num_nodes + 1, 0);
+    thrust::host_vector<uint> nodes(solids.size() * nodes_per_marker);
+    for (size_t marker = 0; marker < solids.size(); marker++) {
+        auto element = elements[solids[marker].z];
+        nodes[nodes_per_marker * marker] = element.x;
+        nodes[nodes_per_marker * marker + 1] = element.y;
+        if constexpr (nodes_per_marker == 3)
+            nodes[nodes_per_marker * marker + 2] = element.z;
+    }
+    for (auto node : nodes)
+        offsets[node + 1]++;
+    for (size_t node = 0; node < num_nodes; node++)
+        offsets[node + 1] += offsets[node];
+
+    // Build once in original marker order; shared nodes need not be adjacent in the element list.
+    auto cursor = offsets;
+    thrust::host_vector<uint> ordered(nodes.size());
+    for (size_t i = 0; i < nodes.size(); i++)
+        ordered[cursor[nodes[i]]++] = (uint)i;
+    node_offsets = offsets;
+    contributions = ordered;
+}
+
 void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     gpuMemcpyToSymbolAsync(paramsD, m_data_mgr.paramsH.get(), sizeof(ChFsiParamsSPH));
     gpuMemcpyToSymbolAsync(countersD, m_data_mgr.countersH.get(), sizeof(Counters));
-
-    // Resizing the arrays used to modify the BCE velocity and pressure according to Adami
-    m_totalForceRigid.resize(m_data_mgr.countersH->numFsiBodies);
-    m_totalTorqueRigid.resize(m_data_mgr.countersH->numFsiBodies);
 
     ////int haveGhost = (m_data_mgr.countersH->numGhostMarkers > 0) ? 1 : 0;
     ////int haveHelper = (m_data_mgr.countersH->numHelperMarkers > 0) ? 1 : 0;
@@ -94,6 +123,7 @@ void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
 
     // Populate local position of BCE markers - on flexible bodies
     if (haveMesh1D) {
+        SetMeshForceMap(m_data_mgr.countersH->numFsiNodes1D, m_data_mgr.flex1D_Nodes_H, m_data_mgr.flex1D_BCEsolids_H, m_flex1D_node_offsets, m_flex1D_contributions);
         m_data_mgr.flex1D_Nodes_D = m_data_mgr.flex1D_Nodes_H;
         m_data_mgr.flex1D_Normals_D = m_data_mgr.flex1D_Normals_H;
         m_data_mgr.flex1D_BCEsolids_D = m_data_mgr.flex1D_BCEsolids_H;
@@ -103,6 +133,7 @@ void SphBceManager::Initialize(std::vector<int> fsiBodyBceNum) {
     }
 
     if (haveMesh2D) {
+        SetMeshForceMap(m_data_mgr.countersH->numFsiNodes2D, m_data_mgr.flex2D_Nodes_H, m_data_mgr.flex2D_BCEsolids_H, m_flex2D_node_offsets, m_flex2D_contributions);
         m_data_mgr.flex2D_Nodes_D = m_data_mgr.flex2D_Nodes_H;
         m_data_mgr.flex2D_BCEsolids_D = m_data_mgr.flex2D_BCEsolids_H;
         m_data_mgr.flex2D_BCEcoords_D = m_data_mgr.flex2D_BCEcoords_H;
@@ -118,7 +149,9 @@ void SphBceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
     // the global array. This is only required in the very next block
     thrust::host_vector<uint> rigid_valid_threads(0);
     thrust::host_vector<uint> rigid_accumulated_threads(1, 0);
+    thrust::host_vector<uint> rigid_body_offsets(1, 0);
 
+    m_rigid_grid_size = 0;
     uint accumulatedPaddedThreads = 0;
     for (int irigid = 0; irigid < fsiBodyBceNum.size(); irigid++) {
         // Calculate block requirements with thread padding to ensure that during rigid body force accumulation each
@@ -138,11 +171,15 @@ void SphBceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
             rigid_accumulated_threads.push_back(accumulatedPaddedThreads);
         }
         m_rigid_grid_size += numBlocks;
+        rigid_body_offsets.push_back(m_rigid_grid_size);
     }
 
     // Copy vectors to device
     m_rigid_valid_threads = rigid_valid_threads;
     m_rigid_accumulated_threads = rigid_accumulated_threads;
+    m_rigid_body_offsets = rigid_body_offsets;
+    m_rigid_block_forces.resize(m_rigid_grid_size);
+    m_rigid_block_torques.resize(m_rigid_grid_size);
 }
 
 // -----------------------------------------------------------------------------
@@ -151,20 +188,21 @@ void SphBceManager::SetForceAccumulationBlocks(std::vector<int> fsiBodyBceNum) {
 // CalcFeaMesh2DBceAcceleration
 // -----------------------------------------------------------------------------
 
-__global__ void CalcRigidBceAcceleration_D(Real3* accelerations,        // BCE marker accelerations (output)
-                                           const Real3* BCE_pos_local,  // BCE body-local coordinates
-                                           const uint* body_IDs,        // rigid body ID for each BCE marker
-                                           const Real4* body_rot,       // body orientation (relative to global frame)
-                                           const Real3* body_angvel,    // body ang. vels. (relative to global frame)
-                                           const Real3* body_linacc,    // body lin. acels. (relative to global frame)
-                                           const Real3* body_angacc,    // body ang. acels. (relative to global frame)
-                                           const uint* mapOriginalToSorted) {
+__global__ void CalcRigidBceAcceleration_D(Real3* accelerations,             // BCE marker accelerations (output)
+                                           const Real3* BCE_pos_local,       // BCE body-local coordinates
+                                           const uint* body_IDs,             // rigid body ID for each BCE marker
+                                           const Real4* body_rot,            // body orientation (relative to global frame)
+                                           const Real3* body_angvel,         // body ang. vels. (relative to global frame)
+                                           const Real3* body_linacc,         // body lin. acels. (relative to global frame)
+                                           const Real3* body_angacc,         // body ang. acels. (relative to global frame)
+                                           const uint* mapOriginalToSorted,  // sort map (if null, output in original order)
+                                           uint out_offset) {                // original index of first output entry
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numRigidMarkers)
         return;
 
     uint marker_index = index + countersD.startRigidMarkers;
-    uint sorted_index = mapOriginalToSorted[marker_index];
+    uint out_index = mapOriginalToSorted ? mapOriginalToSorted[marker_index] : marker_index - out_offset;
 
     int body_ID = body_IDs[index];
     Real3 local = BCE_pos_local[index];
@@ -186,20 +224,22 @@ __global__ void CalcRigidBceAcceleration_D(Real3* accelerations,        // BCE m
     Real3 alpha_cross = cross(body_angacc[body_ID], local);
     acc += mR3(dot(u, alpha_cross), dot(v, alpha_cross), dot(w, alpha_cross));
 
-    accelerations[sorted_index] = acc;
+    accelerations[out_index] = acc;
 }
 
 __global__ void CalcFeaMesh1DBceAcceleration_D(Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
-                                            const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
-                                            const uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
-                                            const uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
-                                            const Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
-                                            const uint* mapOriginalToSorted) {
+                                               const Real3* acc_fsi_fea_D,       // [num nodes]               accelerations of FEA 1D nodes
+                                               const uint2* flex1D_Nodes_D,      // [num segments]            node indices for each 1D segment
+                                               const uint3* flex1D_BCEsolids_D,  // [num BCEs on 1D segments] association of flex BCEs with a mesh and segment
+                                               const Real3* flex1D_BCEcoords_D,  // [num BCEs on 1D segments] local coordinates of BCE markers on FEA 1-D segments
+                                               const uint* mapOriginalToSorted,  // sort map (if null, output in original order)
+                                               uint out_offset) {                // original index of first output entry
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numMesh1DMarkers)
         return;
 
-    uint sorted_index = mapOriginalToSorted[index + countersD.startMesh1DMarkers];
+    uint marker_index = index + countersD.startMesh1DMarkers;
+    uint out_index = mapOriginalToSorted ? mapOriginalToSorted[marker_index] : marker_index - out_offset;
 
     uint3 flex_solid = flex1D_BCEsolids_D[index];  // associated flex mesh and segment
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -210,10 +250,8 @@ __global__ void CalcFeaMesh1DBceAcceleration_D(Real3* accelerations,            
     Real3 A0 = acc_fsi_fea_D[seg_nodes.x];       // (absolute) acceleration of node 0
     Real3 A1 = acc_fsi_fea_D[seg_nodes.y];       // (absolute) acceleration of node 1
 
-    Real lambda0 = flex1D_BCEcoords_D[index].x;  // segment coordinate
-    Real lambda1 = 1 - lambda0;                  // segment coordinate
-
-    accelerations[sorted_index] = A0 * lambda0 + A1 * lambda1;
+    Real t = flex1D_BCEcoords_D[index].x;
+    accelerations[out_index] = A0 * (1 - t) + A1 * t;
 }
 
 __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,             // [num BCEs on all solids]  BCE marker accelerations (output)
@@ -221,12 +259,14 @@ __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,            
                                                const uint3* flex2D_Nodes_D,      // [num triangles]           triangle node indices
                                                const uint3* flex2D_BCEsolids_D,  // [num BCEs on 2D faces]    association of flex BCEs with a mesh and face
                                                const Real3* flex2D_BCEcoords_D,  // [num BCEs on 2D faces]    local coordinates of BCE markers on FEA 2-D faces
-                                               const uint* mapOriginalToSorted) {
+                                               const uint* mapOriginalToSorted,  // sort map (if null, output in original order)
+                                               uint out_offset) {                // original index of first output entry
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= countersD.numMesh2DMarkers)
         return;
 
-    uint sorted_index = mapOriginalToSorted[index + countersD.startMesh2DMarkers];
+    uint marker_index = index + countersD.startMesh2DMarkers;
+    uint out_index = mapOriginalToSorted ? mapOriginalToSorted[marker_index] : marker_index - out_offset;
 
     uint3 flex_solid = flex2D_BCEsolids_D[index];  // associated flex mesh and face
     ////uint flex_mesh = flex_solid.x;                 // index of associated mesh
@@ -242,53 +282,53 @@ __global__ void CalcFeaMesh2DBceAcceleration_D(Real3* accelerations,            
     Real lambda1 = flex2D_BCEcoords_D[index].y;  // barycentric coordinate
     Real lambda2 = 1 - lambda0 - lambda1;        // barycentric coordinate
 
-    accelerations[sorted_index] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
+    accelerations[out_index] = A0 * lambda0 + A1 * lambda1 + A2 * lambda2;
 }
 
-void SphBceManager::CalcRigidBodyBceAcceleration() {
+void SphBceManager::CalcRigidBodyBceAcceleration(Real3* accelerations, const uint* map, uint offset) {
     uint numThreads, numBlocks;
     computeGridSize((uint)m_data_mgr.countersH->numRigidMarkers, 256, numBlocks, numThreads);
 
     CalcRigidBceAcceleration_D<<<numBlocks, numThreads>>>(                                         //
-        mR3CAST(m_data_mgr.bceAcc),                                                                //
+        accelerations,                                                                             //
         mR3CAST(m_data_mgr.rigid_BCEcoords_D), U1CAST(m_data_mgr.rigid_BCEsolids_D),               //
         mR4CAST(m_data_mgr.fsiBodyState_D->rot), mR3CAST(m_data_mgr.fsiBodyState_D->ang_vel),      //
         mR3CAST(m_data_mgr.fsiBodyState_D->lin_acc), mR3CAST(m_data_mgr.fsiBodyState_D->ang_acc),  //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)                                 //
+        map, offset                                                                                //
     );
     if (m_check_errors) {
         gpuCheckError();
     }
 }
 
-void SphBceManager::CalcFeaMesh1DBceAcceleration() {
+void SphBceManager::CalcFeaMesh1DBceAcceleration(Real3* accelerations, const uint* map, uint offset) {
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
 
-    CalcFeaMesh1DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
-        mR3CAST(m_data_mgr.bceAcc),                                 //
-        mR3CAST(m_data_mgr.fsiMesh1DState_D->acc),                  //
-        U2CAST(m_data_mgr.flex1D_Nodes_D),                          //
-        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                      //
-        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                     //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
+    CalcFeaMesh1DBceAcceleration_D<<<nBlocks, nThreads>>>(  //
+        accelerations,                                      //
+        mR3CAST(m_data_mgr.fsiMesh1DState_D->acc),          //
+        U2CAST(m_data_mgr.flex1D_Nodes_D),                  //
+        U3CAST(m_data_mgr.flex1D_BCEsolids_D),              //
+        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),             //
+        map, offset                                         //
     );
     if (m_check_errors) {
         gpuCheckError();
     }
 }
 
-void SphBceManager::CalcFeaMesh2DBceAcceleration() {
+void SphBceManager::CalcFeaMesh2DBceAcceleration(Real3* accelerations, const uint* map, uint offset) {
     uint nBlocks, nThreads;
     computeGridSize((uint)m_data_mgr.countersH->numMesh2DMarkers, 256, nBlocks, nThreads);
 
-    CalcFeaMesh2DBceAcceleration_D<<<nBlocks, nThreads>>>(             //
-        mR3CAST(m_data_mgr.bceAcc),                                 //
-        mR3CAST(m_data_mgr.fsiMesh2DState_D->acc),                  //
-        U3CAST(m_data_mgr.flex2D_Nodes_D),                          //
-        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                      //
-        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                     //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted)  //
+    CalcFeaMesh2DBceAcceleration_D<<<nBlocks, nThreads>>>(  //
+        accelerations,                                      //
+        mR3CAST(m_data_mgr.fsiMesh2DState_D->acc),          //
+        U3CAST(m_data_mgr.flex2D_Nodes_D),                  //
+        U3CAST(m_data_mgr.flex2D_BCEsolids_D),              //
+        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),             //
+        map, offset                                         //
     );
     if (m_check_errors) {
         gpuCheckError();
@@ -300,14 +340,36 @@ void SphBceManager::CalcFeaMesh2DBceAcceleration() {
 // -----------------------------------------------------------------------------
 
 void SphBceManager::updateBCEAcc() {
+    auto acc = mR3CAST(m_data_mgr.bceAcc);
+    auto map = U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted);
+
     if (m_data_mgr.countersH->numRigidMarkers > 0)
-        CalcRigidBodyBceAcceleration();
+        CalcRigidBodyBceAcceleration(acc, map, 0);
 
     if (m_data_mgr.countersH->numMesh1DMarkers > 0)
-        CalcFeaMesh1DBceAcceleration();
+        CalcFeaMesh1DBceAcceleration(acc, map, 0);
 
     if (m_data_mgr.countersH->numMesh2DMarkers > 0)
-        CalcFeaMesh2DBceAcceleration();
+        CalcFeaMesh2DBceAcceleration(acc, map, 0);
+}
+
+std::vector<Real3> SphBceManager::GetSolidMarkerAccelerations() {
+    const auto& c = *m_data_mgr.countersH;
+    uint offset = (uint)c.startRigidMarkers;
+    thrust::device_vector<Real3> acc_D(c.numAllMarkers - c.startRigidMarkers, mR3(0));
+
+    if (c.numRigidMarkers > 0)
+        CalcRigidBodyBceAcceleration(mR3CAST(acc_D), nullptr, offset);
+
+    if (c.numMesh1DMarkers > 0)
+        CalcFeaMesh1DBceAcceleration(mR3CAST(acc_D), nullptr, offset);
+
+    if (c.numMesh2DMarkers > 0)
+        CalcFeaMesh2DBceAcceleration(mR3CAST(acc_D), nullptr, offset);
+
+    std::vector<Real3> acc_H(acc_D.size());
+    thrust::copy(acc_D.begin(), acc_D.end(), acc_H.begin());
+    return acc_H;
 }
 
 // -----------------------------------------------------------------------------
@@ -316,8 +378,8 @@ void SphBceManager::updateBCEAcc() {
 // CalcFeaMesh2DForces
 // -----------------------------------------------------------------------------
 
-__global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
-                                  Real3* __restrict__ body_torques,
+__global__ void CalcRigidForces_D(Real3* __restrict__ block_forces,
+                                  Real3* __restrict__ block_torques,
                                   const uint* __restrict__ rigidBodyBlockValidThreads,
                                   const uint* __restrict__ rigidBodyAccumulatedPaddedThreads,
                                   const Real4* __restrict__ derivatives,
@@ -325,7 +387,6 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
                                   const uint* __restrict__ body_IDs,
                                   const Real3* __restrict__ body_pos,
                                   const uint* __restrict__ mapOriginalToSorted,
-                                  const uint numRigidMarkers,
                                   const Real markerMass,
                                   const uint startRigidMarkers) {
     extern __shared__ char sharedMem[];
@@ -345,18 +406,12 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
 
     uint global_index_padded = global_index - paddedThreads;
 
-    if (global_index_padded >= numRigidMarkers)
-        return;
-
-    uint marker_index = global_index_padded + startRigidMarkers;
-    uint sorted_index = mapOriginalToSorted[marker_index];
-
-    // Get body ID for the current marker
-    uint body_ID = body_IDs[global_index_padded];
-
     Real3 Force = make_Real3(0.0f, 0.0f, 0.0f);
     Real3 Torque = make_Real3(0.0f, 0.0f, 0.0f);
     if (threadIdx_x < validThreads) {
+        uint marker_index = global_index_padded + startRigidMarkers;
+        uint sorted_index = mapOriginalToSorted[marker_index];
+        uint body_ID = body_IDs[global_index_padded];
         if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
             Force = mR3(derivatives[sorted_index]);
         else
@@ -371,9 +426,10 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
 
     __syncthreads();
 
-    // Standard block wise reduction - each block only contains elements from a single rigid body
+    // Standard block wise reduction - each block only contains elements from a single rigid body.
+    // Padding threads hold zero force and torque, so they can take part in the reduction.
     for (uint stride = blockDim.x / 2; stride > 0; stride >>= 1) {
-        if (threadIdx_x < stride && threadIdx_x + stride < validThreads) {
+        if (threadIdx_x < stride) {
             sharedForces[threadIdx_x].x += sharedForces[threadIdx_x + stride].x;
             sharedForces[threadIdx_x].y += sharedForces[threadIdx_x + stride].y;
             sharedForces[threadIdx_x].z += sharedForces[threadIdx_x + stride].z;
@@ -386,177 +442,106 @@ __global__ void CalcRigidForces_D(Real3* __restrict__ body_forces,
     }
 
     if (threadIdx_x == 0) {
-        // Atomic addition to global arrays
-        atomicAdd(&body_forces[body_ID].x, sharedForces[0].x);
-        atomicAdd(&body_forces[body_ID].y, sharedForces[0].y);
-        atomicAdd(&body_forces[body_ID].z, sharedForces[0].z);
-
-        atomicAdd(&body_torques[body_ID].x, sharedTorques[0].x);
-        atomicAdd(&body_torques[body_ID].y, sharedTorques[0].y);
-        atomicAdd(&body_torques[body_ID].z, sharedTorques[0].z);
+        block_forces[blockIdx.x] = sharedForces[0];
+        block_torques[blockIdx.x] = sharedTorques[0];
     }
 }
 
-__global__ void CalcFeaMesh1DForces_D(Real3* __restrict__ flex1D_FSIforces_D,
-                                   const Real4* __restrict__ derivVelRhoD,
-                                   const uint2* __restrict__ flex1D_Nodes_D,
-                                   const uint3* __restrict__ flex1D_BCEsolids_D,
-                                   const Real3* __restrict__ flex1D_BCEcoords_D,
-                                   const uint* __restrict__ mapOriginalToSorted,
-                                   const uint numMesh1DMarkers,
-                                   const uint startMesh1DMarkers,
-                                   const Real markerMass) {
+__global__ void SumRigidForces_D(Real3* __restrict__ body_forces,
+                                 Real3* __restrict__ body_torques,
+                                 const Real3* __restrict__ block_forces,
+                                 const Real3* __restrict__ block_torques,
+                                 const uint* __restrict__ body_offsets) {
     extern __shared__ char sharedMem[];
-    // Each thread handles a segment which contains 2 nodes
-    const int maxNodesPerMarker = 2;
-    const int threadsPerBlock = blockDim.x;
-
-    // Shared memory for node indices and forces
-    uint* sharedNodeIndices = (uint*)sharedMem;                                             // Size: maxNodesPerMarker * threadsPerBlock
-    Real3* sharedForces = (Real3*)&sharedNodeIndices[maxNodesPerMarker * threadsPerBlock];  // Same size
-
-    uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if (globalIndex >= numMesh1DMarkers)
-        return;
-
-    uint flex_index = globalIndex + startMesh1DMarkers;
-    uint sortedIndex = mapOriginalToSorted[flex_index];
-
-    // Read data
-    uint3 flex_solid = flex1D_BCEsolids_D[globalIndex];
-    uint flex_seg = flex_solid.z;
-
-    Real3 Force;
-    if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-        Force = mR3(derivVelRhoD[sortedIndex]);
-    else
-        Force = mR3(derivVelRhoD[sortedIndex]) * paramsD.markerMass;
-    uint2 seg_nodes = flex1D_Nodes_D[flex_seg];
-    uint n0 = seg_nodes.x;
-    uint n1 = seg_nodes.y;
-
-    Real lambda0 = flex1D_BCEcoords_D[globalIndex].x;
-    Real lambda1 = 1 - lambda0;
-
-    // Compute contributions to nodes
-    Real3 force_n0 = Force * lambda0;
-    Real3 force_n1 = Force * lambda1;
-
-    // Store node indices and forces in shared memory
-    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 0] = n0;
-    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 1] = n1;
-
-    sharedForces[threadIdx.x * maxNodesPerMarker + 0] = force_n0;
-    sharedForces[threadIdx.x * maxNodesPerMarker + 1] = force_n1;
-
+    Real3* shared_forces = reinterpret_cast<Real3*>(sharedMem);
+    Real3* shared_torques = shared_forces + blockDim.x;
+    Real3 force = mR3(0);
+    Real3 torque = mR3(0);
+    for (uint i = body_offsets[blockIdx.x] + threadIdx.x; i < body_offsets[blockIdx.x + 1]; i += blockDim.x) {
+        force += block_forces[i];
+        torque += block_torques[i];
+    }
+    shared_forces[threadIdx.x] = force;
+    shared_torques[threadIdx.x] = torque;
     __syncthreads();
 
-    // Now perform reduction per node within the block
-    // We'll use a simple approach since nodes can be shared among markers
-    for (int i = 0; i < maxNodesPerMarker; ++i) {
-        uint nodeIndex = sharedNodeIndices[threadIdx.x * maxNodesPerMarker + i];
-        Real3 force = sharedForces[threadIdx.x * maxNodesPerMarker + i];
-
-        // Use atomic operations to accumulate forces per node
-        atomicAdd(&flex1D_FSIforces_D[nodeIndex].x, force.x);
-        atomicAdd(&flex1D_FSIforces_D[nodeIndex].y, force.y);
-        atomicAdd(&flex1D_FSIforces_D[nodeIndex].z, force.z);
+    // A fixed reduction tree makes the sum independent of marker-block scheduling.
+    for (uint stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (threadIdx.x < stride) {
+            shared_forces[threadIdx.x] += shared_forces[threadIdx.x + stride];
+            shared_torques[threadIdx.x] += shared_torques[threadIdx.x + stride];
+        }
+        __syncthreads();
+    }
+    if (threadIdx.x == 0) {
+        body_forces[blockIdx.x] = shared_forces[0];
+        body_torques[blockIdx.x] = shared_torques[0];
     }
 }
 
-__global__ void CalcFeaMesh2DForces_D(Real3* __restrict__ flex2D_FSIforces_D,
-                                   const Real4* __restrict__ derivVelRhoD,
-                                   const uint3* __restrict__ flex2D_Nodes_D,
-                                   const uint3* __restrict__ flex2D_BCEsolids_D,
-                                   const Real3* __restrict__ flex2D_BCEcoords_D,
-                                   const uint* __restrict__ mapOriginalToSorted,
-                                   const uint numMesh2DMarkers,
-                                   const uint startMesh2DMarkers,
-                                   const Real markerMass) {
-    extern __shared__ char sharedMem[];
-
-    // Each marker deals with 3 nodes in the 2D case
-    const int maxNodesPerMarker = 3;
-    const int threadsPerBlock = blockDim.x;
-
-    // Shared memory for node indices and forces
-    uint* sharedNodeIndices = (uint*)sharedMem;                                             // Size: maxNodesPerMarker * threadsPerBlock
-    Real3* sharedForces = (Real3*)&sharedNodeIndices[maxNodesPerMarker * threadsPerBlock];  // Same size
-
-    uint globalIndex = blockIdx.x * blockDim.x + threadIdx.x;
-    if (globalIndex >= numMesh2DMarkers)
-        return;
-
-    uint flex_index = globalIndex + startMesh2DMarkers;
-    uint sortedIndex = mapOriginalToSorted[flex_index];
-
-    // Read data
-    uint3 flex_solid = flex2D_BCEsolids_D[globalIndex];
-    uint flex_tri = flex_solid.z;
-
-    Real3 Force;
-    if (paramsD.integration_scheme == IntegrationScheme::IMPLICIT_SPH)
-        Force = mR3(derivVelRhoD[sortedIndex]);
-    else
-        Force = mR3(derivVelRhoD[sortedIndex]) * markerMass;
-
-    uint3 tri_nodes = flex2D_Nodes_D[flex_tri];
-    uint n0 = tri_nodes.x;
-    uint n1 = tri_nodes.y;
-    uint n2 = tri_nodes.z;
-
-    Real lambda0 = flex2D_BCEcoords_D[globalIndex].x;
-    Real lambda1 = flex2D_BCEcoords_D[globalIndex].y;
-    Real lambda2 = 1.0f - lambda0 - lambda1;
-
-    // Compute contributions to nodes
-    Real3 force_n0 = Force * lambda0;
-    Real3 force_n1 = Force * lambda1;
-    Real3 force_n2 = Force * lambda2;
-
-    // Store node indices and forces in shared memory
-    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 0] = n0;
-    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 1] = n1;
-    sharedNodeIndices[threadIdx.x * maxNodesPerMarker + 2] = n2;
-
-    sharedForces[threadIdx.x * maxNodesPerMarker + 0] = force_n0;
-    sharedForces[threadIdx.x * maxNodesPerMarker + 1] = force_n1;
-    sharedForces[threadIdx.x * maxNodesPerMarker + 2] = force_n2;
-
-    __syncthreads();
-
-    // Now perform accumulation per node within the block
-    // We'll use a simple approach since nodes can be shared among markers
-    for (int i = 0; i < maxNodesPerMarker; ++i) {
-        uint nodeIndex = sharedNodeIndices[threadIdx.x * maxNodesPerMarker + i];
-        Real3 force = sharedForces[threadIdx.x * maxNodesPerMarker + i];
-
-        // Use atomic operations to accumulate forces per node
-        atomicAdd(&flex2D_FSIforces_D[nodeIndex].x, force.x);
-        atomicAdd(&flex2D_FSIforces_D[nodeIndex].y, force.y);
-        atomicAdd(&flex2D_FSIforces_D[nodeIndex].z, force.z);
+template <uint nodes_per_marker>
+__global__ void CalcMeshForces_D(Real3* __restrict__ node_forces,
+                                 const uint* __restrict__ node_offsets,
+                                 const uint* __restrict__ contributions,
+                                 const Real4* __restrict__ derivatives,
+                                 const Real3* __restrict__ coordinates,
+                                 const uint* __restrict__ mapOriginalToSorted,
+                                 uint start_markers,
+                                 Real marker_mass) {
+    extern __shared__ Real3 shared_forces[];
+    uint node = blockIdx.x;
+    Real3 force = mR3(0);
+    // Each node owns a fixed sequence of marker contributions, independent of the sorted particle order.
+    for (size_t i = size_t(node_offsets[node]) + threadIdx.x; i < node_offsets[node + 1]; i += blockDim.x) {
+        uint contribution = contributions[i];
+        uint marker = contribution / nodes_per_marker;
+        uint local_node = contribution % nodes_per_marker;
+        Real3 coord = coordinates[marker];
+        Real weight;
+        if constexpr (nodes_per_marker == 2)
+            weight = local_node == 0 ? 1 - coord.x : coord.x;
+        else
+            weight = local_node == 0 ? coord.x : (local_node == 1 ? coord.y : 1 - coord.x - coord.y);
+        uint sorted = mapOriginalToSorted[start_markers + marker];
+        Real3 marker_force = mR3(derivatives[sorted]);
+        if (paramsD.integration_scheme != IntegrationScheme::IMPLICIT_SPH)
+            marker_force *= marker_mass;
+        force += marker_force * weight;
     }
+    shared_forces[threadIdx.x] = force;
+    __syncthreads();
+    for (uint stride = blockDim.x / 2; stride > 0; stride >>= 1) {
+        if (threadIdx.x < stride)
+            shared_forces[threadIdx.x] += shared_forces[threadIdx.x + stride];
+        __syncthreads();
+    }
+    if (threadIdx.x == 0)
+        node_forces[node] = shared_forces[0];
 }
 
 void SphBceManager::CalcRigidBodyForces() {
     if (m_data_mgr.countersH->numFsiBodies == 0)
         return;
 
-    thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
-    thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
-
     // Nothing to do if no FSI body has BCE markers (e.g., a body added only to carry an active domain)
-    if (m_rigid_grid_size == 0)
+    if (m_rigid_grid_size == 0) {
+        thrust::fill(m_data_mgr.rigid_FSI_ForcesD.begin(), m_data_mgr.rigid_FSI_ForcesD.end(), mR3(0));
+        thrust::fill(m_data_mgr.rigid_FSI_TorquesD.begin(), m_data_mgr.rigid_FSI_TorquesD.end(), mR3(0));
         return;
+    }
 
     // Calculate shared memory size
     size_t sharedMemSize = 2 * m_rigid_block_size * sizeof(Real3);
 
     CalcRigidForces_D<<<m_rigid_grid_size, m_rigid_block_size, sharedMemSize>>>(
-        mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), U1CAST(m_rigid_valid_threads), U1CAST(m_rigid_accumulated_threads),
-        mR4CAST(m_data_mgr.derivVelRhoD), mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->numRigidMarkers, m_data_mgr.paramsH->markerMass,
-        (uint)m_data_mgr.countersH->startRigidMarkers);
+        mR3CAST(m_rigid_block_forces), mR3CAST(m_rigid_block_torques), U1CAST(m_rigid_valid_threads), U1CAST(m_rigid_accumulated_threads), mR4CAST(m_data_mgr.derivVelRhoD),
+        mR4CAST(m_data_mgr.sortedSphMarkers2_D->posRadD), U1CAST(m_data_mgr.rigid_BCEsolids_D), mR3CAST(m_data_mgr.fsiBodyState_D->pos),
+        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), m_data_mgr.paramsH->markerMass, (uint)m_data_mgr.countersH->startRigidMarkers);
+
+    const uint sum_block_size = 128;
+    size_t sum_shared_size = 2 * sum_block_size * sizeof(Real3);
+    SumRigidForces_D<<<m_data_mgr.countersH->numFsiBodies, sum_block_size, sum_shared_size>>>(
+        mR3CAST(m_data_mgr.rigid_FSI_ForcesD), mR3CAST(m_data_mgr.rigid_FSI_TorquesD), mR3CAST(m_rigid_block_forces), mR3CAST(m_rigid_block_torques), U1CAST(m_rigid_body_offsets));
 
     if (m_check_errors) {
         gpuCheckError();
@@ -564,59 +549,31 @@ void SphBceManager::CalcRigidBodyForces() {
 }
 
 void SphBceManager::CalcFeaMesh1DForces() {
+    // The node-to-marker map is built only for meshes with elements (see Initialize)
     if (m_data_mgr.countersH->numFsiElements1D == 0)
         return;
+    auto num_nodes = m_data_mgr.countersH->numFsiNodes1D;
 
-    // Initialize accumulator to zero
-    thrust::fill(m_data_mgr.flex1D_FSIforces_D.begin(), m_data_mgr.flex1D_FSIforces_D.end(), mR3(0));
-
-    uint nBlocks, nThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numMesh1DMarkers, 256, nBlocks, nThreads);
-    // Each marker deals with 2 nodes in the 1D case
-    size_t sharedMemSize = nThreads * (2 * sizeof(uint) + 2 * sizeof(Real3));
-
-    CalcFeaMesh1DForces_D<<<nBlocks, nThreads, sharedMemSize>>>(        //
-        mR3CAST(m_data_mgr.flex1D_FSIforces_D),                      //
-        mR4CAST(m_data_mgr.derivVelRhoD),                            //
-        U2CAST(m_data_mgr.flex1D_Nodes_D),                           //
-        U3CAST(m_data_mgr.flex1D_BCEsolids_D),                       //
-        mR3CAST(m_data_mgr.flex1D_BCEcoords_D),                      //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
-        (uint)m_data_mgr.countersH->numMesh1DMarkers,                //
-        (uint)m_data_mgr.countersH->startMesh1DMarkers,              //
-        m_data_mgr.paramsH->markerMass);
-
-    if (m_check_errors) {
+    constexpr uint block_size = 256;
+    CalcMeshForces_D<2><<<num_nodes, block_size, block_size * sizeof(Real3)>>>(
+        TCAST(m_data_mgr.flex1D_FSIforces_D), TCAST(m_flex1D_node_offsets), TCAST(m_flex1D_contributions), TCAST(m_data_mgr.derivVelRhoD), TCAST(m_data_mgr.flex1D_BCEcoords_D),
+        TCAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->startMesh1DMarkers, m_data_mgr.paramsH->markerMass);
+    if (m_check_errors)
         gpuCheckError();
-    }
 }
 
 void SphBceManager::CalcFeaMesh2DForces() {
+    // The node-to-marker map is built only for meshes with elements (see Initialize)
     if (m_data_mgr.countersH->numFsiElements2D == 0)
         return;
+    auto num_nodes = m_data_mgr.countersH->numFsiNodes2D;
 
-    // Initialize accumulator to zero
-    thrust::fill(m_data_mgr.flex2D_FSIforces_D.begin(), m_data_mgr.flex2D_FSIforces_D.end(), mR3(0));
-
-    uint nBlocks, nThreads;
-    computeGridSize((uint)m_data_mgr.countersH->numMesh2DMarkers, 256, nBlocks, nThreads);
-    // Each marker deals with 3 nodes in the 2D case
-    size_t sharedMemSize = nThreads * (3 * sizeof(uint) + 3 * sizeof(Real3));
-
-    CalcFeaMesh2DForces_D<<<nBlocks, nThreads, sharedMemSize>>>(        //
-        mR3CAST(m_data_mgr.flex2D_FSIforces_D),                      //
-        mR4CAST(m_data_mgr.derivVelRhoD),                            //
-        U3CAST(m_data_mgr.flex2D_Nodes_D),                           //
-        U3CAST(m_data_mgr.flex2D_BCEsolids_D),                       //
-        mR3CAST(m_data_mgr.flex2D_BCEcoords_D),                      //
-        U1CAST(m_data_mgr.markersProximity_D->mapOriginalToSorted),  //
-        (uint)m_data_mgr.countersH->numMesh2DMarkers,                //
-        (uint)m_data_mgr.countersH->startMesh2DMarkers,              //
-        m_data_mgr.paramsH->markerMass);
-
-    if (m_check_errors) {
+    constexpr uint block_size = 256;
+    CalcMeshForces_D<3><<<num_nodes, block_size, block_size * sizeof(Real3)>>>(
+        TCAST(m_data_mgr.flex2D_FSIforces_D), TCAST(m_flex2D_node_offsets), TCAST(m_flex2D_contributions), TCAST(m_data_mgr.derivVelRhoD), TCAST(m_data_mgr.flex2D_BCEcoords_D),
+        TCAST(m_data_mgr.markersProximity_D->mapOriginalToSorted), (uint)m_data_mgr.countersH->startMesh2DMarkers, m_data_mgr.paramsH->markerMass);
+    if (m_check_errors)
         gpuCheckError();
-    }
 }
 
 // -----------------------------------------------------------------------------

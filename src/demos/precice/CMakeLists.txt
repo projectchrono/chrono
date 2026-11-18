@@ -15,6 +15,7 @@ if(CH_ENABLE_MODULE_PARSERS AND CHRONO_YAML_ENABLED)
   if(CH_ENABLE_MODULE_FSI_SPH)
     set(DEMOS ${DEMOS}
         demo_PRECICE_flexible_cable
+        demo_PRECICE_flexible_cable_shaking_tank
     )
   endif()
 

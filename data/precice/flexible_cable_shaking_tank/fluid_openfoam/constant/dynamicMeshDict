@@ -1,0 +1,21 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      dynamicMeshDict;
+}
+
+dynamicFvMesh       dynamicMotionSolverFvMesh;
+
+motionSolverLibs    (fvMotionSolvers);
+
+// Mesh motion driven by the cable displacements (pointDisplacement on the cable patch). The diffusivity
+// stiffens the cells near the cable, which then move with it, and concentrates the deformation away from it.
+motionSolver        displacementLaplacian;
+
+displacementLaplacianCoeffs
+{
+    diffusivity     quadratic inverseDistance (cable);
+}

@@ -1,0 +1,36 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       pointVectorField;
+    location    "0";
+    object      pointDisplacement;
+}
+
+dimensions      [0 1 0 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    // Set by the preCICE adapter from the cable displacements
+    cable
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    // Mesh points may slide along the walls
+    "(floor|leftWall|rightWall)"
+    {
+        type            slip;
+    }
+    atmosphere
+    {
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
+    "(front|back)"
+    {
+        type            cyclic;
+    }
+}

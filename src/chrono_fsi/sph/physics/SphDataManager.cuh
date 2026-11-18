@@ -20,6 +20,7 @@
 #ifndef CH_FSI_DATA_MANAGER_H
 #define CH_FSI_DATA_MANAGER_H
 
+#include <utility>
 #include <vector>
 
 #include <thrust/device_vector.h>
@@ -271,44 +272,44 @@ struct FsiDataManager {
                     const std::vector<ChAABB>& ad_node2D,
                     NodeDirections node_directions_mode);
 
-    /// Find indices of all SPH particles inside the specified OBB.
-    std::vector<int> FindParticlesInBox(const Real3& hsize, const Real3& pos, const Real3& ax, const Real3& ay, const Real3& az);
+    /// Return the range [first, last) of indices of the markers in the specified group.
+    /// Markers are stored with SPH particles first, then BCE markers on fixed boundaries, then BCE markers on solids.
+    std::pair<size_t, size_t> GetMarkerRange(MarkerGroup group) const;
 
-    /// Extract positions of all markers (SPH and BCE).
-    std::vector<Real3> GetPositions();
+    /// Find indices of the markers in the specified group that are inside the specified OBB.
+    std::vector<int> FindParticlesInBox(MarkerGroup group, const Real3& hsize, const Real3& pos, const Real3& ax, const Real3& ay, const Real3& az);
 
-    /// Extract velocities of all markers (SPH and BCE).
-    std::vector<Real3> GetVelocities();
+    /// Extract positions of the markers in the specified group.
+    std::vector<Real3> GetPositions(MarkerGroup group);
 
-    /// Extract accelerations of all markers (SPH and BCE).
-    std::vector<Real3> GetAccelerations();
+    /// Extract velocities of the markers in the specified group.
+    std::vector<Real3> GetVelocities(MarkerGroup group);
 
-    /// Extract forces applied to all markers (SPH and BCE).
-    std::vector<Real3> GetForces();
+    /// Extract accelerations of the SPH particles in the specified group.
+    /// Zero is returned for all BCE markers; the accelerations of BCE markers on solids are calculated by SphBceManager.
+    std::vector<Real3> GetSphAccelerations(MarkerGroup group);
 
-    /// Extract fluid properties of all markers (SPH and BCE).
+    /// Extract fluid forces on the markers in the specified group.
+    /// Zero is returned for BCE markers on fixed boundaries, where the fluid force is not calculated.
+    std::vector<Real3> GetForces(MarkerGroup group);
+
+    /// Extract fluid properties of the markers in the specified group.
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
-    std::vector<Real3> GetProperties();
+    std::vector<Real3> GetProperties(MarkerGroup group);
 
-    /// Extract free-surface identification flags of all markers (SPH and BCE).
+    /// Extract free-surface identification flags of the markers in the specified group.
     /// A value of 1 marks an SPH particle at or near the free surface. Zero is reported for BCE markers and for SPH
     /// particles that are not active, namely particles in the extended halo of an active domain and particles that
     /// left the computational domain. Such particles have a truncated neighborhood by construction, so their
     /// free-surface test is meaningless and would otherwise report a spurious surface along the active domain
     /// boundary.
-    std::vector<int> GetFreeSurfaceFlags();
+    std::vector<int> GetFreeSurfaceFlags(MarkerGroup group);
 
-    /// Extract positions of all markers (SPH and BCE) with indices in the provided array.
+    /// Extract positions of the markers with the specified indices.
     std::vector<Real3> GetPositions(const std::vector<int>& indices);
 
-    /// Extract velocities of all markers (SPH and BCE) with indices in the provided array.
+    /// Extract velocities of the markers with the specified indices.
     std::vector<Real3> GetVelocities(const std::vector<int>& indices);
-
-    /// Extract accelerations of all markers (SPH and BCE) with indices in the provided array.
-    std::vector<Real3> GetAccelerations(const std::vector<int>& indices);
-
-    /// Extract forces applied to all markers (SPH and BCE) with indices in the provided array.
-    std::vector<Real3> GetForces(const std::vector<int>& indices);
 
     /// Extract FSI forces on rigid bodies.
     std::vector<Real3> GetRigidForces();

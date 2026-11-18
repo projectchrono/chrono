@@ -57,6 +57,8 @@ ChPreciceAdapterMbs::ChPreciceAdapterMbs(const std::string& precice_config_filen
     #ifdef CHRONO_VSG
     m_vis_settings = parser.GetVisualizationSettings();
     #endif
+    if (parser.GetFrameAcceleration())
+        SetFrameAcceleration(parser.GetFrameAccelerationDirection(), parser.GetFrameAcceleration());
 
     // Read common preCICE participant configuration (participant name, file handler, and coupling interfaces)
     ReadParticipantConfigurationYAML(input_filename);
@@ -1200,6 +1202,14 @@ void ChPreciceAdapterMbs::AdvanceParticipant(double time, double time_step) {
     // Enforce soft real-time
     if (m_enforce_realtime)
         m_rt_timer.Spin(time_step);
+}
+
+ChVector3d ChPreciceAdapterMbs::GetSolverGravity() const {
+    return m_sys->GetGravitationalAcceleration();
+}
+
+void ChPreciceAdapterMbs::SetSolverGravity(const ChVector3d& gravity) {
+    m_sys->SetGravitationalAcceleration(gravity);
 }
 
 // -----------------------------------------------------------------------------

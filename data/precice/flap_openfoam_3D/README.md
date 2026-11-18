@@ -2,7 +2,7 @@ Coupling of Chrono MBS with OpenFOAM (3D)
 =========================================
 
 This demo is a 3D version of the 2D flap demo in `../flap_openfoam_2D`, itself adapted from the preCICE quickstart [tutorial](https://precice.org/quickstart.html).
-The OpenFOAM case in the subdirectory `fluid_openfoam` extends the 2D case of the [precice/tutorial](https://github.com/precice/tutorials/tree/develop/quickstart/fluid-openfoam) GitHub repository to 3D: the flap is a plate spanning part of the channel width, with no-slip walls replacing the `empty` front and back patches of the 2D case. See the [preCICE license](fluid_openfoam/LICENSE.txt).
+The OpenFOAM case in the subdirectory `fluid_openfoam` extends the 2D case of the [precice/tutorial](https://github.com/precice/tutorials/tree/develop/quickstart/fluid-openfoam) GitHub repository to 3D: the flap is a plate spanning part of the channel width, with no-slip walls replacing the `empty` front and back patches of the 2D case.
 
 As in the 2D case, the flap is placed slightly off the channel center line: the gaps to the top and bottom walls differ, and so do the gaps to the front and back walls.
 The resulting flow asymmetry loads the plate in both pitch (about z) and roll (about x).

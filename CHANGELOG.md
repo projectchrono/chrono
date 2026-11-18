@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Added\] Prescribed frame acceleration for FSI and preCICE simulations](#added-prescribed-frame-acceleration-for-fsi-and-precice-simulations)
   - [\[Changed\] Newton convergence test of implicit integrators](#changed-newton-convergence-test-of-implicit-integrators)
   - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
   - [\[Added\] Chrono::VSG plugin for Chrono::Multicore, force networks, and instanced granular bodies](#added-chronovsg-plugin-for-chronomulticore-force-networks-and-instanced-granular-bodies)
@@ -153,6 +154,14 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Added] Prescribed frame acceleration for FSI and preCICE simulations
+
+A problem in a moving container, such as a tank shaken along a horizontal axis, can now be simulated in the frame of the container. The frame is translating and non-inertial with a prescribed acceleration a(t) = f(t) d; at each step, the solvers use the effective gravity g - a(t) instead of the gravitational acceleration g.
+
+- `ChFsiSystem::SetFrameAcceleration` sets the frame acceleration for both the fluid and the multibody systems (Chrono::FSI-SPH, which accepts gravity changes after initialization).
+- `ChPreciceAdapter::SetFrameAcceleration` sets it for a preCICE participant; it is supported by the Chrono MBS and SPH participants, and all participants of a coupled simulation must use the same frame acceleration.
+- In YAML, the optional `frame_acceleration` object of the `simulation` settings (MBS, FSI-SPH, and FSI simulation files) specifies the `direction` d and the `function` f(t), like any other Chrono YAML function.
 
 ## [Changed] Newton convergence test of implicit integrators
 
@@ -528,6 +537,17 @@ replaced throughout by "CRM" (Continuum Representation Model):
   was declared as an FSI solid, and an FSI system or interface may now be created with no associated
   MBS system.
 - Chrono::FSI-TDPF functions needed outside the Chrono::FSI framework were exposed as public.
+- The particle and marker getters of `ChFsiFluidSystemSPH` (`GetParticlePositions`,
+  `GetParticleVelocities`, `GetParticleAccelerations`, `GetParticleForces`,
+  `GetParticleFluidProperties`, their `Real3` and NumPy variants, `GetFreeSurfaceFlags`, and
+  `FindParticlesInBox`) take a `MarkerGroup` argument (`FLUID`, `SOLID`, or `ALL`, the default) and
+  return markers in the same order. Accelerations and forces now include BCE markers, so by default
+  they have one entry per marker instead of one per SPH particle. For a BCE marker on a solid, the
+  acceleration is that of the solid at the marker and the force is the fluid force on the marker
+  (summed over the markers of a solid, these give the fluid force on the solid); BCE markers on fixed
+  boundaries report zero. `FindParticlesInBox` returns indices in the `ALL` order, as expected by
+  the indexed getters, and no longer writes past the end of its output. With implicit SPH, the
+  accelerations and forces are no longer off by a factor equal to the particle mass.
 
 Configuration and run-time issues with double-precision Chrono::FSI-SPH builds were also fixed. See
 `demo_FSI-SPH_PlateSinkage` and the YAML-driven `demo_YAML_fsi`.
@@ -782,6 +802,15 @@ Notable fixes since the 10.0.0 release:
   with Cartesian points cut the layers off at the base radius. Both now create the configured number
   of layers on every surface, starting at the surface. Containers built with
   `CreatePointsCylinderExterior` therefore have one side-wall layer fewer than before.
+- In Chrono::FSI-SPH, the fluid loads on rigid bodies and flexible solids are now summed in a fixed
+  order instead of with floating-point atomics, so repeated runs with the same GPU and build give
+  bit-identical results.
+- In Chrono::FSI-SPH, 1D flexible solids (cables and beams) used swapped interpolation weights between
+  the two nodes of a segment: a BCE marker placed at a fraction t along the segment gave the share t
+  of its fluid force to the first node and 1-t to the second, the reverse of its position, and its
+  acceleration was interpolated from the nodes with the same swapped weights. Both now use the weights
+  (1-t, t). Results of simulations with 1D FSI solids change; for example, the final cable displacement
+  in `demo_FSI-SPH_Flexible_Cable` changes by about 1%.
 - Transparent objects did not cast shadows, and Chrono::VSG rendering was incorrect when physics
   items were bound after visualization initialization or when body frame visibility was set
   beforehand. `ChColormap` crashed on NaN values (now rendered black), Irrlicht node lifetime

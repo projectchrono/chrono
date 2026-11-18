@@ -182,6 +182,7 @@ void ChParserMbsYAML::LoadSimData(const YAML::Node& yaml) {
             m_sim.enforce_realtime = sim["enforce_realtime"].as<bool>();
         if (sim["gravity"])
             m_sim.gravity = ReadVector(sim["gravity"]);
+        ReadFrameAcceleration(sim);
         if (sim["num_threads"]) {
             auto nt = sim["num_threads"];
             if (nt["chrono"])

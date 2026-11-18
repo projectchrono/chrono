@@ -1,0 +1,269 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+
+// Container with a vertical cable (cylinder) anchored at the floor, periodic in y.
+//
+// Cross-section (x-y plane), 17 blocks in two layers:
+// - an O-grid ring of 4 blocks around the cable, from the cable surface (radius R) out to the square
+//   [xc-a, xc+a] x [-a, a] spanning the slab width,
+// - one block between the left wall and the square, one between the square and the right wall,
+// - above the cable (z > zc) only, a core block and 4 inner ring blocks filling the cable cross-section;
+//   their bottom faces form the top cap of the cable.
+//
+// Layers: z in [0, zc] (around the cable) and [zc, zt] (above the cable).
+
+// ----- Parameters -----
+
+xL      -1.5;       // left wall
+xR       1.5;       // right wall
+a        0.1;       // slab half-width (y in [-a, a]); also the half-width of the O-grid square
+zc       0.8;       // cable top
+zt       2.5;       // domain top (atmosphere)
+
+xc      -0.3;       // cable axis (x); the axis is at y = 0
+R        0.03;      // cable radius on the fluid side (diameter 0.06: effective width of the SPH cable)
+
+Nc       16;        // cells along a quarter of the cable circumference (and across half of the slab)
+Nr       16;        // cells across the O-grid ring (radial)
+Gr       6;         // radial grading of the O-grid ring (outer / inner cell size)
+Ni       6;         // cells across the inner ring blocks above the cable
+NxL      88;        // cells between the left wall and the O-grid square
+NxR      136;       // cells between the O-grid square and the right wall
+Nz1      64;        // cells along the cable (z in [0, zc])
+Nz2      80;        // cells above the cable (z in [zc, zt])
+Gz2      2.5;       // vertical grading above the cable (top / bottom cell size)
+
+// ----- Derived coordinates -----
+
+r45     #eval{ $R * sqrt(0.5) };    // cable surface points at 45 degrees
+b       #eval{ 0.4 * $R };          // half-width of the core block above the cable
+ma      #eval{ -$a };
+mr45    #eval{ -$r45 };
+mb      #eval{ -$b };
+
+xsW     #eval{ $xc - $a };
+xsE     #eval{ $xc + $a };
+xcW     #eval{ $xc - $r45 };
+xcE     #eval{ $xc + $r45 };
+xkW     #eval{ $xc - $b };
+xkE     #eval{ $xc + $b };
+xmW     #eval{ $xc - $R };
+xmE     #eval{ $xc + $R };
+mR      #eval{ -$R };
+sep     #eval{ 2 * $a };                // cyclic separation (slab width)
+msep    #eval{ -2 * $a };
+
+scale 1;
+
+// Vertices: the same 16 points in the x-y plane at z = 0 (0-15), z = zc (16-31), and z = zt (32-47).
+//   c_*: cable surface at 45 degrees, s_*: O-grid square, k_*: core block, L_*/R_*: left/right walls.
+vertices
+(
+    ($xcW $mr45 0)     // 0  c_SW
+    ($xcE $mr45 0)     // 1  c_SE
+    ($xcE $r45  0)     // 2  c_NE
+    ($xcW $r45  0)     // 3  c_NW
+    ($xsW $ma   0)     // 4  s_SW
+    ($xsE $ma   0)     // 5  s_SE
+    ($xsE $a    0)     // 6  s_NE
+    ($xsW $a    0)     // 7  s_NW
+    ($xkW $mb   0)     // 8  k_SW (not used at z = 0)
+    ($xkE $mb   0)     // 9  k_SE (not used at z = 0)
+    ($xkE $b    0)     // 10 k_NE (not used at z = 0)
+    ($xkW $b    0)     // 11 k_NW (not used at z = 0)
+    ($xL  $ma   0)     // 12 L_S
+    ($xL  $a    0)     // 13 L_N
+    ($xR  $ma   0)     // 14 R_S
+    ($xR  $a    0)     // 15 R_N
+
+    ($xcW $mr45 $zc)   // 16
+    ($xcE $mr45 $zc)   // 17
+    ($xcE $r45  $zc)   // 18
+    ($xcW $r45  $zc)   // 19
+    ($xsW $ma   $zc)   // 20
+    ($xsE $ma   $zc)   // 21
+    ($xsE $a    $zc)   // 22
+    ($xsW $a    $zc)   // 23
+    ($xkW $mb   $zc)   // 24
+    ($xkE $mb   $zc)   // 25
+    ($xkE $b    $zc)   // 26
+    ($xkW $b    $zc)   // 27
+    ($xL  $ma   $zc)   // 28
+    ($xL  $a    $zc)   // 29
+    ($xR  $ma   $zc)   // 30
+    ($xR  $a    $zc)   // 31
+
+    ($xcW $mr45 $zt)   // 32
+    ($xcE $mr45 $zt)   // 33
+    ($xcE $r45  $zt)   // 34
+    ($xcW $r45  $zt)   // 35
+    ($xsW $ma   $zt)   // 36
+    ($xsE $ma   $zt)   // 37
+    ($xsE $a    $zt)   // 38
+    ($xsW $a    $zt)   // 39
+    ($xkW $mb   $zt)   // 40
+    ($xkE $mb   $zt)   // 41
+    ($xkE $b    $zt)   // 42
+    ($xkW $b    $zt)   // 43
+    ($xL  $ma   $zt)   // 44
+    ($xL  $a    $zt)   // 45
+    ($xR  $ma   $zt)   // 46
+    ($xR  $a    $zt)   // 47
+);
+
+blocks
+(
+    // Layer around the cable (z in [0, zc])
+    hex ( 1  5  6  2 17 21 22 18) ($Nr $Nc $Nz1) simpleGrading ($Gr 1 1)     // O-grid east
+    hex ( 2  6  7  3 18 22 23 19) ($Nr $Nc $Nz1) simpleGrading ($Gr 1 1)     // O-grid north
+    hex ( 3  7  4  0 19 23 20 16) ($Nr $Nc $Nz1) simpleGrading ($Gr 1 1)     // O-grid west
+    hex ( 0  4  5  1 16 20 21 17) ($Nr $Nc $Nz1) simpleGrading ($Gr 1 1)     // O-grid south
+    hex (12  4  7 13 28 20 23 29) ($NxL $Nc $Nz1) simpleGrading (1 1 1)      // left
+    hex ( 5 14 15  6 21 30 31 22) ($NxR $Nc $Nz1) simpleGrading (1 1 1)      // right
+
+    // Layer above the cable (z in [zc, zt])
+    hex (17 21 22 18 33 37 38 34) ($Nr $Nc $Nz2) simpleGrading ($Gr 1 $Gz2)  // O-grid east
+    hex (18 22 23 19 34 38 39 35) ($Nr $Nc $Nz2) simpleGrading ($Gr 1 $Gz2)  // O-grid north
+    hex (19 23 20 16 35 39 36 32) ($Nr $Nc $Nz2) simpleGrading ($Gr 1 $Gz2)  // O-grid west
+    hex (16 20 21 17 32 36 37 33) ($Nr $Nc $Nz2) simpleGrading ($Gr 1 $Gz2)  // O-grid south
+    hex (28 20 23 29 44 36 39 45) ($NxL $Nc $Nz2) simpleGrading (1 1 $Gz2)   // left
+    hex (21 30 31 22 37 46 47 38) ($NxR $Nc $Nz2) simpleGrading (1 1 $Gz2)   // right
+    hex (24 25 26 27 40 41 42 43) ($Nc $Nc $Nz2) simpleGrading (1 1 $Gz2)    // core
+    hex (25 17 18 26 41 33 34 42) ($Ni $Nc $Nz2) simpleGrading (1 1 $Gz2)    // inner east
+    hex (26 18 19 27 42 34 35 43) ($Ni $Nc $Nz2) simpleGrading (1 1 $Gz2)    // inner north
+    hex (27 19 16 24 43 35 32 40) ($Ni $Nc $Nz2) simpleGrading (1 1 $Gz2)    // inner west
+    hex (24 16 17 25 40 32 33 41) ($Ni $Nc $Nz2) simpleGrading (1 1 $Gz2)    // inner south
+);
+
+edges
+(
+    // Cable circle (also bounds the inner blocks above the cable)
+    arc  1  2 ($xmE 0  0)
+    arc  2  3 ($xc  $R 0)
+    arc  3  0 ($xmW 0  0)
+    arc  0  1 ($xc  $mR 0)
+
+    arc 17 18 ($xmE 0  $zc)
+    arc 18 19 ($xc  $R $zc)
+    arc 19 16 ($xmW 0  $zc)
+    arc 16 17 ($xc  $mR $zc)
+
+    arc 33 34 ($xmE 0  $zt)
+    arc 34 35 ($xc  $R $zt)
+    arc 35 32 ($xmW 0  $zt)
+    arc 32 33 ($xc  $mR $zt)
+);
+
+boundary
+(
+    cable
+    {
+        type wall;
+        faces
+        (
+            // Side
+            ( 1  2 18 17)
+            ( 2  3 19 18)
+            ( 3  0 16 19)
+            ( 0  1 17 16)
+            // Top cap
+            (24 25 26 27)
+            (25 17 18 26)
+            (26 18 19 27)
+            (27 19 16 24)
+            (24 16 17 25)
+        );
+    }
+
+    floor
+    {
+        type wall;
+        faces
+        (
+            ( 1  5  6  2)
+            ( 2  6  7  3)
+            ( 3  7  4  0)
+            ( 0  4  5  1)
+            (12  4  7 13)
+            ( 5 14 15  6)
+        );
+    }
+
+    leftWall
+    {
+        type wall;
+        faces
+        (
+            (12 13 29 28)
+            (28 29 45 44)
+        );
+    }
+
+    rightWall
+    {
+        type wall;
+        faces
+        (
+            (14 15 31 30)
+            (30 31 47 46)
+        );
+    }
+
+    atmosphere
+    {
+        type patch;
+        faces
+        (
+            (33 37 38 34)
+            (34 38 39 35)
+            (35 39 36 32)
+            (32 36 37 33)
+            (44 36 39 45)
+            (37 46 47 38)
+            (40 41 42 43)
+            (41 33 34 42)
+            (42 34 35 43)
+            (43 35 32 40)
+            (40 32 33 41)
+        );
+    }
+
+    front
+    {
+        type cyclic;
+        neighbourPatch back;
+        transform translational;
+        separationVector (0 $sep 0);
+        faces
+        (
+            (12  4 20 28)
+            ( 4  5 21 20)
+            ( 5 14 30 21)
+            (28 20 36 44)
+            (20 21 37 36)
+            (21 30 46 37)
+        );
+    }
+
+    back
+    {
+        type cyclic;
+        neighbourPatch front;
+        transform translational;
+        separationVector (0 $msep 0);
+        faces
+        (
+            (13  7 23 29)
+            ( 7  6 22 23)
+            ( 6 15 31 22)
+            (29 23 39 45)
+            (23 22 38 39)
+            (22 31 47 38)
+        );
+    }
+);

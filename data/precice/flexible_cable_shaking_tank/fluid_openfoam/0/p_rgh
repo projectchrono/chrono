@@ -1,0 +1,30 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      p_rgh;
+}
+
+dimensions      [1 -1 -2 0 0 0 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    "(cable|floor)"
+    {
+        type            fixedFluxPressure;
+        value           uniform 0;
+    }
+    top
+    {
+        type            totalPressure;
+        p0              uniform 0;
+    }
+    "(front|back|left|right)"
+    {
+        type            cyclic;
+    }
+}

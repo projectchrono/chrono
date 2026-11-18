@@ -71,6 +71,23 @@ simulation:
       <<: *VECTOR3D
       description: Gravitational acceleration vector [x, y, z]
       default: [0, 0, -9.8]
+    frame_acceleration:
+      type: object
+      description: |
+        Prescribed acceleration a(t) = function(t) * direction of the reference frame in which the problem is
+        simulated (a translating, non-inertial frame, e.g., a shaking tank). At each step, the effective gravity
+        g - a(t) is used instead of the gravitational acceleration g. Applied in preCICE co-simulations (MBS participant).
+      required: [direction, function]
+      properties:
+        direction:
+          type: array
+          <<: *VECTOR3D
+          description: Direction of the frame acceleration (normalized when read)
+        function:
+          type: object
+          description: |
+            Magnitude of the frame acceleration, as a function of time. Specified like any other Chrono YAML function
+            (e.g., the actuation function of a motor in an MBS model); angles (e.g., a sine phase) are in degrees.
     num_threads:
       type: object
       description: |

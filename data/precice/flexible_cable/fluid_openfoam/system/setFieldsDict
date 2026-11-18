@@ -1,0 +1,26 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      setFieldsDict;
+}
+
+defaultFieldValues
+(
+    volScalarFieldValue alpha.water 0
+);
+
+// Water column: x in [-1.5, -0.5], z in [0, 1.4] (same as the Chrono::FSI-SPH fluid participant)
+regions
+(
+    boxToCell
+    {
+        box (-1.6 -1 -1) (-0.5 1 1.4);
+        fieldValues
+        (
+            volScalarFieldValue alpha.water 1
+        );
+    }
+);

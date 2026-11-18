@@ -201,6 +201,7 @@ void ChParserFsiYAML::LoadSimData(const YAML::Node& yaml) {
         m_sim.end_time = sim["end_time"].as<double>();
     if (sim["gravity"])
         m_sim.gravity = ReadVector(sim["gravity"]);
+    ReadFrameAcceleration(sim);
 
     if (m_verbose) {
         m_sim.PrintInfo();
@@ -262,6 +263,10 @@ void ChParserFsiYAML::CreateFsiSystem() {
             // Initialize the FSI problem (now that an MBS system and FSI solids are specified)
             problemSPH->Initialize();
 
+            // Prescribed frame acceleration (if any), applied to both phases
+            if (m_frame_acc)
+                m_sysFSI->SetFrameAcceleration(m_frame_acc_dir, m_frame_acc);
+
             m_parserCFD = parserSPH;
 
             if (m_verbose) {
@@ -286,9 +291,11 @@ void ChParserFsiYAML::CreateFsiSystem() {
             auto parserTDPF = std::static_pointer_cast<ChParserTdpfYAML>(m_parserCFD);
             auto problemTDPF = parserTDPF->CreateFsiSystemTDPF(false);
 
-            // Chrono::FSI-TDPF does not support flexible FSI solids
+            // Chrono::FSI-TDPF does not support flexible FSI solids or a prescribed frame acceleration
             if (!m_fsi_meshes.empty())
                 throw std::runtime_error("FSI FEA meshes are not supported with a Chrono::FSI-TDPF fluid system");
+            if (m_frame_acc)
+                throw std::runtime_error("A frame acceleration is not supported with a Chrono::FSI-TDPF fluid system");
 
             // Cache the underlying FSI and CFD systems
             m_sysFSI = parserTDPF->GetFsiSystem();

@@ -63,9 +63,37 @@ ChPreciceAdapter::ChPreciceAdapter(const std::string& precice_config_filename, c
       m_verbose(verbose),
       m_visualize(false),
       m_output(false),
-      m_output_dir(".") {
+      m_output_dir("."),
+      m_gravity(VNULL),
+      m_gravity_set(false),
+      m_frame_acc_dir(VECT_X),
+      m_frame_acc(nullptr) {
     // Parse the preCICE XML configuration file, cache mesh and data information, and check if using added mass
     ParseXML();
+}
+
+void ChPreciceAdapter::SetFrameAcceleration(const ChVector3d& direction, std::shared_ptr<ChFunction> acceleration) {
+    ChAssertAlways(direction.Length() > 0);
+    m_frame_acc_dir = direction.GetNormalized();
+    m_frame_acc = acceleration;
+}
+
+ChVector3d ChPreciceAdapter::GetSolverGravity() const {
+    throw std::runtime_error("A prescribed frame acceleration is not supported by this preCICE participant");
+}
+
+void ChPreciceAdapter::SetSolverGravity(const ChVector3d& gravity) {
+    throw std::runtime_error("A prescribed frame acceleration is not supported by this preCICE participant");
+}
+
+void ChPreciceAdapter::ApplyFrameAcceleration(double time) {
+    // Cache the solver gravity at the first call, before any effective gravity is set
+    if (!m_gravity_set) {
+        m_gravity = GetSolverGravity();
+        m_gravity_set = true;
+    }
+
+    SetSolverGravity(m_gravity - m_frame_acc->GetVal(time) * m_frame_acc_dir);
 }
 
 void ChPreciceAdapter::SetOutputDir(const std::string& out_dir) {
@@ -557,6 +585,10 @@ void ChPreciceAdapter::RunSimulation() {
         if (!m_AM_read_channels.empty())
             ReadDataAM();
         ReadData();
+
+        // With a prescribed frame acceleration, set the effective gravity for this step
+        if (m_frame_acc)
+            ApplyFrameAcceleration(time);
 
         if (m_verbose)
             cout << m_prefix1 << "Advance from " << time << " by " << time_step << endl;

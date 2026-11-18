@@ -776,7 +776,7 @@ void SphFluidDynamics::MidpointStep(std::shared_ptr<SphMarkerDataD> sortedMarker
 // -----------------------------------------------------------------------------
 
 // Kernel to copy sorted data back to original order (ISPH)
-__global__ void CopySortedToOriginalISPH_D(MarkerGroup group,
+__global__ void CopySortedToOriginalISPH_D(MarkerGroupImpl group,
                                            const Real4* sortedPosRad,
                                            const Real3* sortedVelMas,
                                            const Real4* sortedRhoPresMu,
@@ -812,7 +812,7 @@ __global__ void CopySortedToOriginalISPH_D(MarkerGroup group,
 }
 
 // Kernel to copy sorted data back to original order (WCSPH)
-__global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
+__global__ void CopySortedToOriginalWCSPH_D(MarkerGroupImpl group,
                                             const Real4* sortedPosRad,
                                             const Real3* sortedVelMas,
                                             const Real4* sortedRhoPresMu,
@@ -847,7 +847,7 @@ __global__ void CopySortedToOriginalWCSPH_D(MarkerGroup group,
     pcEvSvOriginal[index] = sortedPcEvSv[id];
 }
 
-void SphFluidDynamics::CopySortedToOriginal(MarkerGroup group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, std::shared_ptr<SphMarkerDataD> sphMarkersD) {
+void SphFluidDynamics::CopySortedToOriginal(MarkerGroupImpl group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD, std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numActive = (uint)m_data_mgr.countersH->numExtendedParticles;
     uint numBlocks, numThreads;
     computeGridSize(numActive, 1024, numBlocks, numThreads);

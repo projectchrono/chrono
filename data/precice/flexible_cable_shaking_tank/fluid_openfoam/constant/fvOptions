@@ -1,0 +1,45 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      fvOptions;
+}
+
+// Frame acceleration (the box oscillates along x): the momentum source -rho a(t), with a(t) = A w^2 cos(w t) the
+// acceleration of the box frame along x (box motion X(t) = A (1 - cos(w t)), A = 0.08, frequency 0.5 Hz). Must match
+// the frame acceleration of the solid participant (solid_chrono/mbs_participant_openfoam.yaml).
+//
+// The acceleration is applied as a body force rather than through gravity (e.g., with tabulatedAccelerationSource):
+// interFoam folds gravity into the pressure (p_rgh = p - rho g.x), and a horizontal gravity component would require a
+// jump of p_rgh across the periodic (cyclic) sides of the box.
+boxAcceleration
+{
+    type            vectorCodedSource;
+    name            boxAcceleration;
+    selectionMode   all;
+    fields          (U);
+
+    codeAddSupRho
+    #{
+        const scalar A = 0.08;
+        const scalar w = constant::mathematical::twoPi * 0.5;
+        const scalar t = mesh_.time().value();
+        const scalar a = A * w * w * Foam::cos(w * t);
+        eqn -= rho * dimensionedVector("a", dimAcceleration, vector(a, 0, 0));
+    #};
+
+    codeAddSup
+    #{
+        FatalErrorInFunction << "boxAcceleration requires the density (rho) form of the momentum equation" << exit(FatalError);
+    #};
+
+    codeCorrect
+    #{
+    #};
+
+    codeConstrain
+    #{
+    #};
+}

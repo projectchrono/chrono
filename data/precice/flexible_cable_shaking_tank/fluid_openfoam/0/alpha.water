@@ -1,0 +1,32 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      alpha.water;
+}
+
+dimensions      [0 0 0 0 0 0 0];
+
+// The box is filled with fluid up to the top
+internalField   uniform 1;
+
+boundaryField
+{
+    "(cable|floor)"
+    {
+        type            zeroGradient;
+    }
+    // Fluid enters through the top, if needed
+    top
+    {
+        type            inletOutlet;
+        inletValue      uniform 1;
+        value           uniform 1;
+    }
+    "(front|back|left|right)"
+    {
+        type            cyclic;
+    }
+}

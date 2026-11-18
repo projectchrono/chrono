@@ -19,6 +19,7 @@ software.
 
 // #define NOMINMAX
 #include <algorithm>
+#include <cmath>
 #include <stdio.h>
 
 #include "BulletCollision/CollisionShapes/cbtChTriangleShape.h"
@@ -121,4 +122,114 @@ void cbtChTriangleShape::getAabb(const cbtTransform& t, cbtVector3& aabbMin, cbt
 
     aabbMax = cbtVector3(std::max(std::max(p1_w.x(), p2_w.x()), p3_w.x()), std::max(std::max(p1_w.y(), p2_w.y()), p3_w.y()), std::max(std::max(p1_w.z(), p2_w.z()), p3_w.z())) +
               venvelope + vsphereswept;
+}
+
+bool cbtChTriangleShape::rayTest(const cbtTransform& t, const cbtVector3& from, const cbtVector3& to, cbtScalar& fraction, cbtVector3& normal) const {
+    // World frame, double precision
+    const cbtMatrix3x3& R = t.getBasis();
+    const cbtVector3& o = t.getOrigin();
+    auto world = [&R, &o](const ChVector3d& p) {
+        return ChVector3d(R[0].x() * p.x() + R[0].y() * p.y() + R[0].z() * p.z() + o.x(),  //
+                          R[1].x() * p.x() + R[1].y() * p.y() + R[1].z() * p.z() + o.y(),  //
+                          R[2].x() * p.x() + R[2].y() * p.y() + R[2].z() * p.z() + o.z());
+    };
+    const ChVector3d V[3] = {world(*p1), world(*p2), world(*p3)};
+    const ChVector3d O(from.x(), from.y(), from.z());
+    const ChVector3d D = ChVector3d(to.x(), to.y(), to.z()) - O;
+    const double r = getMargin();  // Bullet margin: collision envelope + sphere-swept radius of the mesh
+
+    ChVector3d nt = Vcross(V[1] - V[0], V[2] - V[0]);
+    if (nt.Length2() == 0)
+        return false;  // degenerate triangle
+    nt.Normalize();
+
+    // Line through Q along d crosses the triangle if the three signed edge volumes share a sign. A shared edge
+    // gives exactly opposite volumes in its two triangles, so a ray through it is never missed by both. For that,
+    // each volume is evaluated with the edge end points in a fixed order: (a x b) and -(b x a) can differ in their
+    // last bits when the compiler contracts the products into fused multiply-adds.
+    auto before = [](const ChVector3d& a, const ChVector3d& b) {
+        return a.x() < b.x() || (a.x() == b.x() && (a.y() < b.y() || (a.y() == b.y() && a.z() < b.z())));
+    };
+    auto volume = [&before](const ChVector3d& A, const ChVector3d& B, const ChVector3d& Q, const ChVector3d& d) {
+        return before(B, A) ? -Vdot(Vcross(B - Q, A - Q), d) : Vdot(Vcross(A - Q, B - Q), d);
+    };
+    auto crosses = [&V, &volume](const ChVector3d& Q, const ChVector3d& d) {
+        const double w0 = volume(V[0], V[1], Q, d);
+        const double w1 = volume(V[1], V[2], Q, d);
+        const double w2 = volume(V[2], V[0], Q, d);
+        return (w0 >= 0 && w1 >= 0 && w2 >= 0) || (w0 <= 0 && w1 <= 0 && w2 <= 0);
+    };
+
+    double h = Vdot(O - V[0], nt);
+    const ChVector3d n = h < 0 ? -nt : nt;
+    h = std::abs(h);
+
+    // No hit if the segment starts inside the solid (as with the convex cast)
+    if (h <= r && crosses(O, n))
+        return false;
+    for (int i = 0; i < 3; i++) {
+        const ChVector3d E = V[(i + 1) % 3] - V[i];
+        const double u = std::max(0.0, std::min(1.0, Vdot(O - V[i], E) / Vdot(E, E)));
+        if ((O - V[i] - E * u).Length2() <= r * r)
+            return false;
+    }
+
+    double best = 2;  // entry fraction, above 1 means no hit
+    ChVector3d best_n;
+
+    // Face offset by r
+    const double dn = Vdot(D, n);
+    if (dn < 0) {
+        const double s = (r - h) / dn;
+        if (s >= 0 && s <= 1 && crosses(O - n * r, D)) {
+            best = s;
+            best_n = n;
+        }
+    }
+
+    // Edge cylinders and vertex spheres
+    if (r > 0) {
+        for (int i = 0; i < 3; i++) {
+            const ChVector3d& P = V[i];
+            const ChVector3d E = V[(i + 1) % 3] - P;
+            const double ee = Vdot(E, E);
+
+            // |(O + s D - P) x E|^2 = r^2 |E|^2
+            const ChVector3d c0 = Vcross(O - P, E);
+            const ChVector3d c1 = Vcross(D, E);
+            const double a = Vdot(c1, c1);
+            const double b = Vdot(c0, c1);
+            const double disc = b * b - a * (Vdot(c0, c0) - r * r * ee);
+            if (a > 0 && disc >= 0) {
+                const double s = (-b - std::sqrt(disc)) / a;
+                const ChVector3d X = O + D * s;
+                const double u = Vdot(X - P, E) / ee;
+                if (s >= 0 && s < best && u >= 0 && u <= 1) {
+                    best = s;
+                    best_n = X - P - E * u;
+                }
+            }
+
+            // |O + s D - P|^2 = r^2
+            const ChVector3d w = O - P;
+            const double a2 = Vdot(D, D);
+            const double b2 = Vdot(w, D);
+            const double disc2 = b2 * b2 - a2 * (Vdot(w, w) - r * r);
+            if (a2 > 0 && disc2 >= 0) {
+                const double s = (-b2 - std::sqrt(disc2)) / a2;
+                if (s >= 0 && s < best) {
+                    best = s;
+                    best_n = O + D * s - P;
+                }
+            }
+        }
+    }
+
+    if (best > 1)
+        return false;
+
+    best_n.Normalize();
+    fraction = (cbtScalar)best;
+    normal.setValue((cbtScalar)best_n.x(), (cbtScalar)best_n.y(), (cbtScalar)best_n.z());
+    return true;
 }

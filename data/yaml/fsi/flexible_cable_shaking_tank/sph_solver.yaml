@@ -1,0 +1,30 @@
+chrono-version: 11.0
+
+sph:
+   use_delta_sph: true
+   delta_sph_coefficient: 0.1
+   # Sets the speed of sound (10 times this value), here 40, well above the flow velocity and sqrt(g H)
+   max_velocity: 4
+   free_surface_threshold: 2.4
+
+kernel:
+   initial_spacing: 0.02
+   d0_multiplier: 1.0
+
+boundary_conditions:
+   boundary_method: ADAMI
+
+integration:
+   integration_scheme: RK2
+   time_step: 1e-4
+
+proximity_search:
+   num_proximity_search_steps: 1
+
+particle_shifting:
+   shifting_method: XSPH
+   shifting_xsph_eps: 0.5
+
+# Physical (laminar) viscosity
+viscosity:
+   viscosity_method: LAMINAR

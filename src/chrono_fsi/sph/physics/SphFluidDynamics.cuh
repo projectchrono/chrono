@@ -74,7 +74,7 @@ class SphFluidDynamics {
     );
 
     /// Copy markers in the specified group from sorted arrays to original-order arrays.
-    void CopySortedToOriginal(MarkerGroup group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2, std::shared_ptr<SphMarkerDataD> sphMarkersD);
+    void CopySortedToOriginal(MarkerGroupImpl group, std::shared_ptr<SphMarkerDataD> sortedSphMarkersD2, std::shared_ptr<SphMarkerDataD> sphMarkersD);
 
     /// Synchronize the async copy stream (used for the copySortedToOriginal function)
     void SynchronizeCopyStream() { gpuStreamSynchronize(m_copy_stream); }

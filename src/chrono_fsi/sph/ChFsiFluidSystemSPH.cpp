@@ -2114,7 +2114,7 @@ void ChFsiFluidSystemSPH::OnDoStepDynamics(double time, double step) {
     // Advance fluid particle states from `time` to `time+step`
     m_fluid_dynamics->DoStepDynamics(m_data_mgr->sortedSphMarkers2_D, time, step, m_paramsH->integration_scheme);
 
-    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::NON_SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroupImpl::NON_SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 
     ChDebugLog("GPU Memory usage: " << m_data_mgr->GetCurrentGPUMemoryUsage() / 1024.0 / 1024.0 << " MB");
 
@@ -2136,7 +2136,7 @@ void ChFsiFluidSystemSPH::OnExchangeSolidStates() {
     m_bce_mgr->UpdateMeshMarker1DState();
     m_bce_mgr->UpdateMeshMarker2DState();
 
-    m_fluid_dynamics->CopySortedToOriginal(MarkerGroup::SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
+    m_fluid_dynamics->CopySortedToOriginal(MarkerGroupImpl::SOLID, m_data_mgr->sortedSphMarkers2_D, m_data_mgr->sphMarkers_D);
 }
 
 void ChFsiFluidSystemSPH::SynchronizeCopyStream() const {
@@ -3169,8 +3169,8 @@ size_t ChFsiFluidSystemSPH::GetNumBoundaryMarkers() const {
 
 //------------------------------------------------------------------------------
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticlePositions() const {
-    auto pos3 = GetPositions();
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticlePositions(MarkerGroup group) const {
+    auto pos3 = GetPositions(group);
 
     std::vector<ChVector3d> pos;
     for (const auto& p : pos3)
@@ -3179,8 +3179,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticlePositions() const {
     return pos;
 }
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleVelocities() const {
-    auto vel3 = GetVelocities();
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleVelocities(MarkerGroup group) const {
+    auto vel3 = GetVelocities(group);
 
     std::vector<ChVector3d> vel;
     for (const auto& v : vel3)
@@ -3189,8 +3189,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleVelocities() const {
     return vel;
 }
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleAccelerations() const {
-    auto acc3 = GetAccelerations();
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleAccelerations(MarkerGroup group) const {
+    auto acc3 = GetAccelerations(group);
 
     std::vector<ChVector3d> acc;
     for (const auto& a : acc3)
@@ -3199,8 +3199,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleAccelerations() const {
     return acc;
 }
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleForces() const {
-    auto frc3 = GetForces();
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleForces(MarkerGroup group) const {
+    auto frc3 = GetForces(group);
 
     std::vector<ChVector3d> frc;
     for (const auto& f : frc3)
@@ -3209,8 +3209,8 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleForces() const {
     return frc;
 }
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleFluidProperties() const {
-    auto props3 = GetProperties();
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleFluidProperties(MarkerGroup group) const {
+    auto props3 = GetProperties(group);
 
     std::vector<ChVector3d> props;
     for (const auto& p : props3)
@@ -3221,7 +3221,7 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleFluidProperties() const 
 
 //------------------------------------------------------------------------------
 
-std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
+std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size, MarkerGroup group) {
     const ChVector3d& Pos = frame.GetPos();
     ChVector3d Ax = frame.GetRotMat().GetAxisX();
     ChVector3d Ay = frame.GetRotMat().GetAxisY();
@@ -3233,12 +3233,12 @@ std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame,
     auto ay = mR3(Ay.x(), Ay.y(), Ay.z());
     auto az = mR3(Az.x(), Az.y(), Az.z());
 
-    return m_data_mgr->FindParticlesInBox(hsize, pos, ax, ay, az);
+    return m_data_mgr->FindParticlesInBox(group, hsize, pos, ax, ay, az);
 }
 
-std::vector<Real3> ChFsiFluidSystemSPH::GetPositions() const {
+std::vector<Real3> ChFsiFluidSystemSPH::GetPositions(MarkerGroup group) const {
     SynchronizeCopyStream();
-    return m_data_mgr->GetPositions();
+    return m_data_mgr->GetPositions(group);
 }
 
 ChFsiSphMarkerDeviceView ChFsiFluidSystemSPH::GetMarkerDeviceView() const {
@@ -3253,29 +3253,37 @@ ChFsiSphMarkerDeviceView ChFsiFluidSystemSPH::GetMarkerDeviceView() const {
     return view;
 }
 
-std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities() const {
+std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities(MarkerGroup group) const {
     SynchronizeCopyStream();
-    return m_data_mgr->GetVelocities();
+    return m_data_mgr->GetVelocities(group);
 }
 
-std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations() const {
+std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations(MarkerGroup group) const {
     SynchronizeCopyStream();
-    return m_data_mgr->GetAccelerations();
+    auto acc = m_data_mgr->GetSphAccelerations(group);
+
+    // BCE markers on solids are last in both the SOLID and ALL groups
+    if (group != MarkerGroup::FLUID && m_bce_mgr) {
+        auto solid_acc = m_bce_mgr->GetSolidMarkerAccelerations();
+        std::copy(solid_acc.begin(), solid_acc.end(), acc.end() - solid_acc.size());
+    }
+
+    return acc;
 }
 
-std::vector<Real3> ChFsiFluidSystemSPH::GetForces() const {
+std::vector<Real3> ChFsiFluidSystemSPH::GetForces(MarkerGroup group) const {
     SynchronizeCopyStream();
-    return m_data_mgr->GetForces();
+    return m_data_mgr->GetForces(group);
 }
 
-std::vector<Real3> ChFsiFluidSystemSPH::GetProperties() const {
+std::vector<Real3> ChFsiFluidSystemSPH::GetProperties(MarkerGroup group) const {
     SynchronizeCopyStream();
-    return m_data_mgr->GetProperties();
+    return m_data_mgr->GetProperties(group);
 }
 
-std::vector<int> ChFsiFluidSystemSPH::GetFreeSurfaceFlags() const {
+std::vector<int> ChFsiFluidSystemSPH::GetFreeSurfaceFlags(MarkerGroup group) const {
     SynchronizeCopyStream();
-    return m_data_mgr->GetFreeSurfaceFlags();
+    return m_data_mgr->GetFreeSurfaceFlags(group);
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetPositions(const std::vector<int>& indices) const {
@@ -3289,13 +3297,21 @@ std::vector<Real3> ChFsiFluidSystemSPH::GetVelocities(const std::vector<int>& in
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetAccelerations(const std::vector<int>& indices) const {
-    SynchronizeCopyStream();
-    return m_data_mgr->GetAccelerations(indices);
+    auto all = GetAccelerations(MarkerGroup::ALL);
+    std::vector<Real3> acc;
+    acc.reserve(indices.size());
+    for (auto i : indices)
+        acc.push_back(all[i]);
+    return acc;
 }
 
 std::vector<Real3> ChFsiFluidSystemSPH::GetForces(const std::vector<int>& indices) const {
-    SynchronizeCopyStream();
-    return m_data_mgr->GetForces(indices);
+    auto all = GetForces(MarkerGroup::ALL);
+    std::vector<Real3> frc;
+    frc.reserve(indices.size());
+    for (auto i : indices)
+        frc.push_back(all[i]);
+    return frc;
 }
 
 }  // end namespace sph
