@@ -129,6 +129,11 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// These parameters are described in: "Parameter Identification of a Planetary Rover Wheel-Soil Contact Model via a
     /// Bayesian Approach", A.Gallina, R. Krenn et al. Note that the original SCM model does not include the K and R
     /// coefficients. A very large value of K and R=0 reproduce the original SCM.
+    /// Time step: the soil force is computed once per step (in Setup) and held fixed while the implicit integrator
+    /// iterates. For a body resting on the soil with a steady elastic contact patch, this acts, to leading order with
+    /// HHT (parameter alpha, step h), like a negative damping of about (1 + alpha) K h per unit area, so the contact can
+    /// oscillate with growing amplitude once h exceeds about R / ((1 + alpha) K). For rigid contact at rest, start with
+    /// h below R/K and check by halving h. With R = 0 no soil damping offsets this.
     void SetSoilParameters(double Bekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
                            double Bekker_Kc,      ///< Kc, cohesive modulus in Bekker model
                            double Bekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
