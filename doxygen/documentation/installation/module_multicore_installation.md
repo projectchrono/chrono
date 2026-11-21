@@ -19,20 +19,21 @@ using shared-memory parallel computing within Chrono
 ## Requirements
 
 - To **build** this module you need:
-    - the [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK).
+    - OpenMP support (`CH_ENABLE_OPENMP`, enabled by default).
+    - the [Thrust](https://github.com/NVIDIA/thrust) headers. Chrono::Multicore uses Thrust with its OpenMP backend, so no GPU is required.
 
 <div class="ce-warning">
-The easiest way to obtain the Thrust library is by installing the CUDA SDK. 
-Alternatively, you can download or clone Thrust from its [GitHub repository](https://github.com/thrust/thrust). In that case, you will need to manually specify the path to the Thrust CMake configuration script (set the variable `Thrust_DIR`).
+The easiest way to obtain the Thrust library is by installing the CUDA toolkit, which includes it; Chrono finds it there automatically.<br>
+On systems without CUDA (for example macOS), download a stand-alone Thrust release from its [GitHub repository](https://github.com/NVIDIA/thrust) (see `contrib/build-scripts/macos/buildThrust.sh`, which uses Thrust 1.17.2). In that case, set `Thrust_ROOT` to the directory that contains the `thrust/` subdirectory (alternatively, set `THRUST_INCLUDE_DIR` directly). Thrust's own CMake configuration scripts are not used.<br>
+The same applies to builds with the HIP backend for AMD GPUs: the Thrust headers bundled with ROCm are ignored for host-side Chrono libraries, so a stand-alone Thrust is needed for Chrono::Multicore.
 </div>
 
 
 ## Building instructions
   
-1. Download the following libraries (depending on the platform, the process can be different)
-    - [Thrust](https://github.com/thrust/thrust) (also included in CUDA SDK)
+1. Obtain the Thrust headers as described above (from the CUDA toolkit or as a stand-alone download).
 
-    For use with the Chrono::Multicore module, no installation is required for the above headers-only libraries. However, if so desired, they can be installed in the appropriate system directories (on platforms that support them).
+    For use with the Chrono::Multicore module, no installation is required for this headers-only library. However, if so desired, it can be installed in the appropriate system directories (on platforms that support them).
 
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono).
    
