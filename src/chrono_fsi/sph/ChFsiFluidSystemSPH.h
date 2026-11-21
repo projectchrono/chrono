@@ -336,6 +336,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Return SPH particle mass.
     double GetParticleMass() const;
 
+    /// Return CRM particle stresses in the order (xx, yy, zz).
+    std::vector<ChVector3d> GetParticleStressDiagonal() const;
+    /// Return CRM particle stresses in the order (xy, xz, yz).
+    std::vector<ChVector3d> GetParticleStressOffDiagonal() const;
+
     /// Return base pressure.
     double GetBasePressure() const;
 

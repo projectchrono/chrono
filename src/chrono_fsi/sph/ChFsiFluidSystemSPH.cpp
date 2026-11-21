@@ -3169,6 +3169,30 @@ size_t ChFsiFluidSystemSPH::GetNumBoundaryMarkers() const {
 
 //------------------------------------------------------------------------------
 
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressDiagonal() const {
+    if (GetPhysicsProblem() != PhysicsProblem::CRM)
+        throw std::logic_error("Particle stress requires CRM");
+    SynchronizeCopyStream();
+    thrust::host_vector<Real3> values = m_data_mgr->sphMarkers_D->tauXxYyZzD;
+    std::vector<ChVector3d> result;
+    result.reserve(m_data_mgr->countersH->numFluidMarkers);
+    for (size_t i = 0; i < m_data_mgr->countersH->numFluidMarkers; ++i)
+        result.push_back(ToChVector(values[i]));
+    return result;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressOffDiagonal() const {
+    if (GetPhysicsProblem() != PhysicsProblem::CRM)
+        throw std::logic_error("Particle stress requires CRM");
+    SynchronizeCopyStream();
+    thrust::host_vector<Real3> values = m_data_mgr->sphMarkers_D->tauXyXzYzD;
+    std::vector<ChVector3d> result;
+    result.reserve(m_data_mgr->countersH->numFluidMarkers);
+    for (size_t i = 0; i < m_data_mgr->countersH->numFluidMarkers; ++i)
+        result.push_back(ToChVector(values[i]));
+    return result;
+}
+
 std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticlePositions(MarkerGroup group) const {
     auto pos3 = GetPositions(group);
 
