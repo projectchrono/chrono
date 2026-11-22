@@ -336,9 +336,11 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Return SPH particle mass.
     double GetParticleMass() const;
 
-    /// Return CRM particle stresses in the order (xx, yy, zz).
+    /// Return the (xx, yy, zz) Cauchy stress components in Pa for each CRM particle in the global frame.
+    /// Normal stress is positive in tension and negative in compression.
     std::vector<ChVector3d> GetParticleStressDiagonal() const;
-    /// Return CRM particle stresses in the order (xy, xz, yz).
+    /// Return the (xy, xz, yz) Cauchy shear stresses in Pa for each CRM particle in the global frame.
+    /// A positive xy component is traction along +x on a face with normal +y.
     std::vector<ChVector3d> GetParticleStressOffDiagonal() const;
 
     /// Return base pressure.

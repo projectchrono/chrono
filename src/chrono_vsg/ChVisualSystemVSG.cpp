@@ -1119,7 +1119,9 @@ void ChVisualSystemVSG::Render() {
         m_contact_forces_color_changed = false;
     }
 
-    // Update particle transforms and colors not supplied by a compute shader.
+    // Dynamic data transfer CPU->GPU for point clouds
+    // use direct pointer access to avoid temporary object construction
+    // Dynamic colors are handled by the Vulkan compute shader
     if (!m_clouds.empty()) {
         auto hide_pos = m_lookAt->eye - (m_lookAt->center - m_lookAt->eye) * 0.1;
         for (const auto& cloud : m_clouds) {
@@ -1137,12 +1139,6 @@ void ChVisualSystemVSG::Render() {
                     }
                 }
                 cloud.positions->dirty();
-            }
-            if (cloud.dynamic_colors && !cloud.use_compute_colors) {
-                unsigned int k = 0;
-                for (auto& color : *cloud.colors)
-                    color = vsg::vec4CH(cloud.pcloud->GetVisualColor(k++));
-                cloud.colors->dirty();
             }
         }
     }

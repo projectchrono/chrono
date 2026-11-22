@@ -15,7 +15,6 @@ set(DEMOS ${DEMOS}
    demo_FSI-SPH_RassorDrum
    demo_FSI-SPH_Cone_Drop
    demo_FSI-SPH_PlateSinkage
-   demo_FSI-SPH_PlanarShear
 )
 
 if(CH_ENABLE_MODULE_VSG)
