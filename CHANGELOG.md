@@ -191,6 +191,10 @@ orientation.
   the auxiliary reference frame for a `ChBodyAuxRef`. Coefficients about another point must be shifted to
   that origin; `ChLoadHydrodynamics::ComputeShiftTransformation` and `ChLoadHydrodynamics::ShiftBlocks`
   perform this shift.
+- If the origin of the body reference frame is not the COM, `ChLoadHydrodynamics` also applies the
+  velocity-dependent force from the centripetal acceleration of that origin, so that the coefficients multiply
+  its absolute acceleration. This term matters for bodies that rotate quickly (e.g., spinning blades); a
+  coupled solver that added it on its own must no longer do so.
 - Hydrodynamic data files do not record the point about which their coefficients were computed (the BEM
   rotation center, which need not be the center of gravity stored in the file). If it is not the origin of
   the body reference frame, provide it, in the body reference frame, with the `h5_reference_points` list of

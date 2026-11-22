@@ -110,6 +110,42 @@ Some other features of the Chrono SCM implementation are:
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles; [handling tires](@ref vehicle_tire_empirical) cannot be used.
 
+### SCM time step {#vehicle_terrain_scm_step}
+
+SCM computes the soil forces once per call to `ChSystem::DoStepDynamics`, from the state at the beginning of the step, and keeps them fixed over the whole step, including any internal substeps the integrator takes.
+These forces add no stiffness or damping terms to the integrator's Jacobian, so the soil is always integrated explicitly, whichever integrator is used.
+This limits the step size \f$h\f$ passed to `DoStepDynamics`.
+
+Consider a body resting on the soil with a steady elastic contact patch of area \f$A\f$, and let \f$m\f$ be the mass that bears on the patch (for a wheel, roughly the unsprung mass).
+The soil then acts as a spring of stiffness \f$K A\f$ in parallel with a damper of coefficient \f$R A\f$, where \f$K\f$ and \f$R\f$ are the elastic stiffness and damping per unit area set with `SCMTerrain::SetSoilParameters`; the natural frequency of the contact is \f$\omega = \sqrt{K A / m}\f$.
+Most integrators apply the fixed force as if it were evaluated a time \f$\lambda h\f$ late, which acts as a negative damping of about \f$\lambda K h\f$ per unit area.
+This offsets the soil damping \f$R\f$, and oscillations of the contact grow once
+\f[
+h > \frac{R}{\lambda K}
+\f]
+
+| Integrator (`ChTimestepper::Type`) | Lag factor \f$\lambda\f$ | Step limit |
+|---|---|---|
+| `EULER_IMPLICIT_LINEARIZED` (default), `EULER_IMPLICIT`, `EULER_IMPLICIT_PROJECTED`, `EULER_SEMI_IMPLICIT` | \f$0\f$ | \f$h < 2/\omega\f$ |
+| `HHT` (parameter \f$\alpha\f$, default \f$-0.2\f$) | \f$1 + \alpha\f$ | \f$h < R / ((1 + \alpha) K)\f$ |
+| `NEWMARK` (parameter \f$\gamma\f$, default \f$0.6\f$) | \f$3/2 - \gamma\f$ | \f$h < R / ((3/2 - \gamma) K)\f$ |
+| `TRAPEZOIDAL`, `TRAPEZOIDAL_LINEARIZED`, `RUNGE_KUTTA`, `HEUN` | \f$1/2\f$ | \f$h < 2 R / K\f$ |
+| `EULER_EXPLICIT_I`, `EULER_EXPLICIT_II`, `LEAPFROG` | \f$1\f$ | \f$h < R / K\f$ |
+
+The Euler implicit integrators (which include the two that can be used with NSC contact, `EULER_IMPLICIT_LINEARIZED` and `EULER_IMPLICIT_PROJECTED`) introduce no lag: they reproduce the soil damping and add none.
+Their limit is the explicit stability limit of the soil spring, which depends on the mass and the contact area rather than on \f$R/K\f$.
+For all integrators, \f$h\f$ must also stay below limits of the order of \f$2/\omega\f$ and \f$2 m / (R A)\f$; the second one matters only for large \f$R\f$.
+
+With \f$R = 0\f$ (the default), the integrators with \f$\lambda > 0\f$ have no stable step for a body resting on elastic soil: only damping elsewhere in the model (suspension, tires, plastic flow of the soil) keeps its motion bounded.
+With the Euler implicit integrators, the same oscillations are neither damped nor amplified.
+A positive \f$R\f$ is therefore needed with any integrator other than the Euler implicit ones.
+
+As an example, consider \f$K = 4 \cdot 10^8\f$ Pa/m and \f$R = 3 \cdot 10^4\f$ Pa s/m (\f$R/K = 75\ \mu\f$s), with a 140 kg body on a 0.16 m² patch (\f$\omega = 676\f$ rad/s).
+The step must stay below about 94 \f$\mu\f$s with HHT (\f$\alpha = -0.2\f$) and below about 2.9 ms with the Euler implicit integrators.
+
+These estimates assume a steady elastic contact; a changing footprint, yielding of the soil or loss of contact can move the limits.
+Treat them as a starting point and confirm the choice of step by halving it.
+
 ### SCM storage options
 
 SCM defaults to **single precision storage** for soil-node state and the dense base-height field,

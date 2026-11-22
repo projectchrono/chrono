@@ -129,6 +129,10 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// These parameters are described in: "Parameter Identification of a Planetary Rover Wheel-Soil Contact Model via a
     /// Bayesian Approach", A.Gallina, R. Krenn et al. Note that the original SCM model does not include the K and R
     /// coefficients. A very large value of K and R=0 reproduce the original SCM.
+    ///
+    /// The soil forces are computed once per step and integrated explicitly, so K and R limit the step size. With
+    /// integrators other than the Euler implicit ones (e.g., HHT), R=0 gives no stable step for a body resting on the
+    /// soil. See \ref vehicle_terrain_scm_step "SCM time step" in the Chrono::Vehicle terrain manual.
     void SetSoilParameters(double Bekker_Kphi,    ///< Kphi, frictional modulus in Bekker model
                            double Bekker_Kc,      ///< Kc, cohesive modulus in Bekker model
                            double Bekker_n,       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
