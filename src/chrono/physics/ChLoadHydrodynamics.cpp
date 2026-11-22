@@ -200,6 +200,27 @@ ChMatrix66d ChLoadHydrodynamics::ComputeTransformation(const ChBodyAddedMassBloc
     return T;
 }
 
+ChVectorN<double, 6> ChLoadHydrodynamics::ComputeCentripetalTerm(const ChBodyAddedMassBlock& b) const {
+    // With omega the angular velocity in absolute axes and r = p_ref - p_com (absolute axes, fixed in the body), the
+    // absolute acceleration of the reference frame origin is
+    //    a_ref = a + alpha x r + omega x (omega x r)
+    // where a is the COM acceleration and alpha = R_com dw/dt the angular acceleration in absolute axes. The first two
+    // terms are the translational rows of T * [dv/dt; dw/dt] (in the axes of the frame convention); the last one is the
+    // centripetal acceleration. The angular acceleration has no velocity-dependent part, since d(R_com w)/dt =
+    // R_com dw/dt + R_com (w x w) = R_com dw/dt.
+    const auto& frame_ref = b.body->GetFrameRefToAbs();
+    const auto& omega = b.body->GetAngVelParent();
+    ChVector3d r = frame_ref.GetPos() - b.body->GetPos();
+    ChVector3d a_c = Vcross(omega, Vcross(omega, r));
+    if (m_frame == AddedMassFrame::BODY)
+        a_c = frame_ref.GetRot().RotateBack(a_c);
+
+    ChVectorN<double, 6> c;
+    c.head<3>() = a_c.eigen();
+    c.tail<3>().setZero();
+    return c;
+}
+
 ChMatrix66d ChLoadHydrodynamics::ComputeShiftTransformation(const ChBody& body, const ChVector3d& point, AddedMassFrame frame) {
     // With v_ref and w the velocity of the reference frame origin and the angular velocity, both expressed in the axes of
     // the frame convention, and d the location of the point relative to the reference frame origin in the same axes, the
@@ -239,6 +260,28 @@ void ChLoadHydrodynamics::ComputeAddedMassMatrix() {
         for (size_t j = 0; j < num_bodies; j++) {
             m_M.block<6, 6>(6 * i, 6 * j) = T[i].transpose() * m_body_blocks[i].block.block<6, 6>(0, 6 * j) * T[j];
         }
+    }
+}
+
+void ChLoadHydrodynamics::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    // The coefficients multiply the accelerations T_j * [dv/dt; dw/dt] + c_j. The first part is accounted for by the
+    // added mass matrix (see IntLoadResidual_Mv and LoadKRMMatrices); the velocity-dependent part c_j gives the force
+    // -T_i^T * sum_j A_ij * c_j on body i. Like the gyroscopic torque of a body, it is evaluated at the current state.
+    auto num_bodies = m_body_blocks.size();
+
+    // Velocity-dependent accelerations, stacked in block order
+    ChVectorDynamic<> c_all(6 * num_bodies);
+    for (size_t j = 0; j < num_bodies; j++)
+        c_all.segment(6 * j, 6) = ComputeCentripetalTerm(m_body_blocks[j]);
+    if (c_all.isZero(0))
+        return;
+
+    // Update R += c * F
+    for (size_t i = 0; i < num_bodies; i++) {
+        const auto& b = m_body_blocks[i];
+        ChVectorN<double, 6> f = -(b.block * c_all);
+        auto offset = b.body->GetOffset_w();
+        R.segment(offset, 6) += c * (ComputeTransformation(b).transpose() * f);
     }
 }
 

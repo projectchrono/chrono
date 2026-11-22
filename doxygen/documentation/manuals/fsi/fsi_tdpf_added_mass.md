@@ -86,18 +86,35 @@ absolute axes. The velocities the coefficients refer to are \f$T_i\,[v_i;\,\omeg
 is the COM velocity in absolute axes, \f$\omega_i\f$ the angular velocity in the axes of the COM frame, and
 
 \f[
-  T_i^{\mathrm{inertial}} = \begin{bmatrix} I & \tilde{d}_i R_i \ 0 & R_i \end{bmatrix}, \qquad
-  T_i^{\mathrm{body}} = \begin{bmatrix} Q_i^T & 0 \ 0 & Q_i^T \end{bmatrix} T_i^{\mathrm{inertial}}.
+  T_i^{\mathrm{inertial}} = \begin{bmatrix} I & \tilde{d}_i R_i \\ 0 & R_i \end{bmatrix}, \qquad
+  T_i^{\mathrm{body}} = \begin{bmatrix} Q_i^T & 0 \\ 0 & Q_i^T \end{bmatrix} T_i^{\mathrm{inertial}}.
 \f]
 
 For a `ChBody`, \f$d_i = 0\f$ and \f$Q_i = R_i\f$, so that \f$T_i^{\mathrm{inertial}} = \mathrm{diag}(I, R_i)\f$
 and \f$T_i^{\mathrm{body}} = \mathrm{diag}(R_i^T, I)\f$.
 
-The block coupling bodies \f$i\f$ and \f$j\f$ in the system mass matrix is then
-\f$T_i^T A_{ij} T_j\f$. The added mass is constant in the selected axes; in Chrono's velocity coordinates,
-it varies with the body orientation. The velocity-dependent terms that arise from this variation (for
-example the Munk moment) are not included. This is consistent with the linear potential-flow theory from
-which the coefficients are typically obtained, which assumes small motions about the reference position.
+The coefficients multiply the absolute acceleration of the origin of the body reference frame and the
+angular acceleration of the body, in the axes of the frame convention. In Chrono's velocity coordinates,
+these accelerations are \f$T_i\,[\dot{v}_i;\,\dot{\omega}_i] + c_i\f$, where
+
+\f[
+  c_i^{\mathrm{inertial}} = \begin{bmatrix} \bar{\omega}_i \times (\bar{\omega}_i \times (-d_i)) \\ 0 \end{bmatrix}, \qquad
+  c_i^{\mathrm{body}} = \begin{bmatrix} Q_i^T & 0 \\ 0 & Q_i^T \end{bmatrix} c_i^{\mathrm{inertial}},
+\f]
+
+with \f$\bar{\omega}_i = R_i \omega_i\f$ the angular velocity in absolute axes. The term \f$c_i\f$ is the
+centripetal acceleration of the origin of the reference frame, and vanishes for a `ChBody`. Accordingly,
+`ChLoadHydrodynamics` contributes:
+
+- the block \f$T_i^T A_{ij} T_j\f$, coupling bodies \f$i\f$ and \f$j\f$, to the system mass matrix;
+- the velocity-dependent force \f$-T_i^T \sum_j A_{ij} c_j\f$ on body \f$i\f$, evaluated at the current
+  body velocities (like the gyroscopic torque of a body).
+
+The added mass is constant in the selected axes; in Chrono's velocity coordinates, it varies with the body
+orientation. With inertial axes, the force above is complete for coefficients that are constant in inertial
+axes. With body axes, the gyroscopic terms of an anisotropic added mass rotating with the body (for example
+the Munk moment) are not included. This is consistent with the linear potential-flow theory from which the
+coefficients are typically obtained, which assumes small motions about the reference position.
 
 ### Coefficients about other points
 
@@ -107,16 +124,19 @@ that origin before they are passed to `ChLoadHydrodynamics`.
 point \f$p_i\f$ given in the body reference frame, the transformation
 
 \f[
-  S_i = \begin{bmatrix} I & -\tilde{e}_i \ 0 & I \end{bmatrix},
+  S_i = \begin{bmatrix} I & -\tilde{e}_i \\ 0 & I \end{bmatrix},
 \f]
 
 where \f$e_i\f$ is \f$p_i\f$ expressed in the axes of the frame convention (\f$e_i = Q_i p_i\f$ for inertial
 axes, \f$e_i = p_i\f$ for body axes), and
 [ShiftBlocks](@ref chrono::ChLoadHydrodynamics::ShiftBlocks) replaces each block \f$A_{ij}\f$ with
-\f$S_i^T A_{ij} S_j\f$. For body axes the shift is exact. For inertial axes it depends on the body
-orientation and is computed once, at the initial orientation; the coefficients are then constant about the
-origin of the body reference frame rather than about the original point, which differs only at second order
-in the motion amplitude, beyond the reach of linear potential-flow theory.
+\f$S_i^T A_{ij} S_j\f$. For body axes the shift of the mass matrix is exact. For inertial axes it depends
+on the body orientation and is computed once, at the initial orientation; the coefficients are then constant
+about the origin of the body reference frame rather than about the original point. In both cases, the
+shifted coefficients are applied with the centripetal acceleration of the origin of the body reference frame
+rather than that of the original point. These differences are of second order in the motion amplitude,
+beyond the reach of linear potential-flow theory, but they matter for bodies that rotate quickly (for
+example spinning blades). For such bodies, place the reference frame at the original point instead.
 
 A hydrodynamic data file does not record the point about which its coefficients were computed (the BEM
 rotation center), and this point need not be the center of gravity stored in the file. It is given:

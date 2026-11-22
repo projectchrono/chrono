@@ -45,19 +45,31 @@ using ChBodyAddedMassBlocks = std::vector<ChBodyAddedMassBlock>;
 /// surrounding fluid. The additional system-wide mass matrix term is a block-sparse matrix with non-zero blocks
 /// corresponding to all bodies that interact with fluid. For each of these `n` bodies (not necessarily all bodies
 /// included in the Chrono system), a dense 6 x 6n block of hydrodynamic coefficients must be provided (see
-/// ChBodyAddedMassBlocks). The 6 x 6 blocks for each of these bodies is distributed at the appropriate location in
+/// ChBodyAddedMassBlocks). The 6 x 6 blocks for each of these bodies are distributed at the appropriate locations in
 /// the system mass matrix.
 ///
 /// The coefficients of each body refer to the velocity of the origin of the body reference frame (the COM frame for a
 /// ChBody, the auxiliary reference frame for a ChBodyAuxRef) and to the body angular velocity, both expressed either in
 /// the inertial (absolute) axes or in the axes of the body reference frame (see AddedMassFrame). Coefficients computed
 /// about a different point must be shifted to the origin of the body reference frame before they are passed to this
-/// load (see ComputeShiftTransformation). Since Chrono uses the COM velocity in absolute axes and the angular velocity
-/// in the axes of the COM frame as velocity coordinates, the coefficients are transformed accordingly, using the
-/// current orientation of the bodies. The added mass is therefore constant in the selected axes and, in general, varies with the body
-/// orientation in the Chrono velocity coordinates. The velocity-dependent terms arising from the time variation of the
-/// added mass (e.g., the Munk moment) are not included, which is consistent with the small-rotation assumptions under
-/// which hydrodynamic coefficients are typically computed.
+/// load (see ComputeShiftTransformation). The hydrodynamic force and moment on body i, about the origin of its
+/// reference frame, are -sum_j A_ij * a_j, where a_j contains the absolute acceleration of the origin of the reference
+/// frame of body j and the angular acceleration of body j, both in the axes of the frame convention.
+///
+/// Chrono uses the COM velocity in absolute axes and the angular velocity in the axes of the COM frame as velocity
+/// coordinates. With v and w these velocities for body i, the velocities the coefficients refer to are T_i * [v; w],
+/// where T_i depends on the current body configuration. The accelerations are then a_i = T_i * [dv/dt; dw/dt] + c_i,
+/// where c_i contains the centripetal acceleration of the origin of the reference frame of body i (zero if that origin
+/// is the COM). Accordingly, this load contributes:
+/// - the added mass matrix, with blocks T_i^T * A_ij * T_j, which is constant in the selected axes and, in general,
+///   varies with the body orientation in the Chrono velocity coordinates;
+/// - the velocity-dependent force -T_i^T * sum_j A_ij * c_j, evaluated at the current body velocities and treated
+///   explicitly (it has no Jacobian contribution), like the gyroscopic torque of a body.
+///
+/// With the inertial convention, this is the complete force for coefficients that are constant in inertial axes. With
+/// the body convention, the gyroscopic terms of an anisotropic added mass rotating with the body (e.g., the Munk moment)
+/// are not included, which is consistent with the small-rotation assumptions under which hydrodynamic coefficients are
+/// typically computed.
 ///
 /// Note that, with a solver that needs the inverse of the total mass matrix (APGD or Barzilai-Borwein), that inverse is
 /// recomputed whenever a hydrodynamic body rotates, which requires the inversion of a dense system-size matrix.
@@ -93,9 +105,9 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     /// If any block changes, the inverse of the total mass matrix (if needed by the solver) is recomputed.
     void SetBodyAddedMassBlocks(const std::vector<ChMatrixDynamic<>>& blocks);
 
-    /// Modify the added mass block.
+    /// Modify the diagonal (self-coupling) added mass blocks.
     /// In this case, each given block is assumed to have size 6 x 6, is expressed in the current frame convention, and
-    /// overwrites the diagonal block of the added mass matrix.
+    /// overwrites the diagonal block of the corresponding body; the coupling blocks between bodies are unchanged.
     /// If any block changes, the inverse of the total mass matrix (if needed by the solver) is recomputed.
     void UpdateBodyAddedMassBlocks(const std::vector<ChMatrix66d>& blocks);
 
@@ -104,7 +116,9 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     /// frame, and are expressed in the axes of the given frame convention. If S_i is the transformation for body i, the
     /// coefficients about the origins of the body reference frames are S_i^T * A_ij * S_j. With the inertial
     /// convention, S depends on the body orientation: the transformation computed at the current orientation applies
-    /// exactly only at that orientation.
+    /// exactly only at that orientation. With either convention, the shifted coefficients are applied with the
+    /// centripetal acceleration of the origin of the body reference frame, not that of the given point. To account
+    /// exactly for the motion of that point, place the reference frame of a ChBodyAuxRef at the point instead.
     static ChMatrix66d ComputeShiftTransformation(const ChBody& body, const ChVector3d& point, AddedMassFrame frame);
 
     /// Shift added mass blocks with the given transformations (see ComputeShiftTransformation).
@@ -115,22 +129,33 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     virtual void Setup() override {}
 
     /// Perform any updates necessary at the current phase during the solution process.
-    /// This function is called at least once per step to update auxiliary data, internal states, etc.
-    /// If a problem size is detected, resize the underlying KRM block.
+    /// If the solver needs the inverse of the total mass matrix, recompute it when the problem size or the added mass
+    /// blocks changed, or when a hydrodynamic body rotated, since it was last computed.
     virtual void Update(double time, UpdateFlags update_flags) override;
 
+    /// Increment the given residual vector R with the term c * F (for the entire system).
+    /// F contains the velocity-dependent added mass forces -T_i^T * sum_j A_ij * c_j, at the current body velocities.
+    /// The offset is not used: the forces are loaded at the offsets of the hydrodynamic bodies.
+    virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
+                                   ChVectorDynamic<>& R,    ///< updated residual R += c*F
+                                   const double c           ///< scaling factor
+                                   ) override;
+
     /// Increment the given residual vector R with the term c * M * w (for the entire system).
+    /// M is the added mass matrix, with blocks T_i^T * A_ij * T_j at the current body configuration.
+    /// The offset is not used: the terms are loaded at the offsets of the hydrodynamic bodies.
     virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
                                     ChVectorDynamic<>& R,        ///< updated residual R += c*M*v
                                     const ChVectorDynamic<>& w,  ///< w vector
                                     const double c               ///< scaling factor
                                     ) override;
 
-    /// Register with the given system descriptor any ChMBlock objects associated with this item.
+    /// Register the KRM block holding the added mass matrix with the given system descriptor.
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
-    /// Compute and load current mass matrices in encapsulated ChMBlock objects.
-    /// The resulting M block contains Mfactor * M (Kfactor and Rfactor are ignored here).
+    /// Load the KRM block with Mfactor * M, where M is the added mass matrix at the current body configuration.
+    /// Kfactor and Rfactor are ignored: neither the configuration dependence of M nor the velocity-dependent force
+    /// contributes to the Jacobian.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
   protected:
@@ -151,6 +176,11 @@ class ChApi ChLoadHydrodynamics : public ChPhysicsItem {
     /// frame convention) are T_i * [v; w], where v is the COM velocity in absolute axes and w the angular velocity in
     /// the axes of the COM frame.
     ChMatrix66d ComputeTransformation(const ChBodyAddedMassBlock& b) const;
+
+    /// Compute the velocity-dependent part of the accelerations the coefficients refer to.
+    /// For body i, this is c_i = [a_c; 0], where a_c is the centripetal acceleration of the origin of its reference
+    /// frame, in the axes given by the frame convention.
+    ChVectorN<double, 6> ComputeCentripetalTerm(const ChBodyAddedMassBlock& b) const;
 
     /// Compute the added mass matrix in Chrono velocity coordinates at the current body configuration.
     /// The block coupling bodies i and j is T_i^T * A_ij * T_j, where A_ij is the corresponding 6 x 6 block of
