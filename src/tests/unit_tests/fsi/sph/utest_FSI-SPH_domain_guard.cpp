@@ -10,7 +10,9 @@
 //
 // =============================================================================
 //
-// Unit test for the handling of particles outside the computational domain.
+// Unit test for the guards on the computational domain: particles outside it (cases
+// 1 to 5), a domain too short for the neighbor-search grid (case 6), and the neighbor
+// search across a periodic boundary (case 7).
 //
 // A particle further than 40h outside the domain is reported by calcHashD as an
 // error, which terminates the run. Rigid-body (BCE) markers are meant to be
@@ -67,6 +69,22 @@
 //         most one period loses the interaction across x. See the comment in the case body for
 //         why the z displacement is tried at one period out as well as at ten: at ten, the two
 //         defects mask each other and the phantom cannot appear.
+// Case 6: a domain too short for the neighbor-search grid must be rejected at Initialize. The
+//         neighbor search visits the cells at offsets -1, 0, +1 around a particle's cell and wraps the
+//         cell index on a periodic axis, so on a periodic axis 2 cells long it visits one cell twice,
+//         and on one 1 cell long it visits that cell three times, counting its particles as neighbors
+//         that often: the run continues with wrong forces and no diagnostic. A periodic axis 1 or 2
+//         cells long is therefore rejected, along each of x, y and z. An axis with no cell at all is
+//         rejected even when it is not periodic. A box periodic on every axis and exactly 3 cells long
+//         on each is accepted, as is a non-periodic axis only 1 cell long, where the search does not
+//         wrap.
+// Case 7: a pair of particles within kernel support of each other must interact the same way whether
+//         it lies inside the box or straddles a periodic boundary. The pair is 1.94h apart along a
+//         periodic y or z axis 25h long, with one particle 0.02h above the lower face. The neighbor
+//         search finds a pair across the boundary only if the cells tile the axis exactly. With cells
+//         2.1h long on every axis, as a 21h x axis sets them, the 12 cells along the 25h axis leave a
+//         last cell only 1.9h long, and neither particle's 3 x 3 x 3 block of cells reaches the
+//         other: the pair does not interact at all, while the same pair inside the box repels.
 //
 // =============================================================================
 
@@ -117,6 +135,23 @@ void ExpectThrow(const std::string& name, std::function<void()> f) {
         num_failures++;
     } catch (const std::exception&) {
         std::cout << "  ok (reported): " << name << std::endl;
+    }
+}
+
+// Expect an exception whose message contains the given text, so that the check cannot be passed by an
+// unrelated error.
+void ExpectThrowWith(const std::string& name, const std::string& text, std::function<void()> f) {
+    try {
+        f();
+        std::cout << "FAIL (no throw): " << name << std::endl;
+        num_failures++;
+    } catch (const std::exception& e) {
+        if (std::string(e.what()).find(text) != std::string::npos) {
+            std::cout << "  ok (reported): " << name << std::endl;
+        } else {
+            std::cout << "FAIL (other error): " << name << ": " << e.what() << std::endl;
+            num_failures++;
+        }
     }
 }
 
@@ -542,15 +577,177 @@ void TestMixedPeriodicity() {
     Check("ten periods out and displaced along the non-periodic axis leaves the fluid untouched", dev_far_out < 1e-10);
 }
 
+// -----------------------------------------------------------------------------
+// Initialize a standalone fluid system on a box domain centered at the origin, num_x by num_y by num_z
+// particle spacings, filled with a lattice of fluid particles at the centers of the lattice cells, and
+// take a few steps. A lattice that fills a periodic axis closes on itself across the boundary with
+// neither a gap nor an overlap.
+//
+// With d0_multiplier = 1 the kernel length h equals the spacing, and the cubic spline kernel reaches
+// 2h, so an axis L long holds floor(L / 2h) neighbor-search cells.
+void RunFilledDomain(int num_x, int num_y, int num_z, BoundaryConditions bc_type, int num_steps) {
+    ChFsiFluidSystemSPH sysSPH;
+    sysSPH.SetVerbose(false);
+    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
+    fluid_props.density = 1000;
+    fluid_props.viscosity = 1;
+    sysSPH.SetCfdSPH(fluid_props);
+
+    // The parameters of case 2
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.num_bce_layers = 3;
+    sph_params.initial_spacing = initial_spacing;
+    sph_params.d0_multiplier = 1;
+    sph_params.max_velocity = 1.0;
+    sph_params.shifting_method = ShiftingMethod::NONE;
+    sph_params.density_reinit_steps = 10000;
+    sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    sph_params.use_delta_sph = false;
+    sph_params.eos_type = EosType::ISOTHERMAL;
+    sysSPH.SetSPHParameters(sph_params);
+    sysSPH.SetStepSize(dt);
+
+    ChVector3d size = initial_spacing * ChVector3d(num_x, num_y, num_z);
+    for (int i = 0; i < num_x; i++)
+        for (int j = 0; j < num_y; j++)
+            for (int k = 0; k < num_z; k++)
+                sysSPH.AddSPHParticle(initial_spacing * ChVector3d(i + 0.5, j + 0.5, k + 0.5) - size / 2, fluid_props.density, 0.0, fluid_props.viscosity);
+
+    sysSPH.SetComputationalDomain(ChAABB(-size / 2, size / 2), bc_type);
+    sysSPH.ChFsiFluidSystem::Initialize();  // the base no-arg overload is hidden
+    for (int step = 0; step < num_steps; step++)
+        sysSPH.DoStepDynamics(dt);
+}
+
+void TestDomainTooShortForGrid() {
+    std::cout << "Case 6: a domain too short for the neighbor-search grid" << std::endl;
+
+    // The steps matter only where Initialize accepts the domain: they show that the run proceeds.
+    const int steps = 5;
+
+    struct Domain {
+        int num_x, num_y, num_z;  // box sides, in particle spacings
+        BoundaryConditions bc_type;
+        const char* what;
+        const char* error;  // text the error must contain, or null if the domain is accepted
+    };
+    // An axis 1 spacing long holds no cell, 3 spacings hold 1 cell, 5 hold 2, 7 hold 3 and 21 hold 10.
+    // Each of these lengths is half a cell away from a change in the cell count, so rounding cannot
+    // move it.
+    const Domain domains[] = {
+        {3, 21, 21, BC_X_PERIODIC, "a periodic x axis 1 cell long is rejected", "periodic x axis"},
+        {5, 21, 21, BC_X_PERIODIC, "a periodic x axis 2 cells long is rejected", "periodic x axis"},
+        {21, 5, 21, BC_Y_PERIODIC, "a periodic y axis 2 cells long is rejected", "periodic y axis"},
+        {21, 21, 5, BC_Z_PERIODIC, "a periodic z axis 2 cells long is rejected", "periodic z axis"},
+        {21, 21, 1, BC_NONE, "a non-periodic z axis with no cell is rejected", "along the z axis"},
+        {7, 7, 7, BC_ALL_PERIODIC, "a box periodic on every axis and exactly 3 cells long on each is accepted", nullptr},
+        {3, 21, 21, BC_NONE, "a non-periodic x axis 1 cell long is accepted", nullptr},
+    };
+
+    for (const auto& d : domains) {
+        auto run = [&] { RunFilledDomain(d.num_x, d.num_y, d.num_z, d.bc_type, steps); };
+        if (d.error)
+            ExpectThrowWith(d.what, d.error, run);
+        else
+            ExpectNoThrow(d.what, run);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Run a pair of fluid particles, initially at rest and denser than the rest density so that they
+// repel, in a box periodic on every axis, and return how much their separation grows. The box is 21
+// spacings long on every axis except `axis` (1 for y, 2 for z), which is 25 spacings long, and the
+// pair lies along `axis` at distances `pos_a` and `pos_b` (in spacings) from the lower face.
+double RunRepellingPair(int axis, double pos_a, double pos_b, int num_steps) {
+    ChFsiFluidSystemSPH sysSPH;
+    sysSPH.SetVerbose(false);
+    sysSPH.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+
+    ChFsiFluidSystemSPH::FluidProperties fluid_props;
+    fluid_props.density = 1000;
+    fluid_props.viscosity = 1;
+    sysSPH.SetCfdSPH(fluid_props);
+
+    // The parameters of case 2
+    ChFsiFluidSystemSPH::SPHParameters sph_params;
+    sph_params.integration_scheme = IntegrationScheme::RK2;
+    sph_params.num_bce_layers = 3;
+    sph_params.initial_spacing = initial_spacing;
+    sph_params.d0_multiplier = 1;
+    sph_params.max_velocity = 1.0;
+    sph_params.shifting_method = ShiftingMethod::NONE;
+    sph_params.density_reinit_steps = 10000;
+    sph_params.viscosity_method = ViscosityMethod::LAMINAR;
+    sph_params.use_delta_sph = false;
+    sph_params.eos_type = EosType::ISOTHERMAL;
+    sysSPH.SetSPHParameters(sph_params);
+    sysSPH.SetStepSize(dt);
+
+    ChVector3d size(21, 21, 21);
+    size[axis] = 25;
+    size *= initial_spacing;
+    double period = size[axis];
+
+    // Both particles at the center of the box in the other two directions
+    ChVector3d pos_A = size / 2;
+    ChVector3d pos_B = size / 2;
+    pos_A[axis] = pos_a * initial_spacing;
+    pos_B[axis] = pos_b * initial_spacing;
+    double density = 1.5 * fluid_props.density;
+    sysSPH.AddSPHParticle(pos_A, density, 0.0, fluid_props.viscosity);
+    sysSPH.AddSPHParticle(pos_B, density, 0.0, fluid_props.viscosity);
+
+    sysSPH.SetComputationalDomain(ChAABB(ChVector3d(0, 0, 0), size), BC_ALL_PERIODIC);
+    sysSPH.ChFsiFluidSystem::Initialize();  // the base no-arg overload is hidden
+
+    auto separation = [&](const std::vector<ChVector3d>& pos) {
+        double d = pos[1][axis] - pos[0][axis];
+        return std::abs(d - period * std::round(d / period));
+    };
+    double sep0 = separation(sysSPH.GetParticlePositions());
+    for (int step = 0; step < num_steps; step++)
+        sysSPH.DoStepDynamics(dt);
+    return separation(sysSPH.GetParticlePositions()) - sep0;
+}
+
+void TestPairAcrossPeriodicBoundary() {
+    std::cout << "Case 7: a pair of particles across a periodic boundary" << std::endl;
+
+    const int steps = 40;
+
+    // Along the 25-spacing axis the pair is 1.94 spacings apart, within the kernel support radius of
+    // 2 spacings, with particle A 0.02 spacings above the lower face and particle B 1.92 spacings below
+    // the upper one. Shifted 5 spacings up, the same pair lies inside the box.
+    const char* axis_names[] = {"x", "y", "z"};
+    for (int axis : {1, 2}) {
+        std::string name = std::string("periodic ") + axis_names[axis] + " axis";
+        double grow_inside = 0, grow_across = 0;
+        ExpectNoThrow("pair inside the box along the " + name + " completes", [&] { grow_inside = RunRepellingPair(axis, 5.02, 3.08, steps); });
+        ExpectNoThrow("pair across the boundary of the " + name + " completes", [&] { grow_across = RunRepellingPair(axis, 0.02, 23.08, steps); });
+
+        std::cout << "    " << name << ": separation growth inside " << grow_inside << " m, across the boundary " << grow_across << " m" << std::endl;
+
+        // Measured in single precision, the two growths agree to 4e-5 relative, while a pair that is not
+        // found as neighbors does not move at all, so a 2% tolerance separates the two by far.
+        Check("the pair inside the box along the " + name + " repels", grow_inside > 1e-6);
+        Check("the pair across the boundary of the " + name + " repels as it does inside the box", std::abs(grow_across - grow_inside) < 0.02 * grow_inside);
+    }
+}
+
 int main(int argc, char* argv[]) {
     TestRigidBodyOutsideDomain();
     TestFluidOutsideDomain();
     TestPeriodicImagedBodyActs();
     TestNonPeriodicOutsideBodyExertsNoForce();
     TestMixedPeriodicity();
+    TestDomainTooShortForGrid();
+    TestPairAcrossPeriodicBoundary();
 
     if (num_failures == 0) {
-        std::cout << "\nAll out-of-domain guard checks passed" << std::endl;
+        std::cout << "\nAll domain guard checks passed" << std::endl;
         return 0;
     }
     std::cout << "\n" << num_failures << " check(s) failed" << std::endl;

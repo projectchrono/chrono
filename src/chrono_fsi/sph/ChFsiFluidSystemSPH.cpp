@@ -1572,32 +1572,52 @@ void ChFsiFluidSystemSPH::AddRigidBodyBce(const FsiSphBody& fsisph_body) {
 
 //// TODO - eliminate code duplication in the two versions of Initialize()
 
-// Derive the domain-dependent grid quantities (periodic flags, bin sizes, grid
+// Derive the domain-dependent grid quantities (periodic flags, cell sizes, grid
 // dimensions, world origin, grid bounds) from the current computational domain
-// limits in m_paramsH. Called during Initialize and for post-initialization
-// computational-domain updates.
+// limits in m_paramsH, and check that the domain is long enough for the neighbor
+// search. Called during Initialize only: a post-initialization domain update goes
+// through ApplyComputationalDomain, which accepts only a translation and keeps the
+// grid derived here.
 void ChFsiFluidSystemSPH::DeriveDomainGridQuantities() {
     m_paramsH->x_periodic = m_paramsH->bc_type.x == BCType::PERIODIC;
     m_paramsH->y_periodic = m_paramsH->bc_type.y == BCType::PERIODIC;
     m_paramsH->z_periodic = m_paramsH->bc_type.z == BCType::PERIODIC;
 
-    // Set up subdomains for faster neighbor particle search
+    // Reject an axis with too few neighbor-search cells. The neighbor search visits the cells at
+    // offsets -1, 0, +1 around a particle's cell and wraps the cell index along a periodic axis, so a
+    // periodic axis needs at least 3 cells: with 2, the cells at -1 and +1 are the same cell, with 1,
+    // all three are, and the particles in a repeated cell are counted as neighbors more than once.
+    // Any axis needs at least 1 cell. A cell is at least as long as the kernel support radius.
+    auto check_num_cells = [](const char* axis, Real length, int num_cells, bool periodic, Real cell_size) {
+        int min_cells = periodic ? 3 : 1;
+        if (num_cells >= min_cells)
+            return;
+        auto cells = [](int n) { return std::to_string(n) + (n == 1 ? " cell" : " cells"); };
+        std::ostringstream msg;
+        msg << "The computational domain is too short along the " << (periodic ? "periodic " : "") << axis << " axis: its length " << length << " gives "
+            << cells(std::max(num_cells, 0)) << " of the neighbor-search grid, but " << (periodic ? "a periodic axis" : "an axis") << " needs at least " << min_cells
+            << ". Use a length of at least " << min_cells * cell_size << " (" << cells(min_cells) << " of size " << cell_size << ").";
+        cerr << "ERROR: " << msg.str() << endl;
+        throw std::runtime_error(msg.str());
+    };
+
+    // Set up subdomains for faster neighbor particle search. Each axis holds floor(L / (h_multiplier * h))
+    // cells of its own size, so the cells tile every axis exactly, which a periodic axis requires: a last
+    // cell shorter than the others would leave pairs across the periodic boundary outside each other's
+    // 3 x 3 x 3 block of cells.
     m_paramsH->Apply_BC_U = false;
-    int3 side0 = mI3((int)floor((m_paramsH->cMax.x - m_paramsH->cMin.x) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.y - m_paramsH->cMin.y) / (m_paramsH->h_multiplier * m_paramsH->h)),
-                     (int)floor((m_paramsH->cMax.z - m_paramsH->cMin.z) / (m_paramsH->h_multiplier * m_paramsH->h)));
-    Real3 binSize3 = mR3((m_paramsH->cMax.x - m_paramsH->cMin.x) / side0.x, (m_paramsH->cMax.y - m_paramsH->cMin.y) / side0.y, (m_paramsH->cMax.z - m_paramsH->cMin.z) / side0.z);
-    // Bin size is derived from the x extent (the ternary max(x,y) previously computed
-    // here was dead code: it was immediately overwritten by binSize3.x).
-    m_paramsH->binSize0 = binSize3.x;
     m_paramsH->boxDims = m_paramsH->cMax - m_paramsH->cMin;
     m_paramsH->delta_pressure = mR3(0);
-    int3 SIDE = mI3(int((m_paramsH->cMax.x - m_paramsH->cMin.x) / m_paramsH->binSize0 + .1), int((m_paramsH->cMax.y - m_paramsH->cMin.y) / m_paramsH->binSize0 + .1),
-                    int((m_paramsH->cMax.z - m_paramsH->cMin.z) / m_paramsH->binSize0 + .1));
-    Real mBinSize = m_paramsH->binSize0;
-    m_paramsH->gridSize = SIDE;
+    Real3 length = m_paramsH->boxDims;
+    Real support_radius = m_paramsH->h_multiplier * m_paramsH->h;
+    int3 num_cells = mI3((int)floor(length.x / support_radius), (int)floor(length.y / support_radius), (int)floor(length.z / support_radius));
+    check_num_cells("x", length.x, num_cells.x, m_paramsH->x_periodic, support_radius);
+    check_num_cells("y", length.y, num_cells.y, m_paramsH->y_periodic, support_radius);
+    check_num_cells("z", length.z, num_cells.z, m_paramsH->z_periodic, support_radius);
+    m_paramsH->gridSize = num_cells;
     m_paramsH->worldOrigin = m_paramsH->cMin;
-    m_paramsH->cellSize = mR3(mBinSize, mBinSize, mBinSize);
+    m_paramsH->cellSize = mR3(length.x / num_cells.x, length.y / num_cells.y, length.z / num_cells.z);
+    m_paramsH->binSize0 = m_paramsH->cellSize.x;
 
     // Precompute grid min and max bounds considering whether we have periodic boundaries or not
     m_paramsH->minBounds = make_int3(m_paramsH->x_periodic ? INT_MIN : 0, m_paramsH->y_periodic ? INT_MIN : 0, m_paramsH->z_periodic ? INT_MIN : 0);
