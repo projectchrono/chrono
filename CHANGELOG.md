@@ -552,6 +552,9 @@ replaced throughout by "CRM" (Continuum Representation Model):
   boundaries report zero. `FindParticlesInBox` returns indices in the `ALL` order, as expected by
   the indexed getters, and no longer writes past the end of its output. With implicit SPH, the
   accelerations and forces are no longer off by a factor equal to the particle mass.
+- The new getters `GetParticleStressDiagonal` and `GetParticleStressOffDiagonal` (CRM only) return
+  the diagonal and off-diagonal Cauchy stress components of the markers in a `MarkerGroup`; for a
+  BCE marker, this is the stress extrapolated from the neighboring SPH particles.
 
 Configuration and run-time issues with double-precision Chrono::FSI-SPH builds were also fixed. See
 `demo_FSI-SPH_PlateSinkage` and the YAML-driven `demo_YAML_fsi`.
