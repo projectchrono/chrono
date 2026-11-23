@@ -17,6 +17,7 @@
 // - every getter returns one entry per marker for ALL, and that FLUID and SOLID are exact slices of ALL;
 // - the force on an SPH particle is its mass times its acceleration;
 // - BCE markers on fixed boundaries report zero acceleration and force;
+// - BCE markers on fixed boundaries carry the stress extrapolated from the bed, compressive under its weight;
 // - the forces on the BCE markers of each solid sum to the FSI force on that solid (the plate force, or the sum of
 //   the nodal forces of a mesh), so they are the per-marker fluid loads;
 // - the accelerations of solid BCE markers are those of the solid (the plate acceleration, or the node accelerations
@@ -232,12 +233,17 @@ int main(int argc, char* argv[]) {
     auto frc = sysSPH->GetParticleForces(MarkerGroup::ALL);
     auto prop = sysSPH->GetParticleFluidProperties(MarkerGroup::ALL);
     auto flags = sysSPH->GetFreeSurfaceFlags(MarkerGroup::ALL);
+    auto tau_d = sysSPH->GetParticleStressDiagonal(MarkerGroup::ALL);
+    auto tau_o = sysSPH->GetParticleStressOffDiagonal(MarkerGroup::ALL);
     size_t num_all = pos.size();
 
     check(num_all > first_solid && num_plate > 0, "markers include SPH particles, boundary BCE, and solid BCE");
-    check(vel.size() == num_all && acc.size() == num_all && frc.size() == num_all && prop.size() == num_all && flags.size() == num_all,
+    check(vel.size() == num_all && acc.size() == num_all && frc.size() == num_all && prop.size() == num_all && flags.size() == num_all && tau_d.size() == num_all &&
+              tau_o.size() == num_all,
           "all getters return one entry per marker for ALL");
-    check(sysSPH->GetParticleAccelerations().size() == num_all && sysSPH->GetParticleForces().size() == num_all, "the default group is ALL");
+    check(sysSPH->GetParticleAccelerations().size() == num_all && sysSPH->GetParticleForces().size() == num_all && sysSPH->GetParticleStressDiagonal().size() == num_all &&
+              sysSPH->GetParticleStressOffDiagonal().size() == num_all,
+          "the default group is ALL");
 
     // FLUID and SOLID are exact slices of ALL
     bool slices = true;
@@ -250,9 +256,12 @@ int main(int argc, char* argv[]) {
         auto f = sysSPH->GetParticleForces(group);
         auto r = sysSPH->GetParticleFluidProperties(group);
         auto fl = sysSPH->GetFreeSurfaceFlags(group);
-        slices = slices && p.size() == num && v.size() == num && a.size() == num && f.size() == num && r.size() == num && fl.size() == num;
+        auto sd = sysSPH->GetParticleStressDiagonal(group);
+        auto so = sysSPH->GetParticleStressOffDiagonal(group);
+        slices = slices && p.size() == num && v.size() == num && a.size() == num && f.size() == num && r.size() == num && fl.size() == num && sd.size() == num && so.size() == num;
         slices =
             slices && IsSlice(p, pos, first) && IsSlice(v, vel, first) && IsSlice(a, acc, first) && IsSlice(f, frc, first) && IsSlice(r, prop, first) && IsSlice(fl, flags, first);
+        slices = slices && IsSlice(sd, tau_d, first) && IsSlice(so, tau_o, first);
     }
     check(slices, "FLUID and SOLID results are exact slices of ALL");
 
@@ -271,6 +280,12 @@ int main(int argc, char* argv[]) {
     for (size_t i = num_fluid; i < first_solid; i++)
         walls = walls && acc[i] == VNULL && frc[i] == VNULL;
     check(walls, "BCE markers on fixed boundaries report zero acceleration and force");
+
+    // BCE markers on fixed boundaries: stress extrapolated from the bed, compressive on average under its weight
+    double wall_pressure = 0;
+    for (size_t i = num_fluid; i < first_solid; i++)
+        wall_pressure -= (tau_d[i].x() + tau_d[i].y() + tau_d[i].z()) / 3;
+    check(first_solid > num_fluid && wall_pressure > 0, "BCE markers on fixed boundaries carry the compressive stress of the bed");
 
     // Plate markers: forces sum to the plate force, and accelerations are those of the plate (which does not rotate)
     auto plate_force = fsi.GetFsiBodyForce(plate);

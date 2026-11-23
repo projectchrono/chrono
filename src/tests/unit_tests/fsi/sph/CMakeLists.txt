@@ -1,5 +1,6 @@
 set(TESTS
     utest_FSI-SPH_Poiseuille_flow
+    utest_FSI-SPH_elastic_shear
     utest_FSI-SPH_domain_guard
     utest_FSI-SPH_domain_update
     utest_FSI-SPH_kernel_support

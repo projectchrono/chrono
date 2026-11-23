@@ -297,6 +297,12 @@ struct FsiDataManager {
     /// For each SPH particle, the 3-dimensional vector contains density, pressure, and viscosity.
     std::vector<Real3> GetProperties(MarkerGroup group);
 
+    /// Extract the diagonal stress components (xx, yy, zz) of the markers in the specified group (CRM only).
+    std::vector<Real3> GetStressDiagonal(MarkerGroup group);
+
+    /// Extract the off-diagonal stress components (xy, xz, yz) of the markers in the specified group (CRM only).
+    std::vector<Real3> GetStressOffDiagonal(MarkerGroup group);
+
     /// Extract free-surface identification flags of the markers in the specified group.
     /// A value of 1 marks an SPH particle at or near the free surface. Zero is reported for BCE markers and for SPH
     /// particles that are not active, namely particles in the extended halo of an active domain and particles that

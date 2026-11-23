@@ -3239,6 +3239,34 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleFluidProperties(MarkerGr
     return props;
 }
 
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressDiagonal(MarkerGroup group) const {
+    if (m_paramsH->physics_problem != PhysicsProblem::CRM)
+        throw std::runtime_error("Particle stresses are only available for CRM problems.");
+
+    SynchronizeCopyStream();
+    auto tau3 = m_data_mgr->GetStressDiagonal(group);
+
+    std::vector<ChVector3d> tau;
+    for (const auto& t : tau3)
+        tau.push_back(ToChVector(t));
+
+    return tau;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressOffDiagonal(MarkerGroup group) const {
+    if (m_paramsH->physics_problem != PhysicsProblem::CRM)
+        throw std::runtime_error("Particle stresses are only available for CRM problems.");
+
+    SynchronizeCopyStream();
+    auto tau3 = m_data_mgr->GetStressOffDiagonal(group);
+
+    std::vector<ChVector3d> tau;
+    for (const auto& t : tau3)
+        tau.push_back(ToChVector(t));
+
+    return tau;
+}
+
 //------------------------------------------------------------------------------
 
 std::vector<int> ChFsiFluidSystemSPH::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size, MarkerGroup group) {
