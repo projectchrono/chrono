@@ -239,7 +239,9 @@ __global__ void neighborSearchNum(const Real4* sortedPosRad,
 
     Real3 posRadA = mR3(sortedPosRad[index]);
     int3 gridPos = calcGridPos(posRadA);
-    Real SuppRadii = 2.0f * paramsD.h;
+    // The kernel support radius, as in the force loops. A grid cell is at least this long, so the
+    // 3 x 3 x 3 block of cells around the particle's cell holds all its neighbors.
+    Real SuppRadii = paramsD.h_multiplier * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
     uint j_num = 0;
 
@@ -282,7 +284,8 @@ __global__ void neighborSearchID(const Real4* sortedPosRad,
     }
     Real3 posRadA = mR3(sortedPosRad[index]);
     int3 gridPos = calcGridPos(posRadA);
-    Real SuppRadii = 2.0f * paramsD.h;
+    // Same radius as in neighborSearchNum, which sized the list
+    Real SuppRadii = paramsD.h_multiplier * paramsD.h;
     Real SqRadii = SuppRadii * SuppRadii;
     uint j_num = 1;
     neighborList[numNeighborsPerPart[index]] = index;
