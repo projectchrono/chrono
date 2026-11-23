@@ -61,8 +61,8 @@ struct Observation {
 Observation Observe(const ChFsiFluidSystemSPH& soil, const std::vector<ChVector3d>& initial) {
     auto positions = soil.GetParticlePositions(MarkerGroup::FLUID);
     auto velocities = soil.GetParticleVelocities(MarkerGroup::FLUID);
-    auto diagonal = soil.GetParticleStressDiagonal();
-    auto off_diagonal = soil.GetParticleStressOffDiagonal();
+    auto diagonal = soil.GetParticleStressDiagonal(MarkerGroup::FLUID);
+    auto off_diagonal = soil.GetParticleStressOffDiagonal(MarkerGroup::FLUID);
     Observation result;
     double n = 0, sum_z = 0, sum_u = 0, sum_zz = 0, sum_zu = 0;
     for (size_t i = 0; i < initial.size(); ++i) {
@@ -110,10 +110,14 @@ class DisplacementColor : public ChSphVisualizationVSG::ParticleColorCallback {
 #endif
 
 bool VerifyShear(int layers, [[maybe_unused]] bool render) {
-    constexpr double step = 2e-5;
-    constexpr int steps = 18000;
-    constexpr double duration = 0.36;
+    // Scale the time step with the particle spacing (4e-5 at the default 12 layers) to keep the Courant number fixed.
+    const double step = 4e-5 * 12 / layers;
+    constexpr double duration = 0.18;
+    const int steps = static_cast<int>(std::round(duration / step));
     double spacing = height / layers;
+    int lateral = static_cast<int>(std::round(width / spacing));
+    if (std::abs(lateral * spacing - width) > 1e-6 * width)
+        throw std::invalid_argument("The layer width must be a whole number of particle spacings");
     ChSystemSMC solid;
     solid.SetGravitationalAcceleration(VNULL);
     ChFsiFluidSystemSPH soil;
@@ -143,8 +147,8 @@ bool VerifyShear(int layers, [[maybe_unused]] bool render) {
     sph.num_proximity_search_steps = 1;
     soil.SetSPHParameters(sph);
     std::vector<ChVector3d> initial, bottom, top;
-    for (int x = 0; x < layers; ++x) {
-        for (int y = 0; y < layers; ++y) {
+    for (int x = 0; x < lateral; ++x) {
+        for (int y = 0; y < lateral; ++y) {
             for (int z = 0; z < layers; ++z) {
                 ChVector3d position((x + 0.5) * spacing, (y + 0.5) * spacing, (z + 0.5) * spacing);
                 initial.push_back(position);
@@ -188,8 +192,11 @@ bool VerifyShear(int layers, [[maybe_unused]] bool render) {
     }
 #endif
 
+    // The plate stops at 7/9 of the run; the creep of the base is measured over the last 1/9.
+    const int hold_check = 8 * steps / 9;
     Observation final;
     double hold_bottom = 0;
+    bool hold_recorded = false;
     for (int n = 0; n < steps; ++n) {
         // Ramp the plate velocity up, maintain it, ramp down, then hold at U.
         double phase = std::clamp(9 * (n * step) / duration - 1, 0.0, 6.0);
@@ -202,8 +209,10 @@ bool VerifyShear(int layers, [[maybe_unused]] bool render) {
         system.SynchronizeDevice();
         if (n % 100 == 0 || n + 1 == steps) {
             final = Observe(soil, initial);
-            if (n == 8 * steps / 9)
+            if (!hold_recorded && n >= hold_check) {
                 hold_bottom = final.bottom;
+                hold_recorded = true;
+            }
 #ifdef CHRONO_VSG
             if (visual) {
                 if (!visual->Run())
@@ -214,16 +223,36 @@ bool VerifyShear(int layers, [[maybe_unused]] bool render) {
         }
     }
 
-    double shear_reference = young / (2 * (1 + poisson)) * displacement / height;
-    double shear_error = final.shear / shear_reference - 1;
-    double normal_error = final.normal / pressure - 1;
-    double closure = (final.bottom + final.bulk - displacement) / displacement;
-    double creep = (final.bottom - hold_bottom) / displacement;
-    std::cout << "layers=" << layers << " shear_Pa=" << final.shear << " reference_Pa=" << shear_reference << " relative_shear_error=" << shear_error
-              << " relative_normal_error=" << normal_error << " closure/U=" << closure << " bottom/U=" << final.bottom / displacement << " mean_q/p=" << final.yield_ratio
-              << " hold_creep/U=" << creep << '\n';
-    return std::abs(shear_error) < 0.02 && std::abs(normal_error) < 0.05 && std::abs(closure) < 0.1 && std::abs(final.bottom) < 0.1 * displacement &&
-           final.yield_ratio < 0.9 * bulk_mu && std::abs(creep) < 0.01;
+    // Elastic reference stresses. CRM rotates the stress with the material (Jaumann rate), so the shear strain U/H also
+    // adds G (1 - cos(U/H)) to the vertical compression.
+    double shear_modulus = young / (2 * (1 + poisson));
+    double strain = displacement / height;
+    double shear_reference = shear_modulus * strain;
+    double normal_reference = pressure + shear_modulus * (1 - std::cos(strain));
+    std::cout << "layers=" << layers << " shear=" << final.shear << " reference=" << shear_reference << '\n';
+
+    // Each check passes if the magnitude of its value is below its limit. The q/p limit keeps the layer inside the yield
+    // surface (q/p = mu), where the elastic references apply.
+    struct Check {
+        const char* name;
+        double value;
+        double limit;
+    };
+    const Check checks[] = {
+        {"relative shear stress error", final.shear / shear_reference - 1, 0.02},
+        {"relative normal stress error", final.normal / normal_reference - 1, 0.0005},
+        {"displacement closure / U", (final.bottom + final.bulk - displacement) / displacement, 0.05},
+        {"base slip / U", final.bottom / displacement, 0.05},
+        {"mean q/p", final.yield_ratio, 0.9 * bulk_mu},
+        {"base creep during the hold / U", (final.bottom - hold_bottom) / displacement, 0.001},
+    };
+    bool passed = true;
+    for (const auto& check : checks) {
+        bool ok = std::abs(check.value) < check.limit;
+        std::cout << (ok ? "  pass  " : "  FAIL  ") << check.name << " = " << check.value << " (limit " << check.limit << ")\n";
+        passed = passed && ok;
+    }
+    return passed;
 }
 
 }  // namespace
@@ -231,7 +260,7 @@ bool VerifyShear(int layers, [[maybe_unused]] bool render) {
 int main(int argc, char** argv) {
     try {
         ChCLI cli(argv[0], "Verify confined elastic CRM shear");
-        cli.AddOption<int>("Verification", "layers", "Particles through the layer height (10, 12, or 16)", "12");
+        cli.AddOption<int>("Verification", "layers", "Particles through the layer height (at least 10)", "12");
         cli.AddOption<bool>("Visualization", "vis", "Show the test with VSG");
         if (!cli.Parse(argc, argv, true, false))
             return 1;
@@ -240,8 +269,8 @@ int main(int argc, char** argv) {
             return 0;
         }
         int layers = cli.GetAsType<int>("layers");
-        if (layers != 10 && layers != 12 && layers != 16)
-            throw std::invalid_argument("--layers must be 10, 12, or 16");
+        if (layers < 10)
+            throw std::invalid_argument("--layers must be at least 10 (with fewer, the periodic domain is too narrow for the neighbor search)");
         bool render = cli.GetAsType<bool>("vis");
 #ifndef CHRONO_VSG
         if (render)
