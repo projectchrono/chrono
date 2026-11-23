@@ -336,13 +336,6 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Return SPH particle mass.
     double GetParticleMass() const;
 
-    /// Return the (xx, yy, zz) Cauchy stress components in Pa for each CRM particle in the global frame.
-    /// Normal stress is positive in tension and negative in compression.
-    std::vector<ChVector3d> GetParticleStressDiagonal() const;
-    /// Return the (xy, xz, yz) Cauchy shear stresses in Pa for each CRM particle in the global frame.
-    /// A positive xy component is traction along +x on a face with normal +y.
-    std::vector<ChVector3d> GetParticleStressOffDiagonal() const;
-
     /// Return base pressure.
     double GetBasePressure() const;
 
@@ -400,6 +393,17 @@ class CH_FSI_API ChFsiFluidSystemSPH : public ChFsiFluidSystem {
     /// Return the fluid properties of the markers in the specified group.
     /// For each marker, the 3-dimensional vector contains density, pressure, and viscosity.
     std::vector<ChVector3d> GetParticleFluidProperties(MarkerGroup group = MarkerGroup::ALL) const;
+
+    /// Return the diagonal stress components (xx, yy, zz) of the markers in the specified group (CRM only).
+    /// These are components of the Cauchy stress in the global frame; normal stress is positive in tension. For a BCE
+    /// marker, this is the stress that the boundary condition extrapolated from the neighboring SPH particles during the
+    /// last step, or zero if the marker had no SPH neighbors.
+    std::vector<ChVector3d> GetParticleStressDiagonal(MarkerGroup group = MarkerGroup::ALL) const;
+
+    /// Return the off-diagonal stress components (xy, xz, yz) of the markers in the specified group (CRM only).
+    /// A positive xy component is a traction along +x on a face with normal +y. BCE markers are treated as in
+    /// GetParticleStressDiagonal.
+    std::vector<ChVector3d> GetParticleStressOffDiagonal(MarkerGroup group = MarkerGroup::ALL) const;
 
     /// Return the boundary treatment type.
     BoundaryMethod GetBoundaryType() const { return m_paramsH->boundary_method; }

@@ -738,6 +738,13 @@ static std::vector<Real3> CopyRange(const thrust::device_vector<Real4>& data4_D,
     return data_H;
 }
 
+// Copy the specified range of a device array of Real3 to a host array.
+static std::vector<Real3> CopyRange(const thrust::device_vector<Real3>& data_D, std::pair<size_t, size_t> range) {
+    std::vector<Real3> data_H(range.second - range.first);
+    thrust::copy(data_D.begin() + range.first, data_D.begin() + range.second, data_H.begin());
+    return data_H;
+}
+
 std::vector<Real3> FsiDataManager::GetPositions(MarkerGroup group) {
     return CopyRange(sphMarkers_D->posRadD, GetMarkerRange(group));
 }
@@ -780,6 +787,14 @@ std::vector<Real3> FsiDataManager::GetForces(MarkerGroup group) {
 
 std::vector<Real3> FsiDataManager::GetProperties(MarkerGroup group) {
     return CopyRange(sphMarkers_D->rhoPresMuD, GetMarkerRange(group));
+}
+
+std::vector<Real3> FsiDataManager::GetStressDiagonal(MarkerGroup group) {
+    return CopyRange(sphMarkers_D->tauXxYyZzD, GetMarkerRange(group));
+}
+
+std::vector<Real3> FsiDataManager::GetStressOffDiagonal(MarkerGroup group) {
+    return CopyRange(sphMarkers_D->tauXyXzYzD, GetMarkerRange(group));
 }
 
 // Predicate selecting the markers whose free-surface flag is meaningful: active fluid particles.

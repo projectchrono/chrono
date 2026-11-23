@@ -3169,30 +3169,6 @@ size_t ChFsiFluidSystemSPH::GetNumBoundaryMarkers() const {
 
 //------------------------------------------------------------------------------
 
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressDiagonal() const {
-    if (GetPhysicsProblem() != PhysicsProblem::CRM)
-        throw std::logic_error("Particle stress requires CRM");
-    SynchronizeCopyStream();
-    thrust::host_vector<Real3> values = m_data_mgr->sphMarkers_D->tauXxYyZzD;
-    std::vector<ChVector3d> result;
-    result.reserve(m_data_mgr->countersH->numFluidMarkers);
-    for (size_t i = 0; i < m_data_mgr->countersH->numFluidMarkers; ++i)
-        result.push_back(ToChVector(values[i]));
-    return result;
-}
-
-std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressOffDiagonal() const {
-    if (GetPhysicsProblem() != PhysicsProblem::CRM)
-        throw std::logic_error("Particle stress requires CRM");
-    SynchronizeCopyStream();
-    thrust::host_vector<Real3> values = m_data_mgr->sphMarkers_D->tauXyXzYzD;
-    std::vector<ChVector3d> result;
-    result.reserve(m_data_mgr->countersH->numFluidMarkers);
-    for (size_t i = 0; i < m_data_mgr->countersH->numFluidMarkers; ++i)
-        result.push_back(ToChVector(values[i]));
-    return result;
-}
-
 std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticlePositions(MarkerGroup group) const {
     auto pos3 = GetPositions(group);
 
@@ -3241,6 +3217,34 @@ std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleFluidProperties(MarkerGr
         props.push_back(ToChVector(p));
 
     return props;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressDiagonal(MarkerGroup group) const {
+    if (m_paramsH->physics_problem != PhysicsProblem::CRM)
+        throw std::runtime_error("Particle stresses are only available for CRM problems.");
+
+    SynchronizeCopyStream();
+    auto tau3 = m_data_mgr->GetStressDiagonal(group);
+
+    std::vector<ChVector3d> tau;
+    for (const auto& t : tau3)
+        tau.push_back(ToChVector(t));
+
+    return tau;
+}
+
+std::vector<ChVector3d> ChFsiFluidSystemSPH::GetParticleStressOffDiagonal(MarkerGroup group) const {
+    if (m_paramsH->physics_problem != PhysicsProblem::CRM)
+        throw std::runtime_error("Particle stresses are only available for CRM problems.");
+
+    SynchronizeCopyStream();
+    auto tau3 = m_data_mgr->GetStressOffDiagonal(group);
+
+    std::vector<ChVector3d> tau;
+    for (const auto& t : tau3)
+        tau.push_back(ToChVector(t));
+
+    return tau;
 }
 
 //------------------------------------------------------------------------------
