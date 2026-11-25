@@ -47,6 +47,10 @@ RUN git clone --recursive -b ${CHRONO_BRANCH} ${CHRONO_REPO} ${CHRONO_DIR}
 INCLUDE ./cuda.dockerfile
 INCLUDE ./ros.dockerfile
 
+# Apply the build parallelism limit to module dependencies and Chrono.
+# Keep toolkit installation above this ARG so its cached layers can be reused.
+ARG CMAKE_BUILD_PARALLEL_LEVEL
+
 # Then include the snippets for the modules you want to install
 INCLUDE ./ch_ros.dockerfile
 INCLUDE ./ch_vsg.dockerfile
@@ -65,7 +69,7 @@ INCLUDE ./ch_python.dockerfile
 # Optional additional modules enabled for this image.
 #
 # Keep ch_pardisomkl before ch_mumps: MUMPS is built against Intel MKL.
-# CUDA-dependent modules rely on cuda.dockerfile, included above.
+# GPU modules need a GPU toolkit snippet (currently cuda.dockerfile above).
 # Enabling all modules produces a large image and a long build.
 # ---------------------------------------------------------------------------
 INCLUDE ./ch_cascade.dockerfile
@@ -93,8 +97,6 @@ INCLUDE ./ch_postprocess.dockerfile
 # build time; what it costs is binary size. Set this to a concrete compute capability to
 # target one GPU. Never set it to "native" -- with no GPU visible that is a FATAL_ERROR.
 ARG CHRONO_CUDA_ARCHITECTURES=""
-# Limit build parallelism without rebuilding dependency layers.
-ARG CMAKE_BUILD_PARALLEL_LEVEL
 RUN eval "${PRE_BUILD_SCRIPTS} true" && \
     # Evaluate the cmake options to expand any $(...) commands or variables
     eval "_CMAKE_OPTIONS=\"${CMAKE_OPTIONS}\"" && \

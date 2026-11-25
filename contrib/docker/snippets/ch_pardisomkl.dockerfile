@@ -29,8 +29,9 @@ RUN sudo apt update && \
     sudo apt install --no-install-recommends -y intel-oneapi-mkl-devel-2024.2 && \
     sudo apt clean && sudo apt autoremove -y && sudo rm -rf /var/lib/apt/lists/*
 
-# Source oneAPI environment in shell startup so MKLROOT etc. are set
-RUN echo ". /opt/intel/oneapi/setvars.sh --force > /dev/null 2>&1" >> ${USERSHELLPROFILE}
+# Pass arguments through SETVARS_ARGS so sourcing works with dash as well as bash.
+# Keep initialization output visible for diagnostics.
+RUN echo "SETVARS_ARGS=--force . /opt/intel/oneapi/setvars.sh" >> ${USERSHELLPROFILE}
 
 # Match the runtime environment recommended by the Chrono::PardisoMKL guide.
 ENV MKL_INTERFACE_LAYER=LP64
@@ -43,4 +44,4 @@ ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} \
     -DMKL_DIR=/opt/intel/oneapi/mkl/latest/lib/cmake/mkl"
 
 # Source oneAPI before building so the compiler sees MKL libraries
-ENV PRE_BUILD_SCRIPTS="${PRE_BUILD_SCRIPTS} . /opt/intel/oneapi/setvars.sh --force > /dev/null 2>&1 &&"
+ENV PRE_BUILD_SCRIPTS="${PRE_BUILD_SCRIPTS} SETVARS_ARGS=--force . /opt/intel/oneapi/setvars.sh &&"

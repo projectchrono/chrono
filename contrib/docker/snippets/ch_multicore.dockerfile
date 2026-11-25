@@ -1,37 +1,23 @@
 # SPDX-License-Identifier: MIT
-# This snippet installs necessary dependencies for Chrono::Multicore
-# Builds Blaze (header-only linear algebra library) from source.
-#
-# Note on Blaze CMake variables:
-# The public Chrono::Multicore installation guide may refer to Blaze_ROOT_DIR.
-# In this source tree, however, the active finder documents and consumes the
-# lower-case variables below:
-#
-#   - cmake/FindBlaze.cmake:
-#       * blaze_DIR: directory containing the Blaze package config script
-#       * blaze_INCLUDE_DIR: directory containing the subdirectory "blaze/"
-#   - src/chrono_multicore/CMakeLists.txt:
-#       * calls find_package(Blaze REQUIRED)
-#       * reports that users should set blaze_INCLUDE_DIR or blaze_DIR if
-#         Blaze cannot be found
-#   - contrib/build-scripts/linux/buildBlaze.sh:
-#       * installs Blaze's CMake package files under share/blaze/cmake
-#       * installs Blaze headers under include/blaze
-#
-# Pass both the package config directory and the include directory explicitly.
-# This follows the current CMake code path and keeps configure-time discovery
-# deterministic even if the documentation still mentions the older variable.
+# Chrono::Multicore uses OpenMP and Thrust's host backend; it needs no GPU.
+# Use CUDA's Thrust headers when available. CPU-only and AMD/HIP images need
+# a stand-alone Thrust, since Chrono does not use rocThrust for host targets.
 
-ARG CHRONO_DIR
 ARG PACKAGE_DIR
-ARG USERSHELLPROFILE
+ARG THRUST_VERSION="1.17.2"
 
-# Build Blaze
-RUN cd ${CHRONO_DIR}/contrib/build-scripts/linux/ && \
-    bash buildBlaze.sh ${PACKAGE_DIR}/blaze
+RUN if [ ! -f /usr/local/cuda/include/thrust/version.h ] && \
+       [ ! -f /usr/local/cuda/include/cccl/thrust/version.h ]; then \
+        thrust_tmp="$(mktemp -d)" && \
+        wget -qO "${thrust_tmp}/thrust.tar.gz" \
+            "https://github.com/NVIDIA/thrust/archive/refs/tags/${THRUST_VERSION}.tar.gz" && \
+        mkdir -p "${PACKAGE_DIR}/thrust" && \
+        tar -xzf "${thrust_tmp}/thrust.tar.gz" --strip-components=1 -C "${PACKAGE_DIR}/thrust" && \
+        rm -rf "${thrust_tmp}"; \
+    fi
 
-# Update CMake options
+# The fallback prefix is searched first; otherwise FindThrust uses the CUDA toolkit.
 ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} \
     -DCH_ENABLE_MODULE_MULTICORE=ON \
-    -Dblaze_DIR=${PACKAGE_DIR}/blaze/share/blaze/cmake \
-    -Dblaze_INCLUDE_DIR=${PACKAGE_DIR}/blaze/include"
+    -DCH_ENABLE_OPENMP=ON \
+    -DThrust_ROOT=${PACKAGE_DIR}/thrust"
