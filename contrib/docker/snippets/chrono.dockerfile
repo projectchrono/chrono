@@ -83,6 +83,7 @@ INCLUDE ./ch_multicore.dockerfile
 INCLUDE ./ch_mumps.dockerfile
 INCLUDE ./ch_peridynamics.dockerfile
 INCLUDE ./ch_postprocess.dockerfile
+INCLUDE ./ch_opencrg.dockerfile
 
 # Install Chrono
 #
