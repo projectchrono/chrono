@@ -39,8 +39,9 @@ RUN sudo apt update && \
          sudo apt install --no-install-recommends -y freeglut3-dev) && \
         sudo apt clean && sudo apt autoremove -y && sudo rm -rf /var/lib/apt/lists/*
 
-# Clone Chrono before running the snippets
-RUN git clone --recursive -b ${CHRONO_BRANCH} ${CHRONO_REPO} ${CHRONO_DIR}
+# Shallow-clone Chrono and its submodules before running the snippets.
+RUN git clone --depth 1 --recursive --shallow-submodules \
+    -b ${CHRONO_BRANCH} ${CHRONO_REPO} ${CHRONO_DIR}
 
 # Include the snippets which install shared dependencies
 # These can be commented out or removed if they are no longer needed
@@ -113,7 +114,8 @@ RUN eval "${PRE_BUILD_SCRIPTS} true" && \
         -DCHRONO_CUDA_ARCHITECTURES="${CHRONO_CUDA_ARCHITECTURES}" \
         ${_CMAKE_OPTIONS} && \
     cmake --build build && \
-    cmake --install build
+    cmake --install build && \
+    rm -rf build
 
 
 # Update shell config

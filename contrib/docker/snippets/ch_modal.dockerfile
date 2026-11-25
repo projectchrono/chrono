@@ -27,9 +27,12 @@ ARG CHRONO_DIR
 ARG PACKAGE_DIR
 ARG USERSHELLPROFILE
 
-# Build Spectra
-RUN cd ${CHRONO_DIR}/contrib/build-scripts/linux/ && \
-    bash buildSpectra.sh ${PACKAGE_DIR}/spectra
+# Keep dependency sources and build files out of the image layer.
+RUN spectra_tmp="$(mktemp -d)" && \
+    cd "${spectra_tmp}" && \
+    bash -e "${CHRONO_DIR}/contrib/build-scripts/linux/buildSpectra.sh" "${PACKAGE_DIR}/spectra" && \
+    cd / && \
+    rm -rf "${spectra_tmp}"
 
 # Update CMake options
 ENV CMAKE_OPTIONS="${CMAKE_OPTIONS} \

@@ -30,12 +30,10 @@ RUN sudo apt update && sudo apt install -y --no-install-recommends \
 # for that case.
 
 # Get optix script at https://developer.nvidia.com/designworks/optix/downloads/legacy
-# OptiX
-COPY ${OPTIX_SCRIPT} /tmp/optix.sh
-RUN sudo chmod +x /tmp/optix.sh && \
-    mkdir -p ${PACKAGE_DIR}/optix && \
-    /tmp/optix.sh --prefix=${PACKAGE_DIR}/optix --skip-license && \
-    sudo rm /tmp/optix.sh
+# Mount the installer only for this RUN so it is not retained in a COPY layer.
+RUN --mount=type=bind,source=${OPTIX_SCRIPT},target=/tmp/optix.sh \
+    mkdir -p "${PACKAGE_DIR}/optix" && \
+    sh /tmp/optix.sh --prefix="${PACKAGE_DIR}/optix" --skip-license
 
 # Update CMake options
 #
