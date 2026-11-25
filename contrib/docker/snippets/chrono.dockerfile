@@ -39,13 +39,18 @@ RUN sudo apt update && \
          sudo apt install --no-install-recommends -y freeglut3-dev) && \
         sudo apt clean && sudo apt autoremove -y && sudo rm -rf /var/lib/apt/lists/*
 
-# Clone Chrono before running the snippets
-RUN git clone --recursive -b ${CHRONO_BRANCH} ${CHRONO_REPO} ${CHRONO_DIR}
+# Shallow-clone Chrono and its submodules before running the snippets.
+RUN git clone --depth 1 --recursive --shallow-submodules \
+    -b ${CHRONO_BRANCH} ${CHRONO_REPO} ${CHRONO_DIR}
 
 # Include the snippets which install shared dependencies
 # These can be commented out or removed if they are no longer needed
 INCLUDE ./cuda.dockerfile
 INCLUDE ./ros.dockerfile
+
+# Apply the build parallelism limit to module dependencies and Chrono.
+# Keep toolkit installation above this ARG so its cached layers can be reused.
+ARG CMAKE_BUILD_PARALLEL_LEVEL
 
 # Then include the snippets for the modules you want to install
 INCLUDE ./ch_ros.dockerfile
@@ -61,6 +66,25 @@ INCLUDE ./ch_python.dockerfile
 # uncommenting once SynChrono is updated for the new toolchain.
 # INCLUDE ./ch_synchrono.dockerfile
 
+# ---------------------------------------------------------------------------
+# Optional additional modules enabled for this image.
+#
+# Keep ch_pardisomkl before ch_mumps: MUMPS is built against Intel MKL.
+# GPU modules need a GPU toolkit snippet (currently cuda.dockerfile above).
+# Enabling all modules produces a large image and a long build.
+# ---------------------------------------------------------------------------
+INCLUDE ./ch_cascade.dockerfile
+INCLUDE ./ch_csharp.dockerfile
+INCLUDE ./ch_dem.dockerfile
+INCLUDE ./ch_fmi.dockerfile
+INCLUDE ./ch_fsi.dockerfile
+INCLUDE ./ch_pardisomkl.dockerfile
+INCLUDE ./ch_modal.dockerfile
+INCLUDE ./ch_multicore.dockerfile
+INCLUDE ./ch_mumps.dockerfile
+INCLUDE ./ch_peridynamics.dockerfile
+INCLUDE ./ch_postprocess.dockerfile
+INCLUDE ./ch_opencrg.dockerfile
 
 # Install Chrono
 #
@@ -75,12 +99,11 @@ INCLUDE ./ch_python.dockerfile
 # build time; what it costs is binary size. Set this to a concrete compute capability to
 # target one GPU. Never set it to "native" -- with no GPU visible that is a FATAL_ERROR.
 ARG CHRONO_CUDA_ARCHITECTURES=""
-RUN ${PRE_BUILD_SCRIPTS} && \
+RUN eval "${PRE_BUILD_SCRIPTS} true" && \
     # Evaluate the cmake options to expand any $(...) commands or variables
     eval "_CMAKE_OPTIONS=\"${CMAKE_OPTIONS}\"" && \
-    mkdir ${CHRONO_DIR}/build && \
-    cd ${CHRONO_DIR}/build && \
-    cmake ../ -G Ninja \
+    cd ${CHRONO_DIR} && \
+    cmake -B build -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_DEMOS=OFF \
         -DBUILD_BENCHMARKING=OFF \
@@ -89,9 +112,10 @@ RUN ${PRE_BUILD_SCRIPTS} && \
         -DEigen3_DIR=/usr/share/eigen3/cmake \
         -DCMAKE_INSTALL_PREFIX=${CHRONO_INSTALL_DIR} \
         -DCHRONO_CUDA_ARCHITECTURES="${CHRONO_CUDA_ARCHITECTURES}" \
-        ${_CMAKE_OPTIONS} \
-        && \
-    ninja && ninja install
+        ${_CMAKE_OPTIONS} && \
+    cmake --build build && \
+    cmake --install build && \
+    rm -rf build
 
 
 # Update shell config
