@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development branch)](#unreleased-development-branch)
+  - [\[Changed\] Renamed ChForce methods](#changed-renamed-chforce-methods)
   - [\[Added\] Prescribed frame acceleration for FSI and preCICE simulations](#added-prescribed-frame-acceleration-for-fsi-and-precice-simulations)
   - [\[Changed\] Newton convergence test of implicit integrators](#changed-newton-convergence-test-of-implicit-integrators)
   - [\[Changed\] Frame convention and reference point for hydrodynamic added mass](#changed-frame-convention-and-reference-point-for-hydrodynamic-added-mass)
@@ -154,6 +155,26 @@ Change Log
 - [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch) 
+
+## [Changed] Renamed ChForce methods
+
+The methods of `ChForce` were renamed to say which quantity they set or return and in which frame. The getters of vector quantities now return const references.
+
+| Old name                                     | New name                                                                              |
+| :------------------------------------------- | :------------------------------------------------------------------------------------ |
+| `SetAlign`, `GetAlign`                       | `SetAlignment`, `GetAlignment`                                                        |
+| `SetVpoint`, `GetVpoint`                     | `SetApplicationPointAbs`, `GetApplicationPointAbs`                                    |
+| `SetVrelpoint`, `GetVrelpoint`               | `SetApplicationPointRel`, `GetApplicationPointRel`                                    |
+| `SetDir`, `GetDir`                           | `SetDirAbs`, `GetDirAbs`                                                              |
+| `SetRelDir`, `GetRelDir`                     | `SetDirRel`, `GetDirRel`                                                              |
+| `SetMforce`, `GetMforce`                     | `SetForceMagnitude`, `GetForceMagnitude`                                              |
+| `SetModulation`, `GetModulation`             | `SetMagnitudeModulation`, `GetMagnitudeModulation`                                    |
+| `SetF_x`, `SetF_y`, `SetF_z` (and getters)   | `SetForceModulationX`, `SetForceModulationY`, `SetForceModulationZ` (and getters)     |
+| `SetMove_x`, `SetMove_y`, `SetMove_z` (and getters) | `SetApplicationPointModulationX`, `SetApplicationPointModulationY`, `SetApplicationPointModulationZ` (and getters) |
+| `GetForce`, `GetRelForce`                    | `GetTotalForceAbs`, `GetTotalForceRel`                                                |
+| `GetForceMod`                                | removed; use `GetTotalForceAbs().Length()`                                            |
+
+The Python and C# wrappers use the new names.
 
 ## [Added] Prescribed frame acceleration for FSI and preCICE simulations
 
