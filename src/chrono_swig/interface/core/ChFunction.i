@@ -134,6 +134,39 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 // Cross-inheritance for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
+#ifdef SWIGPYTHON
+// A shared_ptr to a director keeps its C++ object alive. Its Python peer owns
+// the overrides and is otherwise only borrowed by SWIG. Tie one Python
+// reference to the shared ownership passed to a motor, load, or function.
+%fragment("ChKeepFunctionDirector", "header") {
+    #include "chrono/functions/ChFunctionBase.h"
+    struct ChFunctionDirectorOwner {
+        std::shared_ptr<chrono::ChFunction> function;
+        void operator()(PyObject* peer) const {
+            auto gil = PyGILState_Ensure();
+            Py_DECREF(peer);
+            PyGILState_Release(gil);
+        }
+    };
+    static std::shared_ptr<chrono::ChFunction> ChKeepFunctionDirector(const std::shared_ptr<chrono::ChFunction>& function) {
+        auto director = dynamic_cast<Swig::Director*>(function.get());
+        if (!director || std::get_deleter<ChFunctionDirectorOwner>(function))
+            return function;
+        auto peer = director->swig_get_self();
+        Py_INCREF(peer);
+        std::shared_ptr<PyObject> owner(peer, ChFunctionDirectorOwner{function});
+        return std::shared_ptr<chrono::ChFunction>(owner, function.get());
+    }
+}
+%typemap(check, fragment="ChKeepFunctionDirector") std::shared_ptr<chrono::ChFunction> {
+    $1 = ChKeepFunctionDirector($1);
+}
+%typemap(check, fragment="ChKeepFunctionDirector") const std::shared_ptr<chrono::ChFunction>&
+    (std::shared_ptr<chrono::ChFunction> pinned) {
+    pinned = ChKeepFunctionDirector(*$1);
+    $1 = &pinned;
+}
+#endif
 %feature("director") chrono::ChFunctionSetpoint;
 %feature("director") chrono::ChFunctionSetpointCallback;
 %feature("director") chrono::ChFunctionPosition;
